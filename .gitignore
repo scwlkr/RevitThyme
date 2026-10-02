@@ -1,0 +1,30 @@
+# Local settings and credentials
+/config/local.json
+*.local.json
+.env
+.env.*
+!.env.example
+
+# Runtimes and builds
+.venv/
+venv/
+__pycache__/
+*.pyc
+bin/
+obj/
+.vs/
+node_modules/
+
+# Generated or private project data
+/runs/
+/artifacts/
+/logs/
+/packages/
+/private/
+*.rvt
+*.rfa
+*.rte
+*.rft
+*.dwg
+*.dxf
+*.zip

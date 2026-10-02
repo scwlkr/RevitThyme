@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "product": "RevitThyme",
+  "checked_at_utc": "2026-10-02T21:55:35.1535030Z",
+  "scope": "project_diagnostic_failure_modes",
+  "windows_powershell_51_valid_checkout_passed": true,
+  "missing_source_exit_code": 1,
+  "invalid_json_exit_code": 1,
+  "passed": true,
+  "live_revit_checked": false,
+  "source_models_modified": false
+}

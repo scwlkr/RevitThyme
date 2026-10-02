@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "product": "RevitThyme",
+  "checked_at_utc": "2026-10-02T21:54:32.6506998Z",
+  "scope": "read_only_project_structure_and_external_source_references",
+  "live_revit_checked": false,
+  "host_execution_checked": false,
+  "timberfold_generation_run": false,
+  "configuration_mode": "example",
+  "suite_version": "0.1.0",
+  "suite_stage": "project_foundation",
+  "passed": true,
+  "check_count": 42,
+  "checks": [
+    {
+      "name": "Required file: README.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\README.md"
+    },
+    {
+      "name": "Required file: PROJECT.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\PROJECT.md"
+    },
+    {
+      "name": "Required file: AGENTS.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\AGENTS.md"
+    },
+    {
+      "name": "Required file: CHANGELOG.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\CHANGELOG.md"
+    },
+    {
+      "name": "Required file: docs/ARCHITECTURE.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\ARCHITECTURE.md"
+    },
+    {
+      "name": "Required file: docs/ROADMAP.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\ROADMAP.md"
+    },
+    {
+      "name": "Required file: docs/DEPLOYMENT.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\DEPLOYMENT.md"
+    },
+    {
+      "name": "Required file: tools/timberfold/README.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\tools\\timberfold\\README.md"
+    },
+    {
+      "name": "Required file: suite.json",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\suite.json"
+    },
+    {
+      "name": "Required file: config/local.example.json",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\config\\local.example.json"
+    },
+    {
+      "name": "Required file: src/README.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\src\\README.md"
+    },
+    {
+      "name": "Required file: verification/README.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\verification\\README.md"
+    },
+    {
+      "name": "Suite metadata JSON",
+      "passed": true,
+      "detail": "Valid JSON."
+    },
+    {
+      "name": "Suite identity",
+      "passed": true,
+      "detail": "Expected product ID revitthyme and display name RevitThyme."
+    },
+    {
+      "name": "Suite schema and version",
+      "passed": true,
+      "detail": "Schema 1 and a three-part foundation/product version."
+    },
+    {
+      "name": "At least one registered tool",
+      "passed": true,
+      "detail": "Tool registry must identify its manifests."
+    },
+    {
+      "name": "Local configuration JSON",
+      "passed": true,
+      "detail": "Valid JSON."
+    },
+    {
+      "name": "Local configuration schema",
+      "passed": true,
+      "detail": "Schema 1 is supported."
+    },
+    {
+      "name": "Unique tool ID: timberfold",
+      "passed": true,
+      "detail": "Each tool requires a nonempty unique ID."
+    },
+    {
+      "name": "Tool manifest JSON: timberfold",
+      "passed": true,
+      "detail": "Valid JSON."
+    },
+    {
+      "name": "Tool manifest identity: timberfold",
+      "passed": true,
+      "detail": "Registry and manifest IDs must match; schema 1 is supported."
+    },
+    {
+      "name": "Unique operation: timberfold_inspect",
+      "passed": true,
+      "detail": "Operation names are required and unique within a tool."
+    },
+    {
+      "name": "Unique operation: timberfold_preview",
+      "passed": true,
+      "detail": "Operation names are required and unique within a tool."
+    },
+    {
+      "name": "Unique operation: timberfold_generate",
+      "passed": true,
+      "detail": "Operation names are required and unique within a tool."
+    },
+    {
+      "name": "Unique operation: timberfold_verify",
+      "passed": true,
+      "detail": "Operation names are required and unique within a tool."
+    },
+    {
+      "name": "Source directory: timberfold",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold"
+    },
+    {
+      "name": "Source instructions: timberfold/PROJECT.md",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold\\PROJECT.md"
+    },
+    {
+      "name": "Source instructions: timberfold/README.md",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold\\README.md"
+    },
+    {
+      "name": "Source instructions: timberfold/AGENTS.md",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold\\AGENTS.md"
+    },
+    {
+      "name": "Source entry: timberfold/revit_launcher",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold\\scripts\\launcher.py"
+    },
+    {
+      "name": "Source entry: timberfold/offline_pipeline",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold\\scripts\\run_pipeline.py"
+    },
+    {
+      "name": "Source entry: timberfold/settings",
+      "passed": true,
+      "detail": "C:\\Revit\\TimberFold\\prototype-settings.json"
+    },
+    {
+      "name": "Markdown link: PROJECT.md -> docs/ARCHITECTURE.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\ARCHITECTURE.md"
+    },
+    {
+      "name": "Markdown link: PROJECT.md -> docs/ROADMAP.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\ROADMAP.md"
+    },
+    {
+      "name": "Markdown link: README.md -> PROJECT.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\PROJECT.md"
+    },
+    {
+      "name": "Markdown link: README.md -> docs/ARCHITECTURE.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\ARCHITECTURE.md"
+    },
+    {
+      "name": "Markdown link: README.md -> docs/ROADMAP.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\ROADMAP.md"
+    },
+    {
+      "name": "Markdown link: README.md -> tools/timberfold/README.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\tools\\timberfold\\README.md"
+    },
+    {
+      "name": "Markdown link: README.md -> docs/DEPLOYMENT.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\docs\\DEPLOYMENT.md"
+    },
+    {
+      "name": "Markdown link: README.md -> AGENTS.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\AGENTS.md"
+    },
+    {
+      "name": "Markdown link: README.md -> CHANGELOG.md",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\CHANGELOG.md"
+    },
+    {
+      "name": "Markdown link: README.md -> tool.json",
+      "passed": true,
+      "detail": "C:\\Revit\\RevitThyme\\tools\\timberfold\\tool.json"
+    }
+  ],
+  "sources": [
+    {
+      "tool_id": "timberfold",
+      "source_root": "C:\\Revit\\TimberFold",
+      "reference_commit": "4d8873fb7be5c100dbe3f3a41899b7c5e4a41f0e",
+      "current_commit": "4d8873fb7be5c100dbe3f3a41899b7c5e4a41f0e",
+      "reference_matches_current": true,
+      "source_state": "clean",
+      "integration_status": "registered_only"
+    }
+  ]
+}

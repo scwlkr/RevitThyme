@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "revitthyme",
+  "name": "RevitThyme",
+  "version": "0.1.0",
+  "stage": "project_foundation",
+  "initial_revit_target": 2027,
+  "host": {
+    "development_adapter": "pyrevit",
+    "native_pilot": "csharp",
+    "implementation_status": "planned"
+  },
+  "tools": [
+    { "id": "timberfold", "manifest": "tools/timberfold/tool.json" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "name": "RevitThyme",
+  "team": "WLKR LABS",
+  "linear_project": "https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9",
+  "hashes": {
+    "tools/project-cli/Cargo.lock": "9fef4956cc51ccfadd707e9ddf00793ded26561f279bbc06444b4238ebce47ab",
+    "tools/project-cli/Cargo.toml": "0d5db2ea6655e6dd1bc6f1f5ba73473af645915b94926669c318d52317ee3487",
+    "tools/project-cli/src/main.rs": "31d41ef1e3ff09c7a26c7e2723c2ce6d55834ec0ee160119adefb378ffbaba41",
+    "project": "e816b58bc515d34602944f3151c03e47220f0281f6ddf4fc11b26a98af503b5c",
+    "tools/project-cli/src/routes.rs": "58933628e0c52d7999f10bfee282d43c27980a380034b80d7bf8c8dafd9e8f03",
+    "agent_block": "33e333da57626b5b7914111d8c5257ac57983ace90f5d778a54a4da9874687b5"
+  }
+}

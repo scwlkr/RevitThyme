@@ -25,10 +25,12 @@ RevitThyme is an add-in/tool-suite project for Autodesk Revit, not a modified di
 From PowerShell in `C:\Revit\RevitThyme`:
 
 ```powershell
-& .\scripts\check-project.ps1
+.\project.cmd check-project
 ```
 
-The check reads project metadata and the external TimberFold checkout. It does not connect to Revit, run TimberFold, install dependencies or modify source files. Passing this check confirms the foundation's files and local source references; it does not confirm a working RevitThyme host.
+The Rust CLI requires an existing Rust/Cargo toolchain. Use `.\project.cmd --help` for commands and `.\project.cmd doctor` for prerequisites. The Unix-shell spelling is `./project check-project`; Revit and the diagnostic require Windows. The CLI is scaffolded and its runtime verification is pending; see [SETUP-TODO.md](SETUP-TODO.md) for the prerequisite and bootstrap diagnostic.
+
+The diagnostic reads project metadata and the external TimberFold checkout. It does not connect to Revit, run TimberFold, install dependencies or modify source files. Passing it confirms the foundation's files and local source references; it does not confirm a working RevitThyme host.
 
 `config/local.example.json` resolves TimberFold as `../TimberFold`, relative to this project root. For a different location, copy it to `config/local.json` and edit the tool root. The local file is ignored by Git. The checked-in example contains no credentials.
 

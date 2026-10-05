@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — 2026-10-05 — Development setup
+
+- Add wstack development standards and WLKR LABS Linear routing while preserving Revit-specific constraints and external TimberFold ownership.
+- Scaffold a dependency-free Rust project CLI, connect the existing structural diagnostic with argument forwarding, and add a Windows command launcher.
+- Record stack exceptions, missing Rust/Cargo, the setup checker's Windows launcher limitation, and pending CLI/runtime and local CI evidence in SETUP-TODO.md.
+
+This setup adds no Revit host behavior; the CLI has not been compiled or exercised through Rust on this machine.
+
 ## 0.1.0 — 2026-10-02 — Project foundation
 
 - Establish RevitThyme as a separate local Revit suite/host project.

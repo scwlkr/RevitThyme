@@ -13,6 +13,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 - Keep the host's responsibilities separate from each tool's implementation.
 - Preserve TimberFold at **C:\Revit\TimberFold**, including its repository, working installation, baselines and generated artifacts.
 - Support future use through a Revit interface and MCP, with a release that can be installed on a second computer.
+- Use wstack project instructions and a Rust CLI for repository automation; retain the Revit-specific host/worker languages. Track substantive work in the [RevitThyme Linear project](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9) under WLKR LABS. Setup does not install toolchains or migrate the product.
 
 ## Working implementation plan
 
@@ -28,6 +29,7 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | --- | --- |
 | Project docs and local tool registry | Created in this foundation |
 | Read-only project diagnostic | Implemented in `scripts/check-project.ps1` |
+| Project automation CLI | Rust scaffold and `check-project` route created; Windows launcher provided; compilation/runtime pending an installed Rust/Cargo toolchain |
 | TimberFold implementation | Existing external checkout; registered, not integrated into RevitThyme |
 | RevitThyme pyRevit adapter | Planned |
 | Native C# host | Planned |
@@ -57,3 +59,5 @@ The TimberFold docs record completed digital workflows, including Cedar Cottage,
 ## Project continuity
 
 Keep accepted decisions here, architecture in docs/ARCHITECTURE.md and completed work in CHANGELOG.md. Record future runs with source revision, host/tool versions, settings and verification scope. Use local Git checkpoints; no remote is configured by this foundation.
+
+The setup handoff and explicit stack exceptions are in [SETUP-TODO.md](SETUP-TODO.md). Setup is tracked as [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). Local CI alignment and live Revit verification remain separate, pending work.

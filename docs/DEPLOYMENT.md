@@ -14,7 +14,7 @@ Download RevitThyme-0.2.0.zip and its .sha256 from GitHub Releases. Compare Get-
 & .\scripts\install.ps1
 ```
 
-The installer verifies payload hashes and copies only extension code into %APPDATA%\pyRevit\Extensions\RevitThyme.extension. A new install may be staged while Revit runs; reload pyRevit to load it. Updating or uninstalling requires closing Revit yourself first. The installer never saves or closes a model.
+The installer verifies payload hashes and copies only extension code into %APPDATA%\pyRevit\Extensions\RevitThyme.extension. A new install may be staged while Revit runs; use the pyRevit ribbon's Reload button to load it. Never reload through a synchronous Routes request: the reload resets its own server. Updating or uninstalling requires closing Revit yourself first. The installer never saves or closes a model.
 
 Use RevitThyme > Suite Status. Tool Settings selects the separate TimberFold folder; Inspect TimberFold reads the project. Generation remains in the existing TimberFold command.
 

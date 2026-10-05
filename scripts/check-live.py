@@ -23,6 +23,14 @@ def verify(report):
     checks = []
     first = call('/status/', {})
     checks.append({'name': 'Installed status route', 'passed': first.get('status') == 'succeeded', 'result': first})
+    if first.get('status') != 'succeeded':
+        value = {'scope': 'live_read_only_routes', 'passed': False, 'checks': checks,
+                 'diagnostic': 'Recover/reload pyRevit from its Revit ribbon, then retry. Do not reload through a synchronous Routes request.',
+                 'native_cad_checked': False, 'physical_checked': False}
+        report.parent.mkdir(parents=True, exist_ok=True)
+        report.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')
+        print('Live checks stopped: bridge/extension unavailable; report={0}'.format(report))
+        return 1
     target = first.get('target')
     inspect = call('/timberfold/inspect/', {'target': target})
     checks.append({'name': 'Installed inspect route', 'passed': inspect.get('status') == 'inspected', 'result': inspect})

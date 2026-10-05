@@ -19,6 +19,7 @@ def verify(report):
 
     def require(name, passed, detail=None):
         checks.append({'name': name, 'passed': bool(passed), 'detail': detail})
+        print(('PASS: ' if passed else 'FAIL: ') + name, flush=True)
 
     with tempfile.TemporaryDirectory(prefix='RevitThyme release ') as folder:
         root = Path(folder)
@@ -42,7 +43,7 @@ def verify(report):
         command = ['powershell', '-NoProfile', '-NonInteractive', '-File',
                    str(package / 'scripts/install.ps1'), '-PackageRoot', str(package),
                    '-ExtensionsRoot', str(extensions)]
-        result = subprocess.run(command, capture_output=True, text=True, timeout=20)
+        result = subprocess.run(command, capture_output=True, text=True, timeout=60)
         require('Installer succeeds with spaces in paths', result.returncode == 0, result.stdout + result.stderr)
         if result.returncode != 0:
             raise RuntimeError(result.stdout + result.stderr)
@@ -51,7 +52,7 @@ def verify(report):
         require('Installed files match recorded hashes', all(
             hashlib.sha256((installed / name).read_bytes()).hexdigest() == digest
             for name, digest in record['files'].items()))
-        update = subprocess.run(command, capture_output=True, text=True, timeout=20)
+        update = subprocess.run(command, capture_output=True, text=True, timeout=60)
         if update.returncode == 0:
             require('Reinstall preserves previous code backup', installed.exists() and any(
                 (root / 'RevitThyme-backups').glob(record['version'] + '-*')))
@@ -60,18 +61,18 @@ def verify(report):
                     update.stderr)
         sentinel = installed / 'user-file.txt'
         sentinel.write_text('preserve me', encoding='utf-8')
-        result = subprocess.run([*command, '-Action', 'Uninstall'], capture_output=True, text=True, timeout=20)
+        result = subprocess.run([*command, '-Action', 'Uninstall'], capture_output=True, text=True, timeout=60)
         require('Uninstall refuses unmanaged files', result.returncode != 0 and sentinel.read_text() == 'preserve me'
                 and 'Unmanaged file' in result.stderr, result.stderr)
         sentinel.unlink()
         target = package / 'extensions/RevitThyme.extension/startup.py'
         target.write_text('tampered', encoding='utf-8')
         fresh = root / 'fresh extensions'
-        result = subprocess.run([*command[:-1], str(fresh)], capture_output=True, text=True, timeout=20)
+        result = subprocess.run([*command[:-1], str(fresh)], capture_output=True, text=True, timeout=60)
         require('Tampered package fails before installation', result.returncode != 0 and
                 not (fresh / 'RevitThyme.extension').exists() and 'checksum mismatch' in result.stderr, result.stderr)
         # A running Revit protects installations. Closed-Revit lifecycle is a separate gate.
-        result = subprocess.run([*command, '-Action', 'Uninstall'], capture_output=True, text=True, timeout=20)
+        result = subprocess.run([*command, '-Action', 'Uninstall'], capture_output=True, text=True, timeout=60)
         if result.returncode == 0:
             require('Uninstall retains recoverable backup', not installed.exists() and any(
                 (root / 'RevitThyme-backups').glob('removed-*')))

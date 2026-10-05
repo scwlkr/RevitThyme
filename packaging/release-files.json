@@ -2,6 +2,9 @@
   "schema_version": 1,
   "files": [
     "README.md", "LICENSE", "THIRD-PARTY-NOTICES.md", "CHANGELOG.md",
+    "PROJECT.md", "AGENTS.md", "CONTRIBUTING.md", "SECURITY.md", "SETUP-TODO.md",
+    "docs/ARCHITECTURE.md", "docs/ROADMAP.md", "verification/release-0.2.0.md",
+    "tools/timberfold/README.md", "tools/timberfold/tool.json",
     "docs/DEPLOYMENT.md", "docs/OPERATIONS.md", "scripts/install.ps1",
     "extensions/RevitThyme.extension/extension.json",
     "extensions/RevitThyme.extension/startup.py",

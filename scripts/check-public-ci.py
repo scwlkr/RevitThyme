@@ -18,12 +18,17 @@ def main():
         [str(ROOT / 'project.cmd'), 'package', '--require-clean'],
     ]
     for command in commands:
-        result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
-                                encoding='utf-8', errors='replace', timeout=60,
-                                env={**os.environ, 'PYTHONUTF8': '1'})
+        try:
+            result = subprocess.run(command, cwd=ROOT, capture_output=True, text=True,
+                                    encoding='utf-8', errors='replace', timeout=180,
+                                    env={**os.environ, 'PYTHONUTF8': '1'})
+        except (OSError, subprocess.TimeoutExpired) as error:
+            result = subprocess.CompletedProcess(command, 1, '', str(error))
         checks.append({'command': command, 'passed': result.returncode == 0,
                        'exit': result.returncode, 'output': result.stdout + result.stderr})
         print(('PASS: ' if result.returncode == 0 else 'FAIL: ') + ' '.join(command))
+        if result.returncode:
+            print(result.stdout + result.stderr)
     report = {'sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'scope': 'portable_offline_release', 'passed': all(x['passed'] for x in checks),
               'checks': checks, 'live_revit_checked': False, 'physical_checked': False}

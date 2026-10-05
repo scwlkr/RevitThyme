@@ -1,0 +1,56 @@
+--- a/pyrevitlib/pyrevit/routes/server/server.py
++++ b/pyrevitlib/pyrevit/routes/server/server.py
+@@ -42,8 +42,20 @@
+ EVENT_HNDLR = UI.ExternalEvent.Create(REQUEST_HNDLR)
+ 
+ 
++def _write_routes_error(message):
++    # HTTP workers must never open or write a pyRevit UI output console.
++    import os
++    import tempfile
++    with open(os.path.join(tempfile.gettempdir(), "pyRevit-Routes-errors.log"), "a") as stream:
++        stream.write(str(message) + "\n")
++
++
+ class HttpRequestHandler(BaseHTTPRequestHandler):
+     """HTTP Requests Handler."""
++
++    def log_message(self, format, *args):
++        # BaseHTTPRequestHandler otherwise writes to the script's UI stderr.
++        return
+ 
+     def _parse_api_path(self):
+         url_parts = urlparse(self.path)
+@@ -250,9 +262,12 @@
+ 
+     allow_reuse_address = True
+ 
++    def handle_error(self, request, client_address):
++        _write_routes_error(traceback.format_exc())
++
+     def shutdown(self):
+-        self.socket.close()
+         HTTPServer.shutdown(self)
++        self.server_close()
+ 
+ 
+ class RoutesServer(object):
+@@ -280,8 +295,17 @@
+     def __repr__(self):
+         return "<RoutesServer @ http://%s:%s>" % (self.host or "0.0.0.0", self.port)
+ 
++    def _serve_safely(self):
++        try:
++            self.server.serve_forever()
++        except Exception:
++            _write_routes_error(traceback.format_exc())
++
+     def start(self):
+-        self.server_thread = threading.Thread(target=self.server.serve_forever)
++        # Constructor and activate_server both call start; own exactly one loop.
++        if hasattr(self, "server_thread") and self.server_thread.is_alive():
++            return
++        self.server_thread = threading.Thread(target=self._serve_safely)
+         self.server_thread.daemon = True
+         self.server_thread.start()
+ 

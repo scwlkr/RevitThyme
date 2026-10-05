@@ -40,6 +40,8 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
 | Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 
+The user confirmed the installed ribbon was visible, then reported a crash during manual pyRevit Reload while loading icons. An isolated Routes lifecycle regression failed on the installed source and passed after a small backed-up local repair. The repaired Revit host and visible icons require cold-start verification; a public binary release is held until those results are known. This local maintenance patch does not establish a general pyRevit fork or wider version support.
+
 TimberFold source was inspected on 2026-10-05 at commit `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`, on its active setup branch with a clean working tree. It is maintained independently and is not bundled. Its metadata declares version **1.1.0**. Its active runtime is `C:\Revit\TimberFold`; `C:\Revit\Laser-Model` is a preserved legacy copy.
 
 The TimberFold docs record completed digital workflows, including Cedar Cottage, and remaining physical-fit work. Those are source-project records, not new live validation by RevitThyme. Consult the tool's current PROJECT.md and verification artifacts before relying on them.

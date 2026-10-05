@@ -14,7 +14,7 @@ Download RevitThyme-0.2.0.zip and its .sha256 from GitHub Releases. Compare Get-
 & .\scripts\install.ps1
 ```
 
-The installer verifies payload hashes and copies only extension code into %APPDATA%\pyRevit\Extensions\RevitThyme.extension. A new install may be staged while Revit runs; use the pyRevit ribbon's Reload button to load it. Never reload through a synchronous Routes request: the reload resets its own server. Updating or uninstalling requires closing Revit yourself first. The installer never saves or closes a model.
+The installer verifies payload hashes and copies only extension code into %APPDATA%\pyRevit\Extensions\RevitThyme.extension. A new install may be staged while Revit runs. Load it on the next normal Revit start. Manual Reload crashed the current development host with Routes enabled; cold-start validation is required before recommending reload there. Never reload through a synchronous Routes request: the reload resets its own server. Updating or uninstalling requires closing Revit yourself first. The installer never saves or closes a model.
 
 Use RevitThyme > Suite Status. Tool Settings selects the separate TimberFold folder; Inspect TimberFold reads the project. Generation remains in the existing TimberFold command.
 
@@ -24,7 +24,20 @@ The three buttons include transparent light/dark icons. An existing installation
 & .\scripts\install.ps1 -Action Icons
 ```
 
-This checks that every installed non-image file matches the package, preserves an image/ownership-record backup, and refuses code changes. Reload pyRevit from its ribbon to display the icons. Normal code updates still require Revit to be closed.
+This checks that every installed non-image file matches the package, preserves an image/ownership-record backup, and refuses code changes. Display changes take effect on the next normal Revit start. Normal code updates still require Revit to be closed.
+
+## Development-host Routes repair
+
+The observed pyRevit Routes source starts its HTTP server twice and writes background HTTP diagnostics to a UI output stream. Windows events captured ScriptConsole failures on background threads. A developer-only diagnostic and guarded source repair is available from a clone:
+
+```powershell
+.\project.cmd repair-routes
+.\project.cmd repair-routes --apply
+```
+
+The diagnostic runs actual server lifecycle code in an isolated CPython process before writing anything. Apply refuses unrecognized source, retains the exact original under artifacts/live/pyrevit-routes-server-before.py and applies a small patch to the selected pyRevit clone. It takes effect in a new Revit process. The CPython regression passed; repaired IronPython/Revit execution still needs a normal cold-start smoke test. This repair is not automatically applied by the release installer and does not establish support for other pyRevit versions.
+
+To recover the original, close Revit yourself and copy the saved backup over the repaired pyrevitlib/pyrevit/routes/server/server.py in that same clone. Keep the backup and local repair report. The patch is also retained in verification/pyrevit-routes.patch. Worker errors go to %TEMP%\pyRevit-Routes-errors.log; avoid publishing private paths or diagnostics from that file.
 
 ## Upgrade, uninstall and recovery
 

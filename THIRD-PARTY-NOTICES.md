@@ -2,7 +2,7 @@
 
 RevitThyme original code is GPL-3.0-or-later; see LICENSE.
 
-pyRevit is an independently installed prerequisite, maintained by pyRevit Labs and contributors under GPL-3.0. This release contains no pyRevit binaries or implementation source. See [pyRevit](https://github.com/pyrevitlabs/pyRevit) and its upstream license.
+pyRevit is an independently installed prerequisite, maintained by pyRevit Labs and contributors under GPL-3.0. The release ZIP contains no pyRevit binaries or implementation source. The source repository retains a narrow Routes maintenance diff under verification/pyrevit-routes.patch, including small upstream source excerpts covered by GPL-3.0. See [pyRevit](https://github.com/pyrevitlabs/pyRevit) and its upstream license. The developer repair script is optional and does not install pyRevit or alter it during ordinary package installation.
 
 Autodesk Revit is proprietary software, neither included nor licensed by this project. Users need their own licensed installation.
 

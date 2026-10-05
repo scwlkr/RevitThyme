@@ -25,7 +25,7 @@ Install pyRevit for Revit 2027. Download the ZIP and checksum from [Releases](ht
 & .\scripts\install.ps1
 ```
 
-Reload pyRevit, then open **RevitThyme > Suite Status**. Tool Settings can select your existing TimberFold folder. See [deployment](docs/DEPLOYMENT.md) for compatibility and recovery.
+Load the extension on a normal Revit start, then open **RevitThyme > Suite Status**. Tool Settings can select your existing TimberFold folder. The development host crashed during Reload; repaired-host and icon smoke tests are pending, so the public ZIP release is currently held. See [deployment](docs/DEPLOYMENT.md) for compatibility and recovery.
 
 ## Develop
 

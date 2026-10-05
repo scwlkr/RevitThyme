@@ -3,6 +3,11 @@ use crate::Route;
 #[rustfmt::skip]
 pub const ROUTES: &[Route] = &[
     Route {
+        name: "repair-routes",
+        program: "python",
+        args: &["-X", "utf8", "scripts/repair-pyrevit-routes.py"],
+    },
+    Route {
         name: "check-public-ci",
         program: "python",
         args: &["-X", "utf8", "scripts/check-public-ci.py"],

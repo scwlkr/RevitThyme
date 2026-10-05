@@ -51,6 +51,13 @@ def verify(report):
         require('Installed files match recorded hashes', all(
             hashlib.sha256((installed / name).read_bytes()).hexdigest() == digest
             for name, digest in record['files'].items()))
+        update = subprocess.run(command, capture_output=True, text=True, timeout=20)
+        if update.returncode == 0:
+            require('Reinstall preserves previous code backup', installed.exists() and any(
+                (root / 'RevitThyme-backups').glob(record['version'] + '-*')))
+        else:
+            require('Running Revit blocks replacement', installed.exists() and 'Close Revit' in update.stderr,
+                    update.stderr)
         sentinel = installed / 'user-file.txt'
         sentinel.write_text('preserve me', encoding='utf-8')
         result = subprocess.run([*command, '-Action', 'Uninstall'], capture_output=True, text=True, timeout=20)

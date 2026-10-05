@@ -22,3 +22,8 @@ jobs:
           key: cargo-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'tools/project-cli/Cargo.lock', 'tools/project-cli/Cargo.toml') }}
       - name: Verify portable release boundary
         run: .\project.cmd check-public-ci
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        if: always()
+        with:
+          name: portable-release-evidence
+          path: artifacts/public-ci/

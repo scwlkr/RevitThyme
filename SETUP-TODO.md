@@ -30,3 +30,8 @@ The real Rust route passes 44 structural checks. The CLI boundary driver passes 
 Local CI is implemented through `.\project.cmd ci`, with scope routing, Rust format/lint/build, the real CLI contract, setup readiness/idempotence and Cargo warm-cache/invalidation checks. It records aggregate success/failure, commands, SHA/base and checkout cleanliness. Static Markdown takes the light route; code, dependencies, CI and executable documentation take full checks. Full clean-checkout evidence is in artifacts/local-ci/prelanding.json and artifacts/local-ci/landed.json; the latter identifies the final landed SHA.
 
 The setup skill's CI inventory remains a conservative text-hint report; actual local CI results provide alignment evidence. No hosted service is needed for this foundation, and no hosted jobs or source publication are part of this work. Planned Revit operations remain future roadmap milestones.
+
+## Public release CI - WLK-97
+
+- [x] Public workflows always run the full portable release boundary; there are no path filters. Local project ci retains docs/full scope routing. Hosted Windows checks are required for the requested public project and package releases. <!-- setup:ci-scope -->
+- [x] Portable checks retain aggregate evidence at the checked SHA. Full local exact-SHA checks remain a separate maintainer gate; public checks cannot prove Revit or TimberFold behavior. Pending/failed hosted results are not release evidence. <!-- setup:ci-verify -->

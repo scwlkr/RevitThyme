@@ -2,11 +2,11 @@
 
 ## Registration
 
-Tool ID: `timberfold`. Category: **Fabrication**. Integration state: **registered only**. [tool.json](tool.json) records the external implementation and planned operations; it is metadata, not an executable plugin.
+Tool ID: `timberfold`. Category: **Fabrication**. Integration state: **read-only inspection**. [tool.json](tool.json) records the external source and implementation states. Version 0.2.0 exposes inspection through the RevitThyme ribbon and named Routes. Generation remains in the existing independent installation.
 
 The local source root is resolved from config/local.json, falling back to config/local.example.json. The foundation example points to **C:\Revit\TimberFold** through the portable sibling path `../TimberFold`.
 
-Source inspected on 2026-10-02: commit `4d8873fb7be5c100dbe3f3a41899b7c5e4a41f0e`, declared version **1.1.0**, clean working tree. That is a reference snapshot; recheck the source before integration.
+Source inspected on 2026-10-05: commit `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`, declared version **1.1.0**, clean working tree on its setup branch. This snapshot is recorded in registration; installed inspection reports that it has not independently verified the selected folder's Git revision.
 
 ## Existing implementation
 
@@ -23,7 +23,7 @@ Generation writes a new run folder and adds review views/sheets. It preserves so
 
 ## Integration work
 
-1. Inspect the current source and its project instructions, then implement read-only readiness/scope inspection.
+1. Read-only candidate/source-file inspection is implemented. Geometry extraction and fabrication settings validation remain separate work.
 2. Separate explicit settings validation and preview computation from generation through the operation interface. Return diagnostics instead of opening unattended dialogs.
 3. Queue Revit extraction/export in the host and run geometry externally. Bind each stage to its intended document and run identity.
 4. Preserve source/part IDs, resolved settings, inverse transforms and verified artifacts in results. Report created review IDs and all skipped elements.

@@ -4,13 +4,13 @@
   "name": "TimberFold",
   "category": "Fabrication",
   "description": "Supported exterior Revit geometry into wooden architectural model kits.",
-  "integration_status": "registered_only",
+  "integration_status": "read_only_inspection",
   "source": {
     "kind": "external_checkout",
     "config_key": "timberfold",
     "declared_version": "1.1.0",
-    "reference_commit": "4d8873fb7be5c100dbe3f3a41899b7c5e4a41f0e",
-    "inspected_on": "2026-10-02"
+    "reference_commit": "45d49b4969d7cd67bb1bde821e20add0adf0a9b9",
+    "inspected_on": "2026-10-05"
   },
   "entry_points": {
     "revit_launcher": "scripts/launcher.py",
@@ -19,7 +19,7 @@
   },
   "initial_revit_target": 2027,
   "operations": [
-    { "name": "timberfold_inspect", "status": "planned", "effects": ["read_model"] },
+    { "name": "timberfold_inspect", "status": "implemented", "effects": ["read_model"] },
     { "name": "timberfold_preview", "status": "planned", "effects": ["read_model", "write_run_files"] },
     { "name": "timberfold_generate", "status": "planned", "effects": ["read_model", "create_review_views_and_sheets", "write_run_files"] },
     { "name": "timberfold_verify", "status": "planned", "effects": ["read_model", "read_run_files", "write_report", "temporary_model_changes_for_native_cad_checks"] }

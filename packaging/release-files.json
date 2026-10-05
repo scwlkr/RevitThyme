@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "files": [
+    "README.md", "LICENSE", "THIRD-PARTY-NOTICES.md", "CHANGELOG.md",
+    "docs/DEPLOYMENT.md", "docs/OPERATIONS.md", "scripts/install.ps1",
+    "extensions/RevitThyme.extension/extension.json",
+    "extensions/RevitThyme.extension/startup.py",
+    "extensions/RevitThyme.extension/lib/revitthyme/__init__.py",
+    "extensions/RevitThyme.extension/lib/revitthyme/config.py",
+    "extensions/RevitThyme.extension/lib/revitthyme/operations.py",
+    "extensions/RevitThyme.extension/lib/revitthyme/http.py",
+    "extensions/RevitThyme.extension/lib/revitthyme/ribbon.py",
+    "extensions/RevitThyme.extension/RevitThyme.tab/Suite.panel/Status.pushbutton/script.py",
+    "extensions/RevitThyme.extension/RevitThyme.tab/Suite.panel/Status.pushbutton/bundle.yaml",
+    "extensions/RevitThyme.extension/RevitThyme.tab/Suite.panel/Settings.pushbutton/script.py",
+    "extensions/RevitThyme.extension/RevitThyme.tab/Suite.panel/Settings.pushbutton/bundle.yaml",
+    "extensions/RevitThyme.extension/RevitThyme.tab/Fabrication.panel/TimberFold.pushbutton/script.py",
+    "extensions/RevitThyme.extension/RevitThyme.tab/Fabrication.panel/TimberFold.pushbutton/bundle.yaml"
+  ],
+  "mapped_files": {
+    "suite.json": "extensions/RevitThyme.extension/suite.json",
+    "tools/timberfold/tool.json": "extensions/RevitThyme.extension/tool.json"
+  }
+}

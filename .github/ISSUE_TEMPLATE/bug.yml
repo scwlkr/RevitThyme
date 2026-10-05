@@ -1,0 +1,22 @@
+name: Bug report
+description: Report unexpected RevitThyme behavior
+body:
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: RevitThyme, Revit build, pyRevit and Windows versions
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Reproduction and expected behavior
+      description: Use a small public sample. Omit private models, names, paths and credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitized evidence
+      description: Include relevant operation status and diagnostics.

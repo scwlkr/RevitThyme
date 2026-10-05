@@ -1,0 +1,24 @@
+name: Portable release checks
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.13'
+      - name: Install pinned Rust tools
+        run: rustup toolchain install 1.99.0 --profile minimal --component rustfmt --component clippy
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: tools/project-cli/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('rust-toolchain.toml', 'tools/project-cli/Cargo.lock', 'tools/project-cli/Cargo.toml') }}
+      - name: Verify portable release boundary
+        run: .\project.cmd check-public-ci

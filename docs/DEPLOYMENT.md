@@ -1,33 +1,44 @@
-# Deployment plan
+# Install and release
 
-## Present setup
+Version 0.2.0 is a per-user pyRevit extension with read-only operations. RevitThyme does not distribute Revit, pyRevit, TimberFold or private models.
 
-This foundation is a local Git repository. It has no installer, remote repository or live RevitThyme host. The project diagnostic reads the sibling TimberFold checkout using config/local.example.json or a machine-specific config/local.json.
+## Requirements
 
-TimberFold continues to use its own installed command. Registering its metadata here does not move, install or upgrade it.
+Windows, licensed Revit 2027 and independently installed pyRevit with IronPython 2.7. The development host is Revit 2027.2 build 27.2.0.39 and pyRevit 6.5.5.26237+2044. Other builds and second-computer behavior are unverified. Optional Routes must be enabled on 127.0.0.1:48884; ribbon use needs no AI client. TimberFold inspection can use its existing folder; no worker is bundled.
 
-## First shared release
+## Install
 
-Build a versioned package for two computers before office-wide rollout. Include:
+Download RevitThyme-0.2.0.zip and its .sha256 from GitHub Releases. Compare Get-FileHash -Algorithm SHA256, then extract to a new folder. From that folder:
 
-- Implemented host/adapter and UI, named operation metadata and help.
-- Tested TimberFold code and its dependency lock, with a portable runtime location.
-- Explicit Revit/pyRevit/.NET/Python compatibility information based on tested builds.
-- Installer diagnostics, an uninstall path, release notes and previous-version recovery.
-- An approved small demonstration model and onboarding steps.
+```powershell
+& .\scripts\install.ps1
+```
 
-Use an allowlist when packaging: approved code, manifests, dependency definitions, docs and demo assets. Keep private house baselines, project output runs, user settings, environments and credentials outside the package. An entire TimberFold repository/archive is not a distribution manifest.
+The installer verifies payload hashes and copies only extension code into %APPDATA%\pyRevit\Extensions\RevitThyme.extension. A new install may be staged while Revit runs; reload pyRevit to load it. Updating or uninstalling requires closing Revit yourself first. The installer never saves or closes a model.
 
-Read-only host calls are the first post-install smoke test. Follow them with a preview and a verified generation in a dedicated demo project. Record the package checksum, source revisions, supported builds and smoke-test report. Confirm the user's intended save operation separately from installation.
+Use RevitThyme > Suite Status. Tool Settings selects the separate TimberFold folder; Inspect TimberFold reads the project. Generation remains in the existing TimberFold command.
 
-## Configuration and credentials
+## Upgrade, uninstall and recovery
 
-Runtime paths come from local configuration or installer-managed metadata, not a developer's hard-coded drive. Keep live model files and generated runs distinct from installed code. A future tool bundle must include TimberFold's runtime dependencies rather than assume the developer's sibling checkout exists.
+Close Revit and install the newer extracted package. Previous owned code moves into %APPDATA%\pyRevit\RevitThyme-backups. Modified or unmanaged files cause refusal, so they can be preserved manually.
 
-MCP is optional for ordinary ribbon use. Each AI user supplies their own approved client configuration and credentials through the secret manager. Keep the existing Routes bridge loopback-only; remote access is a separate design decision requiring authentication and authorization.
+```powershell
+& .\scripts\install.ps1 -Action Uninstall
+```
 
-## Updates and ownership
+Uninstall retains a recoverable code backup and user settings. Recover by installing an older official ZIP, or moving a saved backup into the extension folder while Revit is closed and the destination is absent. Reload afterward.
 
-Use tested versioned releases and retain the previous working package. Avoid silent updates of active tools while Revit is running. Keep local Git checkpoints now; choose a company-controlled remote when requested.
+## Packaging and versions
 
-The redistribution license is not yet selected. Review third-party notices and obligations before a shared release. If pyRevit source is copied or a fork redistributed, its [GPL-3.0 license](https://github.com/pyrevitlabs/pyRevit/blob/develop/LICENSE.rtf) must be accounted for. This foundation contains no copied pyRevit implementation.
+suite.json and extension.json use the same semantic version. Minor versions add compatible capabilities, patches fix them. After 1.0, major versions change public contracts; before 1.0, document contract changes in release notes. Tags are vX.Y.Z; retain previous release assets.
+
+```powershell
+.\project.cmd check-release
+.\project.cmd package --require-clean
+```
+
+packaging/release-files.json is an explicit allowlist. Fixed ZIP order/timestamps make builds reproducible. release.json records revision and per-file hashes; the sidecar hashes the ZIP. Dirty packages identify themselves as development builds. The install record tracks file ownership.
+
+Publish source, license, notes, package and checksum together. The manual GitHub release workflow refuses tag/version mismatch. Public CI checks portable packaging/installation and Rust tooling. Full local CI and live evidence are required before a maintainer release; public CI does not prove live Revit or physical fabrication.
+
+A portable TimberFold worker, preview/generation checks and a real second-computer smoke test remain required before claiming a fabrication bundle or office deployment.

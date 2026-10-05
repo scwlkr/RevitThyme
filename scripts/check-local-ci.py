@@ -76,6 +76,9 @@ def main():
                                   str(ROOT / "artifacts/local-ci/foundation.json")])
 
     if scope == "full":
+        if args.require_clean:
+            run("Public CI boundary", [str(ROOT / "project.cmd"), "check-public-ci"])
+        run("Release package and installer", [str(ROOT / "project.cmd"), "check-release"])
         run("Rust formatting", ["cargo", "fmt", "--manifest-path", str(MANIFEST), "--check"])
         run("Rust lint and build", ["cargo", "clippy", "--offline", "--locked", "--all-targets",
                                     "--manifest-path", str(MANIFEST), "--", "-D", "warnings"])

@@ -1,0 +1,8 @@
+{
+  "name": "RevitThyme",
+  "description": "Revit tools, starting with read-only TimberFold inspection.",
+  "author": "RevitThyme contributors",
+  "url": "https://github.com/scwlkr/RevitThyme",
+  "website": "https://github.com/scwlkr/RevitThyme",
+  "version": "0.2.0"
+}

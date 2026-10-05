@@ -18,7 +18,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 
 ## Working implementation plan
 
-The existing pyRevit bridge is the first development adapter. A focused C#/.NET Revit host is the intended independent-host pilot. Its runtime target, project structure and install method will be confirmed against the installed Revit SDK before implementation. The two adapters should be compared through the same operations before choosing the production host.
+The accepted first shipping host is a custom pyRevit extension, using upstream pyRevit without a fork. Publish approved code and docs to the user personal GitHub account scwlkr; private models and settings stay excluded. License original RevitThyme code GPL-3.0-or-later. The existing bridge remains the development adapter. A focused C#/.NET Revit host is the intended independent-host pilot. Its runtime target, project structure and install method will be confirmed against the installed Revit SDK before implementation. The two adapters should be compared through the same operations before choosing the production host.
 
 This plan does not create a fork of Autodesk Revit or pyRevit. A pyRevit fork would be a separate decision if a concrete platform limitation requires it.
 
@@ -33,19 +33,19 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | Project automation CLI | Implemented with Rust 1.99.0; Windows help/doctor, project diagnostic and CLI boundary checks verified |
 | Local CI | Implemented through `project ci`: scope routing, format/lint/build, real CLI checks, setup readiness/idempotence and Cargo cache checks; exact-SHA results in ignored artifacts/local-ci |
 | TimberFold implementation | Existing external checkout; registered, not integrated into RevitThyme |
-| RevitThyme pyRevit adapter | Planned |
+| RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
 | Native C# host | Planned |
-| RevitThyme ribbon and MCP server | Planned |
-| Installer / boss's computer pilot | Planned |
-| Live RevitThyme validation | Not performed |
+| RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; dedicated MCP server planned |
+| Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
+| Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 
-TimberFold's source was inspected at commit `4d8873fb7be5c100dbe3f3a41899b7c5e4a41f0e`, with a clean working tree. Its metadata declares version **1.1.0**. Its active runtime is `C:\Revit\TimberFold`; `C:\Revit\Laser-Model` is a preserved legacy copy.
+TimberFold source was inspected on 2026-10-05 at commit `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`, on its active setup branch with a clean working tree. It is maintained independently and is not bundled. Its metadata declares version **1.1.0**. Its active runtime is `C:\Revit\TimberFold`; `C:\Revit\Laser-Model` is a preserved legacy copy.
 
 The TimberFold docs record completed digital workflows, including Cedar Cottage, and remaining physical-fit work. Those are source-project records, not new live validation by RevitThyme. Consult the tool's current PROJECT.md and verification artifacts before relying on them.
 
 ## First work
 
-1. Build `revitthyme_status` and `timberfold_inspect` through the existing bridge, with no model edits. Return explicit session/document identity, host/tool versions, readiness and useful diagnostics.
+1. Validate installed v0.2.0 read-only operations and packaged ribbon. Preserve no-document, wrong-target and disconnected diagnostics. The public package has no TimberFold generation implementation.
 2. Define a small C# host pilot implementing the same read-only status operation. Verify the installed SDK/runtime and supported Revit build first.
 3. Continue the [roadmap](docs/ROADMAP.md) only after those checks produce inspectable evidence.
 
@@ -54,12 +54,14 @@ The TimberFold docs record completed digital workflows, including Cedar Cottage,
 - Company display name, icons and final ribbon layout.
 - Production host choice after the pilot comparison.
 - Supported Revit and pyRevit versions beyond the current Revit 2027 target.
-- Installer technology, update source and company repository location.
-- Redistribution license and ownership arrangements before distribution.
+- Portable TimberFold bundling and second-computer verification; per-user extension ZIP is the first installer format.
+- TimberFold redistribution license and third-party dependencies before bundling; RevitThyme original code is GPL-3.0-or-later.
 - Final approval UX for model-changing operations and long-running job cancellation.
 
 ## Project continuity
 
-Keep accepted decisions here, architecture in docs/ARCHITECTURE.md and completed work in CHANGELOG.md. Record future runs with source revision, host/tool versions, settings and verification scope. Use local Git checkpoints; no remote is configured by this foundation.
+Keep accepted decisions here, architecture in docs/ARCHITECTURE.md and completed work in CHANGELOG.md. Record future runs with source revision, host/tool versions, settings and verification scope. Use local Git checkpoints; the requested public source repository is https://github.com/scwlkr/RevitThyme.
 
 The setup handoff and explicit stack exceptions are in [SETUP-TODO.md](SETUP-TODO.md). Setup is tracked as [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). Local CI validates repository automation; live Revit verification remains a future milestone. The setup skill's CI inventory intentionally reports unverified text hints; use actual CI reports for this project's alignment evidence.
+
+Implementation and public release foundation are tracked as [WLK-97](https://linear.app/wlkr-labs/issue/WLK-97/build-pyrevit-extension-and-versioned-open-source-release-foundation). Public issues are contribution intake; maintainer execution remains in Linear.

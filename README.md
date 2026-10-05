@@ -1,57 +1,43 @@
 # RevitThyme
 
-A Revit tool suite and execution host, starting with TimberFold.
+A pyRevit extension for Autodesk Revit, starting with TimberFold inspection.
 
-RevitThyme brings named, repeatable tools to a company ribbon and an MCP interface. The host handles Revit execution and verification; each tool owns its workflow. TimberFold is the first registered tool and continues to live in its existing repository.
+**Version 0.2.0** provides a RevitThyme ribbon, shared read-only operations, a versioned ZIP and per-user installer. This is an independent extension built on pyRevit; no upstream implementation or Revit binaries are bundled.
 
-## Current state
+| Available now | Still planned |
+| --- | --- |
+| Suite Status: host versions and document identity | Native C# host pilot |
+| TimberFold inspection: candidate walls/roofs and source-file diagnostics | Preview-bound fabrication generation |
+| Shared ribbon and loopback Routes | Named MCP server and asynchronous jobs |
+| Allowlisted ZIP, hashes, backup/upgrade/uninstall tooling | Bundled TimberFold worker and second-computer pilot |
 
-**Version 0.1.0: project foundation.** This repository contains the project brief, architecture, build roadmap, tool registration and a read-only project check. RevitThyme's host, ribbon and MCP operations are planned, not implemented or installed. TimberFold's existing command remains available through its own installation.
+TimberFold generation continues through its separate working installation. Inspection counts do not prove fabrication support.
 
-RevitThyme is an add-in/tool-suite project for Autodesk Revit, not a modified distribution of Autodesk Revit. No upstream source has been copied into this repository.
+## Install
 
-## Start here
+Install pyRevit for Revit 2027. Download the ZIP and checksum from [Releases](https://github.com/scwlkr/RevitThyme/releases), verify and extract it. From the extracted folder:
 
-- [PROJECT.md](PROJECT.md): accepted direction, current evidence and next work.
-- [Architecture](docs/ARCHITECTURE.md): host, tools, MCP and the draft operation interface.
-- [Roadmap](docs/ROADMAP.md): small builds and their completion criteria.
-- [TimberFold](tools/timberfold/README.md): existing implementation and integration gaps.
-- [Deployment](docs/DEPLOYMENT.md): future installation and the first two-computer pilot.
-- [AGENTS.md](AGENTS.md): instructions for development in this repository.
-- [CHANGELOG.md](CHANGELOG.md): version history.
+```powershell
+& .\scripts\install.ps1
+```
 
-## Check this checkout
+Reload pyRevit, then open **RevitThyme > Suite Status**. Tool Settings can select your existing TimberFold folder. See [deployment](docs/DEPLOYMENT.md) for compatibility and recovery.
 
-From PowerShell in `C:\Revit\RevitThyme`:
+## Develop
+
+Read [PROJECT.md](PROJECT.md), [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md) and [roadmap](docs/ROADMAP.md). Automation uses Windows Python 3.13 and Rust 1.99.0; the extension stays IronPython 2.7 compatible.
 
 ```powershell
 .\project.cmd check-project
+.\project.cmd check-release
+.\project.cmd ci --base HEAD^ --require-clean --full
+.\project.cmd package --require-clean
 ```
 
-Rust 1.99.0, rustfmt and clippy are installed and pinned by rust-toolchain.toml. Use `.\project.cmd --help` for commands and `.\project.cmd doctor` for prerequisites. The Unix-shell spelling is `./project check-project`; Revit and the diagnostic require Windows.
+Full local CI uses external TimberFold configured in config/local.example.json or ignored config/local.json. Public package checks need no TimberFold checkout. Keep private models outside this repository.
 
-Run `.\project.cmd check-cli` for CLI behavior checks or `.\project.cmd ci --base HEAD^ --require-clean --full` for the full local gate. CI records SHA/base, commands and pass/fail in artifacts/local-ci. Source-only Markdown can take a lighter route; code, toolchain, CI and executable documentation use full checks. See [SETUP-TODO.md](SETUP-TODO.md) for setup evidence and the preserved Revit-specific stack choices.
+Use project.cmd check-live after installing to exercise Routes and identity failure cases. Live reports stay in ignored artifacts; publish only sanitized evidence. See [operations](docs/OPERATIONS.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and [changelog](CHANGELOG.md).
 
-The diagnostic reads project metadata and the external TimberFold checkout. It does not connect to Revit, run TimberFold, install dependencies or modify source files. Passing it confirms the foundation's files and local source references; it does not confirm a working RevitThyme host.
+## License
 
-`config/local.example.json` resolves TimberFold as `../TimberFold`, relative to this project root. For a different location, copy it to `config/local.json` and edit the tool root. The local file is ignored by Git. The checked-in example contains no credentials.
-
-## Repository layout
-
-| Location | Purpose |
-| --- | --- |
-| `suite.json` | Product identity, foundation version and tool registry |
-| `config/` | Machine-specific source locations |
-| `docs/` | Architecture, roadmap and deployment plan |
-| `tools/timberfold/` | TimberFold registration and integration notes |
-| `src/` | Intended implementation layout; no host implementation yet |
-| `scripts/` | Read-only project diagnostics |
-| `verification/` | Explicitly scoped verification records |
-
-## Continue with Codex
-
-Open `C:\Revit\RevitThyme` as a project folder and start with:
-
-> Continue RevitThyme. Read PROJECT.md and AGENTS.md, run the project check, and inspect the current source before changes. Build the next roadmap milestone: [milestone]. Keep TimberFold's working installation and source artifacts intact.
-
-The first implementation milestone is read-only host status and TimberFold inspection. A native C# host pilot will then be compared with the current pyRevit adapter using the same operation interface.
+GPL-3.0-or-later. See [LICENSE](LICENSE) and [third-party notices](THIRD-PARTY-NOTICES.md). Users supply licensed Revit and independently installed pyRevit. TimberFold source and dependencies are not in v0.2.0.

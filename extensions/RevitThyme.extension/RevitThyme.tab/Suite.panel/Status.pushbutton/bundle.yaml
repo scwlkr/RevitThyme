@@ -1,0 +1,3 @@
+title: Suite Status
+tooltip: Show RevitThyme version and the active Revit document. Read-only.
+context: zero-doc

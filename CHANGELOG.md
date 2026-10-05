@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0 - 2026-10-05 - First pyRevit extension
+
+- Add a RevitThyme ribbon with Suite Status, Tool Settings and read-only TimberFold inspection.
+- Share validated operations with loopback Routes in Revit API context; refuse stale/missing targets and invalid inputs.
+- Add deterministic allowlisted ZIP packaging, checksums and a per-user installer with recoverable backups and ownership checks.
+- Prepare GPL-3.0-or-later licensing, contribution/security docs, GitHub issue/PR templates and manual release automation.
+- Preserve external TimberFold and all model geometry. No generation, standalone MCP server or second-computer claim in this release.
+
 ## Unreleased — 2026-10-05 — Development setup
 
 - Add wstack development standards and WLKR LABS Linear routing while preserving Revit-specific constraints and external TimberFold ownership.

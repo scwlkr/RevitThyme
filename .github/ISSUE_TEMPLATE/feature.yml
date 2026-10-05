@@ -1,0 +1,15 @@
+name: Feature request
+description: Propose a bounded Revit tool or improvement
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe the user workflow and a concrete example.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification and model effects
+      description: How should success be observed? What model or file changes would occur?

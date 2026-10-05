@@ -5,12 +5,12 @@ Each milestone ends with working behavior and evidence. A scaffold or successful
 | Milestone | State | Deliverable | Completion criterion |
 | --- | --- | --- | --- |
 | M0: Project foundation | Complete | Docs, TimberFold registration, local check and Git checkpoint | Project check passes; external source reference is valid; no host-installation claim |
-| M1: Read-only operations | Planned | `revitthyme_status` and `timberfold_inspect` through the existing development bridge | Live results identify the intended session/document and tool readiness; disconnected and wrong-document cases give useful diagnostics; no document changes |
+| M1: Read-only operations | Implemented; evidence in verification/release-0.2.0.md | `revitthyme_status` and `timberfold_inspect` through the existing development bridge | Live results identify the intended session/document and tool readiness; disconnected and wrong-document cases give useful diagnostics; no document changes |
 | M2: Native host pilot | Planned | Focused C# add-in with the same status operation | Installed SDK/runtime confirmed; add-in loads in the intended Revit build; external request executes through valid API context; read-only behavior matches M1 |
 | M3: TimberFold preview | Planned | Extract/compute pipeline producing a preview job and report | Sample produces scope/settings/part counts and unsupported-geometry diagnostics; no persistent source-document changes; worker progress/failure reported |
 | M4: Verified generation | Planned | Preview-bound generation with native CAD and Revit documentation | On a small sample, changed/skipped IDs, units, closed CUT contours, layers, CAD round trip and source-geometry preservation verified; rollback/failure evidence recorded |
-| M5: Suite interface and MCP | Planned | RevitThyme UI and MCP exposing implemented operations | Both callers invoke the same implementation; duplicate requests and stale previews handled; UI remains usable during external computation; job state is inspectable |
-| M6: Second-computer pilot | Planned | Versioned installation package and onboarding guide | Install and smoke test on a second computer; ordinary buttons work without AI configuration; upgrade/uninstall and previous-version recovery documented |
+| M5: Suite interface and MCP | Read-only ribbon/Routes implemented; MCP/jobs planned | RevitThyme UI and MCP exposing implemented operations | Both callers invoke the same implementation; duplicate requests and stale previews handled; UI remains usable during external computation; job state is inspectable |
+| M6: Second-computer pilot | ZIP and installer implemented; pilot unverified | Versioned installation package and onboarding guide | Install and smoke test on a second computer; ordinary buttons work without AI configuration; upgrade/uninstall and previous-version recovery documented |
 
 ## Pilot comparison
 
@@ -23,3 +23,5 @@ Use a dedicated small supported project for read/write milestones. TimberFold's 
 ## Deferred work
 
 Additional suite tools, a general plugin marketplace, multi-version Revit support, cloud-hosted model access, voice UI, a full pyRevit fork and advanced laser joinery are separate milestones. Add them when requested or when working tools establish a concrete need.
+
+The first release host is upstream pyRevit plus a custom RevitThyme extension. A fork and native-host decision are deferred until a demonstrated limitation needs them.

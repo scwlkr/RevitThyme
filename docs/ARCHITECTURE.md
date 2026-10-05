@@ -16,7 +16,7 @@ flowchart LR
     Worker --> Evidence
 ```
 
-This is the target design. RevitThyme has no executable host or MCP adapter yet.
+Version 0.2.0 implements the pyRevit ribbon and shared read-only operations. Named loopback Routes execute through pyRevit ExternalEvent. A standalone MCP adapter, writes and jobs remain planned. See [implemented operations](OPERATIONS.md).
 
 | Module | Responsibility | Initial approach |
 | --- | --- | --- |
@@ -24,7 +24,7 @@ This is the target design. RevitThyme has no executable host or MCP adapter yet.
 | TimberFold | Extraction, fabrication geometry, nesting, documentation and CAD verification | Existing IronPython entry points and separate CPython worker |
 | Operation interface | Validated arguments, declared effects, stable results and job identity | Small draft interface below |
 | MCP adapter | Discoverable named tools and structured results | Separate local process; implementation language remains open |
-| Ribbon/UI | Settings, preview, progress and result access | First usable interface chosen during implementation |
+| Ribbon/UI | Settings, preview, progress and result access | pyRevit extension ribbon for read-only operations |
 
 Keep language-specific libraries inside each implementation. Cross-process workers exchange serializable data and artifact paths, not live Revit objects. Geometry can run outside Revit; live extraction and native export must return to a valid Revit execution context.
 
@@ -47,7 +47,7 @@ Long computations should run in an external worker while Revit's UI remains usab
 | `timberfold_verify` | Verification scope and evidence for a specific run | Read files/model; write report; native DWG checks may use temporary rollback-protected model changes |
 | `get_job_status` | State, progress, diagnostics and partial/final artifact paths | Read job record |
 
-These are proposed operations, not working commands. Detailed geometry diagnostics require actual extraction and the worker; inspect must not claim complete support from a category count alone. The existing launcher runs extraction through generation and verification together. Splitting preview/generate/verify is adapter work, not an existing supported split of that launcher.
+Status and inspect are implemented read-only in v0.2.0. The other operations below remain proposals. Detailed geometry diagnostics require actual extraction and the worker; inspect must not claim complete support from a category count alone. The existing launcher runs extraction through generation and verification together. Splitting preview/generate/verify is adapter work, not an existing supported split of that launcher.
 
 Requests should identify the operation, request ID, target session/document and validated parameters. A generate request should reference the preview of those same settings and scope. The host checks the preview's source/settings identity again before execution; stale previews return a diagnostic and require regeneration.
 

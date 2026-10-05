@@ -1,8 +1,12 @@
 # RevitThyme
 
+![RevitThyme](assets/branding/revitthyme-logo.svg)
+
 A pyRevit extension for Autodesk Revit, starting with TimberFold inspection.
 
 **Version 0.2.0** provides a RevitThyme ribbon, shared read-only operations, a versioned ZIP and per-user installer. This is an independent extension built on pyRevit; no upstream implementation or Revit binaries are bundled.
+
+The visual identity combines thyme leaves, earthy greens and timber colors. Each ribbon button has transparent artwork for light and dark Revit themes. Editable sources are in [branding](assets/branding/README.md).
 
 | Available now | Still planned |
 | --- | --- |

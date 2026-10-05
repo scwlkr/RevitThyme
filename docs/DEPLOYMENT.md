@@ -18,6 +18,14 @@ The installer verifies payload hashes and copies only extension code into %APPDA
 
 Use RevitThyme > Suite Status. Tool Settings selects the separate TimberFold folder; Inspect TimberFold reads the project. Generation remains in the existing TimberFold command.
 
+The three buttons include transparent light/dark icons. An existing installation of the same version can add or refresh only those image assets while Revit stays open:
+
+```powershell
+& .\scripts\install.ps1 -Action Icons
+```
+
+This checks that every installed non-image file matches the package, preserves an image/ownership-record backup, and refuses code changes. Reload pyRevit from its ribbon to display the icons. Normal code updates still require Revit to be closed.
+
 ## Upgrade, uninstall and recovery
 
 Close Revit and install the newer extracted package. Previous owned code moves into %APPDATA%\pyRevit\RevitThyme-backups. Modified or unmanaged files cause refusal, so they can be preserved manually.

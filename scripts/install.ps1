@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Install', 'Uninstall')][string]$Action = 'Install',
+    [ValidateSet('Install', 'Uninstall', 'Icons')][string]$Action = 'Install',
     [string]$PackageRoot = (Split-Path $PSScriptRoot -Parent),
     [string]$ExtensionsRoot = (Join-Path $env:APPDATA 'pyRevit\Extensions')
 )
@@ -42,7 +42,7 @@ function Assert-Owned {
 
 if (Test-Path -LiteralPath $destination) {
     $previous = Assert-Owned
-    if (Get-Process -Name Revit -ErrorAction SilentlyContinue) {
+    if ($Action -ne 'Icons' -and (Get-Process -Name Revit -ErrorAction SilentlyContinue)) {
         throw 'Close Revit before updating or uninstalling an existing extension.'
     }
 }
@@ -77,6 +77,52 @@ foreach ($item in $release.files.PSObject.Properties) {
     }
 }
 if ($files.Count -eq 0) { throw 'No extension payload in release' }
+if ($Action -eq 'Icons') {
+    if (-not $previous) { throw 'Install RevitThyme before refreshing its icons' }
+    if ($previous.version -ne $release.version) { throw 'Icon refresh requires the installed release version' }
+    $icons = @($files.Keys | Where-Object { $_ -match '\.pushbutton/icon(\.dark)?\.png$' })
+    if ($icons.Count -eq 0) { throw 'No ribbon icons in package' }
+    $existingFiles = @($previous.files.PSObject.Properties.Name)
+    $unchanged = @($files.Keys | Where-Object { $_ -notin $icons })
+    if (@($existingFiles | Where-Object { $_ -notin $files.Keys }).Count -gt 0) {
+        throw 'Icon refresh cannot remove installed files'
+    }
+    foreach ($name in $unchanged) {
+        $installedFile = Join-Path $destination $name
+        if (-not (Test-Path -LiteralPath $installedFile -PathType Leaf) -or
+            $name -notin $existingFiles -or (Get-ReleaseHash $installedFile) -ne $files[$name]) {
+            throw "Icon refresh cannot change extension code: $name"
+        }
+    }
+    New-Item -ItemType Directory -Path $backupRoot -Force | Out-Null
+    $backup = Join-Path $backupRoot ('icons-' + [Guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $backup | Out-Null
+    Copy-Item -LiteralPath $recordPath -Destination (Join-Path $backup 'install-record.json')
+    foreach ($name in $icons) {
+        $target = Join-Path $destination $name
+        if (Test-Path -LiteralPath $target) {
+            $saved = Join-Path $backup $name
+            New-Item -ItemType Directory -Path (Split-Path $saved -Parent) -Force | Out-Null
+            Copy-Item -LiteralPath $target -Destination $saved
+        }
+    }
+    try {
+        foreach ($name in $icons) { Copy-Item -LiteralPath (Join-Path $source $name) -Destination (Join-Path $destination $name) }
+        @{ product = 'RevitThyme'; version = $release.version; files = $files } |
+            ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $recordPath -Encoding UTF8
+    } catch {
+        foreach ($name in $icons) {
+            $target = Join-Path $destination $name
+            $saved = Join-Path $backup $name
+            if (Test-Path -LiteralPath $saved) { Copy-Item -LiteralPath $saved -Destination $target }
+            elseif (Test-Path -LiteralPath $target) { Remove-Item -LiteralPath $target }
+        }
+        Copy-Item -LiteralPath (Join-Path $backup 'install-record.json') -Destination $recordPath
+        throw
+    }
+    Write-Output "Refreshed $($icons.Count) ribbon icons: $destination. Reload pyRevit to display them. Backup: $backup"
+    exit 0
+}
 New-Item -ItemType Directory -Path $parent -Force | Out-Null
 $stage = Join-Path $parent ('RevitThyme-stage-' + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $stage | Out-Null

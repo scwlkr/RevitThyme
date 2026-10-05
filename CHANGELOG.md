@@ -3,6 +3,7 @@
 ## 0.2.0 - 2026-10-05 - First pyRevit extension
 
 - Add a RevitThyme ribbon with Suite Status, Tool Settings and read-only TimberFold inspection.
+- Add the supplied plant/building wordmark and matching transparent light/dark ribbon icons, with editable SVG sources and a guarded image-only refresh for an already loaded extension.
 - Share validated operations with loopback Routes in Revit API context; refuse stale/missing targets and invalid inputs.
 - Add deterministic allowlisted ZIP packaging, checksums and a per-user installer with recoverable backups and ownership checks.
 - Prepare GPL-3.0-or-later licensing, contribution/security docs, GitHub issue/PR templates and manual release automation.

@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import importlib.util
 import json
+import struct
 import subprocess
 import tempfile
 import zipfile
@@ -39,6 +40,15 @@ def verify(report):
                 for name in stream.namelist()))
             package = root / 'extracted package'
             stream.extractall(package)
+        buttons = ('Suite.panel/Status.pushbutton', 'Suite.panel/Settings.pushbutton',
+                   'Fabrication.panel/TimberFold.pushbutton')
+        icons = [Path('RevitThyme.tab') / button / name
+                 for button in buttons for name in ('icon.png', 'icon.dark.png')]
+        extension = package / 'extensions/RevitThyme.extension'
+        require('Every ribbon button ships light and dark RGBA icons', all(
+            (extension / name).read_bytes()[:8] == b'\x89PNG\r\n\x1a\n' and
+            struct.unpack('>IIBB', (extension / name).read_bytes()[16:26]) == (64, 64, 8, 6)
+            for name in icons))
         extensions = root / 'user extensions'
         command = ['powershell', '-NoProfile', '-NonInteractive', '-File',
                    str(package / 'scripts/install.ps1'), '-PackageRoot', str(package),
@@ -52,6 +62,34 @@ def verify(report):
         require('Installed files match recorded hashes', all(
             hashlib.sha256((installed / name).read_bytes()).hexdigest() == digest
             for name, digest in record['files'].items()))
+        # Reproduce the initial v0.2.0 installation, which had no button artwork.
+        for name in icons:
+            (installed / name).unlink()
+            del record['files'][name.as_posix()]
+        (installed / 'install-record.json').write_text(json.dumps(record), encoding='utf-8')
+        before = {name: (installed / name).read_bytes() for name in record['files']}
+        result = subprocess.run([*command, '-Action', 'Icons'], capture_output=True, text=True, timeout=60)
+        refreshed = json.loads((installed / 'install-record.json').read_text(encoding='utf-8-sig'))
+        require('Icon refresh adds artwork without replacing extension code', result.returncode == 0 and all(
+            (installed / name).read_bytes() == data for name, data in before.items()) and all(
+            hashlib.sha256((installed / name).read_bytes()).hexdigest() == refreshed['files'].get(name.as_posix())
+            for name in icons), result.stdout + result.stderr)
+        before = {name: (installed / name).read_bytes() for name in refreshed['files']}
+        # A self-consistent package with changed code must still refuse the icon-only path.
+        startup = extension / 'startup.py'
+        original = startup.read_bytes()
+        startup.write_bytes(original + b'\n# incompatible icon-only code change\n')
+        release_path = package / 'release.json'
+        release_bytes = release_path.read_bytes()
+        release = json.loads(release_bytes)
+        release['files']['extensions/RevitThyme.extension/startup.py'] = hashlib.sha256(startup.read_bytes()).hexdigest()
+        release_path.write_text(json.dumps(release), encoding='utf-8')
+        result = subprocess.run([*command, '-Action', 'Icons'], capture_output=True, text=True, timeout=60)
+        require('Icon refresh refuses code changes before touching installed files', result.returncode != 0 and
+                'cannot change extension code' in result.stderr and all(
+                    (installed / name).read_bytes() == data for name, data in before.items()), result.stderr)
+        startup.write_bytes(original)
+        release_path.write_bytes(release_bytes)
         update = subprocess.run(command, capture_output=True, text=True, timeout=60)
         if update.returncode == 0:
             require('Reinstall preserves previous code backup', installed.exists() and any(

@@ -1,6 +1,8 @@
 @echo off
 setlocal
 where cargo >nul 2>nul
+if errorlevel 1 if exist "%USERPROFILE%\.cargo\bin\cargo.exe" set "PATH=%USERPROFILE%\.cargo\bin;%PATH%"
+where cargo >nul 2>nul
 if errorlevel 1 (
     echo Cargo is required for the project CLI. See SETUP-TODO.md. 1>&2
     exit /b 127

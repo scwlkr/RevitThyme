@@ -9,6 +9,7 @@
     "tools/project-cli/src/main.rs": "31d41ef1e3ff09c7a26c7e2723c2ce6d55834ec0ee160119adefb378ffbaba41",
     "project": "e816b58bc515d34602944f3151c03e47220f0281f6ddf4fc11b26a98af503b5c",
     "tools/project-cli/src/routes.rs": "58933628e0c52d7999f10bfee282d43c27980a380034b80d7bf8c8dafd9e8f03",
-    "agent_block": "33e333da57626b5b7914111d8c5257ac57983ace90f5d778a54a4da9874687b5"
+    "agent_block": "33e333da57626b5b7914111d8c5257ac57983ace90f5d778a54a4da9874687b5",
+    "project.cmd": "d072879c4ba3cc3bc516e8b31e5f37d9bc25a96f8e01fde7bfd00bc8864c7bfb"
   }
 }

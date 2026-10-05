@@ -6,7 +6,12 @@
 - Scaffold a dependency-free Rust project CLI, connect the existing structural diagnostic with argument forwarding, and add a Windows command launcher.
 - Record stack exceptions, missing Rust/Cargo, the setup checker's Windows launcher limitation, and pending CLI/runtime and local CI evidence in SETUP-TODO.md.
 
-This setup adds no Revit host behavior; the CLI has not been compiled or exercised through Rust on this machine.
+- Complete the authorized dependency bootstrap with Rust 1.99.0, rustfmt and clippy; use the existing Visual Studio C++ build tools.
+- Repair the owning wstack-setup skill's Windows launcher and permission handling; retain its patch and verify the prior regression now passes.
+- Add real CLI boundary checks and local CI with scope routing, aggregate results at a Git SHA, and Cargo cache reuse/invalidation checks.
+- Establish `master` as the local default for verified checkpoints.
+
+This setup verifies offline repository automation. Revit host behavior remains planned.
 
 ## 0.1.0 — 2026-10-02 — Project foundation
 

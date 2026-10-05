@@ -1,0 +1,79 @@
+--- a/scripts/setup.py
++++ b/scripts/setup.py
+@@ -16,9 +16,12 @@
+ 
+ def check(root):
+     state = metadata(root)
++    launcher = root / ("project.cmd" if os.name == "nt" else "project")
+     missing = [path for path in ("AGENTS.md", "project", "tools/project-cli/Cargo.toml",
+                                 "tools/project-cli/src/main.rs", "tools/project-cli/src/routes.rs")
+                if not (root / path).is_file()]
++    if os.name == "nt" and not launcher.is_file():
++        missing.append("project.cmd")
+     if missing or not state:
+         return {"ready": False, "missing": missing or ["tools/project-cli/setup.json"]}
+     agents = read(root, "AGENTS.md")
+@@ -32,7 +35,7 @@
+     results = {}
+     for name, args in (("help", ["--help"]), ("doctor", ["doctor"])):
+         try:
+-            process = subprocess.run([str(root / "project"), *args], cwd=root,
++            process = subprocess.run([str(launcher), *args], cwd=root,
+                                      text=True, capture_output=True, timeout=60,
+                                      env={**os.environ, "RUSTUP_AUTO_INSTALL": "0"})
+             results[name] = {"exit": process.returncode,
+--- a/scripts/scaffold.py
++++ b/scripts/scaffold.py
+@@ -2,6 +2,7 @@
+ 
+ import hashlib
+ import json
++import os
+ import re
+ from pathlib import Path
+ 
+@@ -80,6 +81,8 @@
+         if source.is_file():
+             generated("tools/project-cli/" + source.relative_to(ASSETS / "cli").as_posix(), source.read_text())
+     generated("project", (ASSETS / "project").read_text())
++    if os.name == "nt":
++        generated("project.cmd", (ASSETS / "project.cmd").read_text())
+     generated("tools/project-cli/src/routes.rs", routes_source(info["routes"]))
+     agents = read(root, "AGENTS.md")
+     before, block, after = block_parts(agents)
+@@ -111,7 +114,7 @@
+         path.parent.mkdir(parents=True, exist_ok=True)
+         path.write_text(content)
+     launcher = safe(root, "project")
+-    if not launcher.stat().st_mode & 0o111:
++    if os.name != "nt" and not launcher.stat().st_mode & 0o111:
+         launcher.chmod(launcher.stat().st_mode | 0o111)
+         if "project" not in writes:
+             writes["project"] = ""
+--- a/tests/test_setup.py
++++ b/tests/test_setup.py
+@@ -31,7 +31,8 @@
+         return self.setup("apply", "--team", "Example", "--linear-project", PROJECT)
+ 
+     def cli(self, *args, env=None):
+-        return subprocess.run([str(self.root / "project"), *args], cwd=self.temp.name,
++        launcher = self.root / ("project.cmd" if os.name == "nt" else "project")
++        return subprocess.run([str(launcher), *args], cwd=self.temp.name,
+                               text=True, capture_output=True, env=env)
+ 
+     def snapshot(self):
+--- /dev/null
++++ b/assets/project.cmd
+@@ -0,0 +1,12 @@
++@echo off
++setlocal
++where cargo >nul 2>nul
++if errorlevel 1 if exist "%USERPROFILE%\.cargo\bin\cargo.exe" set "PATH=%USERPROFILE%\.cargo\bin;%PATH%"
++where cargo >nul 2>nul
++if errorlevel 1 (
++    echo Cargo is required for the project CLI. See SETUP-TODO.md. 1>&2
++    exit /b 127
++)
++set "RUSTUP_AUTO_INSTALL=0"
++cargo run --quiet --offline --locked --manifest-path "%~dp0tools\project-cli\Cargo.toml" -- %*
++exit /b %errorlevel%

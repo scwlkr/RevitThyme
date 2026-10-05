@@ -31,7 +31,7 @@ Read PROJECT.md and README.md before work. For host, MCP or operation changes, r
 
 Defaults → new work; migration target → existing. Needed layers/targets only; user/repo choices prevail; explain deviations. Existing current→target gaps + bounded migration → `SETUP-TODO.md`; implementation → Linear. Setup → instructions/tooling only.
 
-RevitThyme exceptions: Rust is the project automation CLI, not a replacement Revit host. Preserve the planned IronPython-compatible pyRevit adapter, separate CPython workers, and C#/.NET host pilot after SDK/runtime confirmation. The Revit ribbon remains the intended in-product interface. No database, Axum service, OpenAPI/Zod contract, React/Expo/Electron UI, Docker environment or pnpm workspace is needed by the current foundation; add those layers only for accepted behavior that requires them. TimberFold stays external and keeps its own toolchain. No product migration or toolchain installation is included in setup.
+RevitThyme exceptions: Rust is the project automation CLI, not a replacement Revit host. Preserve the planned IronPython-compatible pyRevit adapter, separate CPython workers, and C#/.NET host pilot after SDK/runtime confirmation. The Revit ribbon remains the intended in-product interface. No database, Axum service, OpenAPI/Zod contract, React/Expo/Electron UI, Docker environment or pnpm workspace is needed by the current foundation; add those layers only for accepted behavior that requires them. TimberFold stays external and keeps its own toolchain. The setup follow-up authorizes needed dependency installation and local CI; product migration remains separate.
 
 | Layer/target | Tools |
 | --- | --- |
@@ -58,7 +58,7 @@ RevitThyme exceptions: Rust is the project automation CLI, not a replacement Rev
 
 ## CLI bootstrap
 
-The CLI needs an existing Rust/Cargo toolchain; setup does not install dependencies. Until it is available, the foundation diagnostic can be checked directly:
+Rust 1.99.0 with rustfmt/clippy is pinned in rust-toolchain.toml and installed locally through rustup. The Windows launcher finds the standard user Cargo directory without requiring a Codex restart. Toolchain installation is authorized for this setup follow-up. If a future machine needs bootstrap diagnosis, the foundation diagnostic can be checked directly:
 
 ```powershell
 & .\scripts\check-project.ps1
@@ -70,4 +70,11 @@ Run the setup skill from its directory with the installed Windows Python in UTF-
 python -X utf8 scripts/setup.py check 'C:\Revit\RevitThyme'
 ```
 
-The skill checker currently executes the extensionless Unix launcher directly and fails with WinError 193 on Windows. Check `.\project.cmd --help` and `.\project.cmd doctor` separately once Cargo is available; report the skill checker limitation independently from CLI runtime evidence.
+The installed setup skill now selects project.cmd on Windows and skips Unix chmod there. The repair is retained in verification/wstack-setup-windows.patch. Repeated apply must return `changed: []` and preserve the project-specific instructions/routes.
+
+## Local verification
+
+- `.\project.cmd check-cli` checks the real diagnostic, path forwarding, offline reports and failure exit codes.
+- `.\project.cmd ci --base HEAD^ --require-clean` selects light checks for static Markdown and full checks for code, dependencies, CI or executable documentation. Use `--full` when scope is uncertain. `--explain` accepts paths to inspect routing.
+- CI reports go to ignored artifacts/local-ci, recording SHA/base, commands, aggregate pass/fail, cleanliness and offline scope. Cargo's local target cache is reused; full CI checks warm reuse and manifest/lockfile invalidation. No third-party crate or hosted CI service is needed.
+- The local default branch is `master`, matching the existing Git default. Verify a clean checkout before fast-forwarding it and recheck the landed SHA. Keep unrelated user files out of commits; use a temporary clean checkout when needed. Publishing/pushing still requires an explicit request.

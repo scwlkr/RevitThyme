@@ -28,7 +28,9 @@ From PowerShell in `C:\Revit\RevitThyme`:
 .\project.cmd check-project
 ```
 
-The Rust CLI requires an existing Rust/Cargo toolchain. Use `.\project.cmd --help` for commands and `.\project.cmd doctor` for prerequisites. The Unix-shell spelling is `./project check-project`; Revit and the diagnostic require Windows. The CLI is scaffolded and its runtime verification is pending; see [SETUP-TODO.md](SETUP-TODO.md) for the prerequisite and bootstrap diagnostic.
+Rust 1.99.0, rustfmt and clippy are installed and pinned by rust-toolchain.toml. Use `.\project.cmd --help` for commands and `.\project.cmd doctor` for prerequisites. The Unix-shell spelling is `./project check-project`; Revit and the diagnostic require Windows.
+
+Run `.\project.cmd check-cli` for CLI behavior checks or `.\project.cmd ci --base HEAD^ --require-clean --full` for the full local gate. CI records SHA/base, commands and pass/fail in artifacts/local-ci. Source-only Markdown can take a lighter route; code, toolchain, CI and executable documentation use full checks. See [SETUP-TODO.md](SETUP-TODO.md) for setup evidence and the preserved Revit-specific stack choices.
 
 The diagnostic reads project metadata and the external TimberFold checkout. It does not connect to Revit, run TimberFold, install dependencies or modify source files. Passing it confirms the foundation's files and local source references; it does not confirm a working RevitThyme host.
 

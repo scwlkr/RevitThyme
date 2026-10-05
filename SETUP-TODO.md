@@ -1,22 +1,22 @@
 # Setup handoff
 
-Setup scope: repository instructions, CLI scaffold and handoff. Product version remains 0.1.0 at the foundation milestone. Track implementation in [RevitThyme / WLKR LABS](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9); this setup is [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). This file records setup gaps, not a product backlog.
+The setup follow-up authorizes needed dependencies, Windows repairs and local CI. Product version remains 0.1.0 at the foundation milestone. Track implementation in [RevitThyme / WLKR LABS](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9); this setup is [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). This file records setup evidence, not a product backlog.
 
 ## Tooling and evidence
 
 - [x] Wire the existing structural diagnostic into `tools/project-cli/src/routes.rs` as `check-project`; preserve `-LocalConfigPath`, `-ReportPath` and process failure codes in the route/launcher source.
-- [ ] Exercise that route through Rust and capture the result. No Rust/Cargo toolchain was found in PATH, the standard user toolchain directory or the bundled runtime dependencies. Dependency installation is outside setup scope. `project.cmd` is the Windows launcher; `project` is the Unix-shell launcher.
-- [ ] Pass the upstream setup checker. Its direct launch of the extensionless Unix `project` file fails on Windows with WinError 193. The skill source is external and has not been modified. Once Rust/Cargo is available, check Windows help/doctor and the real route independently; repair the checker in its owning skill rather than claiming it passed.
-- [ ] Resolve the setup script's Windows permission reporting. Repeated apply exits 0 and preserves the custom instructions/CLI sources; SHA-256 comparisons show no file-content changes. It still reports `changed: ["project"]` because Windows does not retain Unix executable permission bits. The requested literal `changed: []` gate remains pending.
-- [ ] Record a clean checked SHA and land on the repository's chosen default branch before marking the Linear issue Done. The repository has no remote/default branch configured; the foundation is on `codex/project-foundation`. Setup uses a local `codex/wlk-95-wstack-setup` checkpoint. Publishing/pushing requires an explicit request.
+- [x] Exercise that route through Rust and capture the result. Rust 1.99.0, rustfmt and clippy are installed through checksum-verified rustup, using the existing Visual Studio C++ build tools. The toolchain is pinned in rust-toolchain.toml. `project.cmd` handles immediate Cargo discovery without restarting Codex.
+- [x] Pass the upstream setup checker. The owning skill now generates/uses project.cmd on Windows. The previous WinError 193 regression was reproduced before repair and passes afterward, including a temporary project path with spaces. The patch is retained in verification/wstack-setup-windows.patch.
+- [x] Resolve the setup script's Windows permission reporting. It now applies Unix executable permissions only on Unix. Repeated apply returns `changed: []`, preserving the custom instructions and routes. Seven relevant owning-skill tests pass.
+- [ ] Record a clean checked SHA and land on the local default branch before marking the Linear issue Done. `master` follows the existing Git default; use a temporary clean checkout to preserve the unrelated logo. No remote publication is part of this follow-up.
 
-The direct foundation diagnostic passed 42 checks before setup and 44 after the added documentation links. Windows help and doctor each return 127 with an explicit missing-Cargo diagnostic. The Rust route has not run. Re-run the foundation diagnostic under the documented CLI bootstrap exception while Rust is unavailable. This is offline file/source-reference evidence; no live Revit, native CAD or physical-fit checks are part of setup.
+The real Rust route passes 44 structural checks. The CLI boundary driver passes 13 checks: help/doctor, invalid commands/arguments, explicit configuration/report paths with spaces, offline read-back, missing-source failure and malformed-JSON failure. Expected exits 0, 1 and 2 are preserved through the Windows launcher. Evidence is in ignored artifacts/local-ci; no live Revit, native CAD or physical-fit checks are part of setup.
 
 ## Current stack and bounded next work
 
 | Current | Preferred target or exception | Next bounded step |
 | --- | --- | --- |
-| Offline PowerShell diagnostic | Rust CLI orchestrates the existing script; keep its implementation and flags | Supply the existing-toolchain prerequisite, then check help/doctor, successful report generation and failure exit propagation |
+| Offline PowerShell diagnostic | Rust CLI now orchestrates the existing script, retaining implementation and flags | Complete: real route and failure/report read-back verified |
 | Planned pyRevit adapter with IronPython; separate CPython workers | Retain these Revit-specific languages; Rust CLI does not replace a Revit execution context | M1 in docs/ROADMAP.md, through the existing loopback bridge |
 | Planned C#/.NET native host pilot | Retain C# because the host must match the installed Revit SDK/runtime | Confirm the SDK/runtime before M2 project files |
 | Planned ribbon/MCP interface | Keep the small shared operation seam and Revit interface | Implement only named operations proved by the next roadmap milestone |
@@ -27,4 +27,6 @@ The direct foundation diagnostic passed 42 checks before setup and 44 after the 
 
 - [ ] Locate/plan local CI behind `./project`: proportional checks, useful caching, exact clean SHA/base/commands/results. Applicable checks pass before push/merge; edits/new SHA → recheck. No hosted config ≠ gap; hosted → documented requirement/owner direction. Setup does not provision CI. <!-- setup:ci-discovery -->
 
-Alignment remains pending. Setup has not audited app tests, configured CI, dispatched hosted jobs, installed dependencies or proved live Revit behavior. The only current app diagnostic is wired above; planned status/inspection/generation operations are not CLI commands.
+Local CI is implemented through `.\project.cmd ci`, with scope routing, Rust format/lint/build, the real CLI contract, setup readiness/idempotence and Cargo warm-cache/invalidation checks. It records aggregate success/failure, commands, SHA/base and checkout cleanliness. Static Markdown takes the light route; code, dependencies, CI and executable documentation take full checks. The final clean-revision/landing gate is still pending above.
+
+The setup skill's CI inventory remains a conservative text-hint report; actual local CI results provide alignment evidence. No hosted service is needed for this foundation, and no hosted jobs or source publication are part of this work. Planned Revit operations remain future roadmap milestones.

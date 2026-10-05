@@ -14,3 +14,7 @@ Inspect returns wall counts, exterior wall/roof candidate IDs, skipped interior 
 Only target is accepted as input. Preview/generate/verify and job operations are not exposed. A standalone named MCP server remains planned; the existing development bridge can invoke the shared implementation.
 
 Ribbon: Suite Status, Tool Settings and Inspect TimberFold. Settings selects an existing external folder and writes user settings under LOCALAPPDATA/RevitThyme. Unconfigured inspection still reports model candidates and explicitly identifies missing configuration. Existing generation stays in TimberFold's own ribbon.
+
+## Client execution constraint
+
+Issue Routes requests serially. The development bridge and suite share pyRevit execution infrastructure; overlapping requests produced crossed/error responses in the first-host investigation. The verified eight-case contract driver runs serially. Concurrent clients and a dedicated queued MCP adapter remain unverified/planned in this preview.

@@ -26,6 +26,8 @@ The three buttons include transparent light/dark icons. An existing installation
 
 This checks that every installed non-image file matches the package, preserves an image/ownership-record backup, and refuses code changes. Display changes take effect on the next normal Revit start. Normal code updates still require Revit to be closed.
 
+The installer checks the physical destination before changing host files. Codex's packaged Windows environment can redirect AppData writes into its private cache even when a normal path is supplied. A directory handle alone does not reveal this; the check uses an automatically deleted, uniquely created file probe. Package-cache paths and redirected writes are refused. Run installation from ordinary PowerShell, or use an explicitly verified native path. On the development machine, a localhost administrative-share path reached the actual folders; the installer does not assume that share is available on other computers. Native Revit ribbon/file read-back establishes that the host loaded the result.
+
 ## Development-host Routes repair
 
 The observed pyRevit Routes source starts its HTTP server twice and writes background HTTP diagnostics to a UI output stream. Windows events captured ScriptConsole failures on background threads. A developer-only diagnostic and guarded source repair is available from a clone:
@@ -35,7 +37,7 @@ The observed pyRevit Routes source starts its HTTP server twice and writes backg
 .\project.cmd repair-routes --apply
 ```
 
-The diagnostic runs actual server lifecycle code in an isolated CPython process before writing anything. Apply refuses unrecognized source, retains the exact original under artifacts/live/pyrevit-routes-server-before.py and applies a small patch to the selected pyRevit clone. It takes effect in a new Revit process. The CPython regression passed; repaired IronPython/Revit execution still needs a normal cold-start smoke test. This repair is not automatically applied by the release installer and does not establish support for other pyRevit versions.
+The diagnostic runs actual server lifecycle code in an isolated CPython process before writing anything. Apply refuses redirected paths and unrecognized source, retains the exact original under artifacts/live/pyrevit-routes-server-before.py and applies a small patch to the selected pyRevit clone. It takes effect in a new Revit process. The CPython regression and repaired IronPython/Revit cold-start smoke test passed on the development host. Repeated Reload stability remains unverified. This repair is not automatically applied by the release installer and does not establish support for other pyRevit versions.
 
 To recover the original, close Revit yourself and copy the saved backup over the repaired pyrevitlib/pyrevit/routes/server/server.py in that same clone. Keep the backup and local repair report. The patch is also retained in verification/pyrevit-routes.patch. Worker errors go to %TEMP%\pyRevit-Routes-errors.log; avoid publishing private paths or diagnostics from that file.
 
@@ -47,7 +49,7 @@ Close Revit and install the newer extracted package. Previous owned code moves i
 & .\scripts\install.ps1 -Action Uninstall
 ```
 
-Uninstall retains a recoverable code backup and user settings. Recover by installing an older official ZIP, or moving a saved backup into the extension folder while Revit is closed and the destination is absent. Reload afterward.
+Uninstall retains a recoverable code backup and user settings. Recover by installing an older official ZIP, or moving a saved backup into the extension folder while Revit is closed and the destination is absent. Load it on the next normal Revit start.
 
 ## Packaging and versions
 

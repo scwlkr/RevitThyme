@@ -53,6 +53,10 @@ def verify(report):
         command = ['powershell', '-NoProfile', '-NonInteractive', '-File',
                    str(package / 'scripts/install.ps1'), '-PackageRoot', str(package),
                    '-ExtensionsRoot', str(extensions)]
+        redirected = root / 'AppData/Local/Packages/Example/LocalCache/Roaming/pyRevit/Extensions'
+        result = subprocess.run([*command[:-1], str(redirected)], capture_output=True, text=True, timeout=60)
+        require('Installer refuses package-cache destinations before changing host files', result.returncode != 0
+                and 'Package-redirected AppData' in result.stderr and not redirected.exists(), result.stderr)
         result = subprocess.run(command, capture_output=True, text=True, timeout=60)
         require('Installer succeeds with spaces in paths', result.returncode == 0, result.stdout + result.stderr)
         if result.returncode != 0:

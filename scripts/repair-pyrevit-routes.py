@@ -128,6 +128,9 @@ def main(args):
     if args.probe:
         return lifecycle_probe(args.probe)
     path = args.pyrevit_root / 'pyrevitlib/pyrevit/routes/server/server.py'
+    if args.apply:
+        subprocess.run(['powershell', '-NoProfile', '-NonInteractive', '-File',
+                        str(ROOT / 'scripts/host-path.ps1'), '-Path', str(path)], check=True)
     before_bytes = path.read_bytes()
     before = before_bytes.decode('utf-8-sig').replace('\r\n', '\n')
     after = patched(before)
@@ -148,6 +151,8 @@ def main(args):
             raise ValueError('Existing repair backup must be preserved before a new repair')
         backup.parent.mkdir(parents=True, exist_ok=True)
         backup.write_bytes(before_bytes)
+        if path.read_bytes() != before_bytes:
+            raise ValueError('Routes source changed while preparing repair; no replacement performed')
         path.write_text(after, encoding='utf-8', newline='\r\n')
         if path.read_text(encoding='utf-8-sig') != after:
             path.write_bytes(before_bytes)

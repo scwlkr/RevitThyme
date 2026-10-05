@@ -25,7 +25,7 @@ def verify(report):
     checks.append({'name': 'Installed status route', 'passed': first.get('status') == 'succeeded', 'result': first})
     if first.get('status') != 'succeeded':
         value = {'scope': 'live_read_only_routes', 'passed': False, 'checks': checks,
-                 'diagnostic': 'Recover/reload pyRevit from its Revit ribbon, then retry. Do not reload through a synchronous Routes request.',
+                 'diagnostic': 'Check pyRevit configuration and recover on a normal Revit start, then retry. Do not reload through a synchronous Routes request.',
                  'native_cad_checked': False, 'physical_checked': False}
         report.parent.mkdir(parents=True, exist_ok=True)
         report.write_text(json.dumps(value, indent=2) + '\n', encoding='utf-8')

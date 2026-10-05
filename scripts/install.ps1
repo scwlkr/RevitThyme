@@ -5,8 +5,9 @@ param(
     [string]$ExtensionsRoot = (Join-Path $env:APPDATA 'pyRevit\Extensions')
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'host-path.ps1')
 $extensionName = 'RevitThyme.extension'
-$parent = [IO.Path]::GetFullPath($ExtensionsRoot)
+$parent = Assert-NativeHostPath $ExtensionsRoot
 $destination = [IO.Path]::GetFullPath((Join-Path $parent $extensionName))
 if ((Split-Path $destination -Parent) -ne $parent) { throw 'Unsafe extension destination' }
 $recordPath = Join-Path $destination 'install-record.json'
@@ -120,7 +121,7 @@ if ($Action -eq 'Icons') {
         Copy-Item -LiteralPath (Join-Path $backup 'install-record.json') -Destination $recordPath
         throw
     }
-    Write-Output "Refreshed $($icons.Count) ribbon icons: $destination. Reload pyRevit to display them. Backup: $backup"
+    Write-Output "Refreshed $($icons.Count) ribbon icons: $destination. Display them on the next normal Revit start. Backup: $backup"
     exit 0
 }
 New-Item -ItemType Directory -Path $parent -Force | Out-Null
@@ -150,4 +151,4 @@ try {
     }
     throw
 }
-Write-Output "Installed RevitThyme $($release.version): $destination. Reload pyRevit to load the ribbon."
+Write-Output "Installed RevitThyme $($release.version): $destination. Load the ribbon on the next normal Revit start."

@@ -2,18 +2,29 @@
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+    if os.name != 'nt':
+        return subprocess.call([
+            sys.executable, '-X', 'utf8', str(ROOT / 'scripts/check-portable.py'),
+            '--base', 'HEAD^', '--require-clean',
+            '--report', str(ROOT / 'artifacts/public-ci/latest.json'),
+        ], cwd=ROOT)
     checks = []
     commands = [
         ['git', 'diff', '--check'],
         ['cargo', 'fmt', '--manifest-path', 'tools/project-cli/Cargo.toml', '--check'],
         ['cargo', 'clippy', '--offline', '--locked', '--all-targets', '--manifest-path',
          'tools/project-cli/Cargo.toml', '--', '-D', 'warnings'],
+        ['cargo', 'test', '--offline', '--locked', '--manifest-path',
+         'tools/project-cli/Cargo.toml'],
+        [sys.executable, '-X', 'utf8', '-m', 'unittest', 'discover',
+         '-s', 'tests', '-p', 'test*.py', '-v'],
         [str(ROOT / 'project.cmd'), 'check-release'],
         [str(ROOT / 'project.cmd'), 'package', '--require-clean'],
     ]
@@ -31,7 +42,9 @@ def main():
             print(result.stdout + result.stderr)
     report = {'sha': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
               'scope': 'portable_offline_release', 'passed': all(x['passed'] for x in checks),
-              'checks': checks, 'live_revit_checked': False, 'physical_checked': False}
+              'platform': sys.platform, 'checks': checks,
+              'windows_installer_checked': checks[-2]['passed'],
+              'live_revit_checked': False, 'physical_checked': False}
     path = ROOT / 'artifacts/public-ci/latest.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')

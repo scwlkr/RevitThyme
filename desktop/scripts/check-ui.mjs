@@ -29,7 +29,22 @@ try{
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
  check(true,"Reset preserves captured exact values");
+ await app.evaluate(()=>{
+   const original=globalThis.fetch;let delayed=false;
+   globalThis.fetch=async(input,init)=>{
+     const response=await original(input,init);
+     if(!delayed && String(input).endsWith("/v1/preview") && JSON.parse(init.body).unit==="ft"){
+       delayed=true;await new Promise(resolve=>setTimeout(resolve,600));
+     }
+     return response;
+   };
+ });
  await page.getByLabel("Display units").selectOption("ft");
+ await page.getByLabel("Cut Plane offset").fill("1524");
+ await page.waitForTimeout(800);
+ await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ check((await page.getByText(/Cut Plane · Level 1/).textContent()).includes("→ 5 ft"),"Typing during delayed unit conversion uses the displayed units");
+ await page.getByRole("button",{name:"Reset",exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value.startsWith("4.000"));
  await page.getByLabel("Cut Plane offset").fill("NaN");
  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Nonfinite input disables review");

@@ -25,6 +25,7 @@ export function ViewRangeScreen(){
    <Button disabled={e.busy} onPress={()=>void e.capture(true)}>Reconnect</Button>
    <View className="flex-1"/><Text className="text-muted">Offsets in</Text>
    <select aria-label="Display units" value={e.unit} onChange={ev=>e.changeUnit(ev.target.value as Unit)}><option value="mm">mm</option><option value="m">m</option><option value="ft">decimal ft</option></select>
+   {e.request && e.request.unit!==e.unit && <Text accessibilityLiveRegion="polite" className="text-muted">Converting display units…</Text>}
   </View>
   {e.snapshot && <Text className="text-muted text-sm">{e.snapshot.document_name} / {e.snapshot.view_name} · view {e.snapshot.target.view_id} · revision {e.snapshot.target.revision}</Text>}
   {!!e.error && <Text accessibilityRole="alert" className="text-ink bg-surface border-l-4 border-timber p-3">{e.error}</Text>}

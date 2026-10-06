@@ -51,7 +51,7 @@ export function useEditor() {
    const timer=setTimeout(async()=>{
      try{
        const p=await bridge().preview(request);
-       if(!abandoned && token===epoch.current && p.input_revision===revision.current && p.snapshot_id===request.snapshot_id){setPreview(p);setError("");}
+       if(!abandoned && token===epoch.current && p.input_revision===revision.current && p.snapshot_id===request.snapshot_id){setPreview(p);setUnit(request.unit);setError("");}
      }catch(e){if(!abandoned && token===epoch.current && request.input_revision===revision.current){setError(String(e));}}
    },45);
    return()=>{abandoned=true;clearTimeout(timer);};
@@ -71,7 +71,7 @@ export function useEditor() {
    catch(e){if(token===epoch.current && rev===revision.current)setError(String(e));}
    finally{if(token===epoch.current)setBusy(false);}
  }
- function changeUnit(next:Unit){setInvalidInputs(new Set());setInputReset(n=>n+1);setUnit(next);update({unit:next});}
+ function changeUnit(next:Unit){setInvalidInputs(new Set());setInputReset(n=>n+1);update({unit:next});}
  return {snapshot,request,preview,proposal,error,busy,unit,kind,partial,cancelled,inputInvalid,inputReset,
    setKind,setPartial,setInputInvalid,capture,reset,cancel,edit,review,changeUnit,update,
    ready:!!preview && preview.input_revision===request?.input_revision && !error && !inputInvalid};

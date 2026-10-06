@@ -4,7 +4,7 @@ import {mkdirSync,writeFileSync} from "node:fs";
 import path from "node:path";
 import assert from "node:assert/strict";
 import {verifySectionLayout} from "./section-layout.mjs";
-const {values}=parseArgs({options:{cdp:{type:"string"},"source-sha":{type:"string"},"document-name":{type:"string"},"view-name":{type:"string"},case:{type:"string"},"idle-ms":{type:"string"},underlay:{type:"string"},"plan-direction":{type:"string",default:"down"},"apply-cut-feet":{type:"string"},"unlimited-plane":{type:"string"},"approved-writes":{type:"boolean",default:false},preview:{type:"boolean",default:false},"stale-review":{type:"boolean",default:false}}});
+const {values}=parseArgs({options:{cdp:{type:"string"},"source-sha":{type:"string"},"document-name":{type:"string"},"view-name":{type:"string"},case:{type:"string"},"idle-ms":{type:"string"},underlay:{type:"string"},"plan-direction":{type:"string",default:"down"},"apply-cut-feet":{type:"string"},"unlimited-plane":{type:"string"},"approved-writes":{type:"boolean",default:false},preview:{type:"boolean",default:false},"stale-review":{type:"boolean",default:false},"capture-rejection":{type:"string"}}});
 const url=new URL(values.cdp);
 assert.equal(url.hostname,"127.0.0.1");assert.equal(url.protocol,"http:");
 assert.match(values["source-sha"],/^[0-9a-f]{40}$/);assert.match(values.case,/^[a-z0-9-]+$/);
@@ -24,6 +24,13 @@ try{
   check(true,"Existing review is rejected after independent native target invalidation");
   await page.getByText(/^Native outcome:/).locator("..").screenshot({path:path.join(folder,values.case+"-outcome.png")});
   passed=true;
+ }else if(values["capture-rejection"]){
+  assert.equal(values["apply-cut-feet"],undefined);
+  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+  await page.getByRole("alert").filter({hasText:values["capture-rejection"]}).waitFor();
+  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Excluded native capture explains its restriction and disables review");
+  check(errors.length===0,"No renderer errors");
+  await page.screenshot({path:path.join(folder,values.case+".png"),fullPage:true});passed=true;
  }else{
  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
  await page.getByText(values["document-name"]+" / "+values["view-name"],{exact:false}).waitFor();

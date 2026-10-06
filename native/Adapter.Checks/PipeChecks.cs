@@ -11,7 +11,7 @@ internal static class PipeChecks
         string name = $"RevitThyme-{Environment.ProcessId}-{model.Target.SessionId}";
         using var server = new PipeServer(name, model.Target.ProcessId, model.Target.ProcessStartTicks, model.Target.SessionId, session, () => { });
         string credential = new('a', 64); server.SetCredential(credential); var running = server.Run();
-        using var timeout = new CancellationTokenSource(15000);
+        using var timeout = new CancellationTokenSource(75000);
         async Task<NamedPipeClientStream> Connect()
         {
             var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
@@ -43,6 +43,24 @@ internal static class PipeChecks
             await client.WriteAsync(frame, timeout.Token);
             bool closed = false; try { await Frames.Read<JsonElement>(client, timeout.Token); } catch (IOException) { closed = true; }
             check(closed && !session.HasQueued, "Closed framed DTO rejects arbitrary methods and missing fields");
+        }
+        using (var client = await Connect())
+        {
+            await Frames.Write(client, hello, timeout.Token); await Frames.Read<JsonElement>(client, timeout.Token);
+            await Task.Delay(31_000, timeout.Token);
+            bool alive = false;
+            try
+            {
+                var capture = new Request(Wire.Protocol, Guid.NewGuid().ToString(), Operation.Capture, null, "", null, 0, "", false);
+                await Frames.Write(client, capture, timeout.Token);
+                alive = (await Frames.Read<Reply>(client, timeout.Token)).Status == Status.Queued;
+            }
+            catch (IOException) { }
+            check(alive, "Authenticated Windows pipe survives idle beyond 30 seconds and can enqueue capture");
+            await client.WriteAsync(new byte[] { 1 }, timeout.Token);
+            bool closed = false;
+            try { await Frames.Read<JsonElement>(client, timeout.Token); } catch (IOException) { closed = true; }
+            check(closed, "Started but incomplete native header still times out and disconnects");
         }
         check(model.Trace.Count == 0, "Pipe reader never calls model API on background thread");
         server.Dispose(); await running;

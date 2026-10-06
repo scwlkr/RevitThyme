@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased - Native qualification repairs - 2026-10-06
+
+- Identify open Revit documents through native document equality instead of managed wrapper references, retaining process/session/view/revision checks and close invalidation.
+- Keep authenticated idle connections available; retain bounded handshake, incomplete-frame and reply timeouts. Add an actual Windows pipe regression that fails on the prior 30-second idle disconnect.
+- Package adapter 0.2.2 with the existing protocol-2 Rust/UI components. Add a separately built, excluded-from-package qualification harness for controlled native rollback/failure observations on explicitly approved disposable targets.
+
 ## Unreleased - Visual View Range readability and orientation - 2026-10-06
 
 - Separate coincident/nearby plane callouts with leader lines, wrap desktop controls and show out-of-section/Unlimited planes on the correct side. Start native sections at the middle of the captured model.

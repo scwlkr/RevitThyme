@@ -1,6 +1,5 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using System.Runtime.CompilerServices;
 using RevitThyme.Native;
 using Range = RevitThyme.Native.Range;
 using Plane = RevitThyme.Native.Plane;
@@ -8,8 +7,6 @@ using Plane = RevitThyme.Native.Plane;
 namespace RevitThyme.RevitAdapter;
 public sealed class Model(UIApplication app, Host host) : IModel
 {
-    private static readonly ConditionalWeakTable<Document, Identity> documents = new();
-    private sealed class Identity { public string Id = Guid.NewGuid().ToString(); }
     internal static readonly PlanViewPlane[] Planes = [PlanViewPlane.TopClipPlane, PlanViewPlane.CutPlane, PlanViewPlane.BottomClipPlane, PlanViewPlane.ViewDepthPlane];
     private (Document doc, ViewPlan view) Active()
     {
@@ -33,7 +30,7 @@ public sealed class Model(UIApplication app, Host host) : IModel
     public Target CurrentTarget()
     {
         var (doc, view) = Active();
-        return new(host.ProcessId, host.StartTicks, host.SessionId, documents.GetValue(doc, _ => new()).Id, view.UniqueId, host.Session.Revision);
+        return new(host.ProcessId, host.StartTicks, host.SessionId, host.DocumentId(doc), view.UniqueId, host.Session.Revision);
     }
     public Facts Capture()
     {
@@ -63,7 +60,7 @@ public sealed class Model(UIApplication app, Host host) : IModel
         // During our transaction the document is deliberately modifiable and revision may change at Commit.
         // Readback still resolves the exact document instance and view; never another active document.
         var doc = app.ActiveUIDocument?.Document ?? throw new InvalidDataException("Document closed.");
-        if (documents.GetValue(doc, _ => new()).Id != facts.Capture.Target.DocumentId || doc.ActiveView.UniqueId != facts.Capture.Target.ViewId)
+        if (host.DocumentId(doc) != facts.Capture.Target.DocumentId || doc.ActiveView.UniqueId != facts.Capture.Target.ViewId)
             throw new InvalidDataException("Readback target changed.");
         using var range = ((ViewPlan)doc.ActiveView).GetViewRange(); return ReadRange(range);
     }

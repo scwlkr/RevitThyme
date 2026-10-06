@@ -17,6 +17,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 - Use wstack project instructions and a Rust CLI for repository automation; retain the Revit-specific host/worker languages. Track substantive work in the [RevitThyme Linear project](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9) under WLKR LABS. The setup follow-up authorizes needed dependencies and local CI, with no product migration.
 - Use `master` as the local default branch, matching the existing Git default. Land verified local work there; publishing/pushing remains an explicit separate request.
 - On 2026-10-06 the user granted standing approval for installations needed on this project and normal Revit close/open in its approved test session. Do not ask again for an already authorized project installation. Preserve unsaved changes unless their discard is authorized; fixture/model writes and save/sync retain their separate request boundaries. This does not authorize live-job edits, legacy retirement, merge or release.
+- The same day's subsequent full approval includes temporary test-view changes, native Apply/rollback/Undo/Redo tests and needed repairs/install/restarts on the named disposable `Revit-Plugin-Test-House.rvt`. Restore original settings and discard test changes when restarting; keep the file unsaved. Do not request the same test/install approval again. Live jobs, save/sync, legacy retirement, merge and release remain outside this qualification work.
 
 ## Replacement target agreed on 2026-10-06
 

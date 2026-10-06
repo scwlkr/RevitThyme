@@ -6,7 +6,7 @@ The bounded qualification covers one Revit instance on the current Windows x64 h
 
 ## Use
 
-1. Open a supported plan and choose **Add-Ins > RevitThyme Native Preview > Visual View Range**. Starting the desktop executable directly opens the synthetic offline fixture instead.
+1. Open a supported plan and choose **RevitThyme > View Tools > Visual View Range** in the local adapter 0.2.5 cleanup build. The preserved 0.3.0-preview.1 candidate (adapter 0.2.4) uses **Add-Ins > RevitThyme Native Preview > Visual View Range**. Starting the desktop executable directly opens the synthetic offline fixture instead.
 2. Capture the active plan. Confirm the displayed document and view. The section is a bounded geometry preview; it does not reproduce Revit's final projected visibility.
 3. Drag a plane or enter its offset. Choose feet or millimeters and move the section slice as needed. These controls change only the preview.
 4. Review the original and proposed Top, Cut, Bottom and Depth values. Confirm and choose **Apply in Revit**. Revit validates the range, applies one named Undo item and independently reads back the result.

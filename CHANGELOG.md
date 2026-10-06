@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - Local ribbon cleanup - 2026-10-06
+
+- Place native Visual View Range under RevitThyme > View Tools, sharing the existing suite tab and creating it when pyRevit is absent. Keep the preview support restriction visible in the tooltip and guide. Adapter 0.2.5 retains protocol 2 and existing model operations; preserve the original 0.3.0-preview.1 candidate separately. This cleanup change remains local and unmerged.
+
 ## 0.3.0-preview.1 candidate — Visual View Range — 2026-10-06
 
 - Complete the accepted bounded M3 trials 1–10, including a normal pyRevit-disabled native ribbon/capture/Apply/Undo trial on Revit 27.2.0.39. Keep exact source/package and actual-host revisions separate in the assessment.

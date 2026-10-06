@@ -37,8 +37,12 @@ public sealed class Host : IExternalApplication, IExternalEventHandler
         app.ControlledApplication.DocumentChanged += Changed;
         app.ControlledApplication.DocumentClosing += Closing;
         app.ViewActivated += Activated; app.Idling += Idle;
-        var panel = app.CreateRibbonPanel("RevitThyme Native Preview");
-        panel.AddItem(new PushButtonData("RevitThyme.ViewRange", "Visual\nView Range", Assembly.GetExecutingAssembly().Location, typeof(Launch).FullName!));
+        // pyRevit may already own the suite tab; native startup also works without it.
+        try { app.CreateRibbonTab("RevitThyme"); }
+        catch (Autodesk.Revit.Exceptions.ArgumentException) { }
+        var panel = app.CreateRibbonPanel("RevitThyme", "View Tools");
+        var button = (PushButton)panel.AddItem(new PushButtonData("RevitThyme.ViewRange", "Visual\nView Range", Assembly.GetExecutingAssembly().Location, typeof(Launch).FullName!));
+        button.ToolTip = "Visual View Range preview: capture a supported plan, review changes, then Apply. Revit 2027.2; unresolved Above/Below references require named levels.";
         return Result.Succeeded;
     }
     public Result OnShutdown(UIControlledApplication app)

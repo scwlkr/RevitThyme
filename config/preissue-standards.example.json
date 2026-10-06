@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "name": "Illustrative office standards; adapt before use",
+  "severity": {
+    "room.placement": "error",
+    "room.duplicate_number": "error",
+    "door.mark": "warning"
+  },
+  "views": {
+    "types": ["FloorPlan", "CeilingPlan"],
+    "name_patterns": ["A-*"],
+    "require_template": true,
+    "template_names": ["A - Floor Plan", "A - Reflected Ceiling Plan"]
+  },
+  "sheets": {
+    "name_patterns": ["A - *"],
+    "number_patterns": ["A-???"],
+    "include_placeholders": false
+  }
+}

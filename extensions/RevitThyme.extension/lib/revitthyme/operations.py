@@ -5,6 +5,7 @@ from pyrevit import DB, versionmgr
 from pyrevit.loader import sessioninfo
 from System.Diagnostics import Process
 from revitthyme import config
+from revitthyme.preissue_operation import check as preissue_check
 
 
 def element_id(value):
@@ -88,26 +89,33 @@ def execute(operation, uiapp, parameters=None):
     result = {'schema_version': 1, 'suite_version': suite['version'],
               'operation': operation, 'effects': ['read_model'],
               'changed_ids': [], 'skipped_ids': [], 'target': identity(uiapp)}
-    if operation not in ('revitthyme_status', 'timberfold_inspect'):
+    if operation not in ('revitthyme_status', 'timberfold_inspect', 'preissue_check'):
         result.update(status='unknown_operation', diagnostics=['Operation is not implemented.'])
         return result
-    if not isinstance(parameters, dict) or set(parameters) - set(['target']):
-        result.update(status='invalid_request', diagnostics=['Only a target object is accepted.'])
+    allowed = ['target', 'standards'] if operation == 'preissue_check' else ['target']
+    if not isinstance(parameters, dict) or set(parameters) - set(allowed):
+        result.update(status='invalid_request', diagnostics=['Accepted fields: ' + ', '.join(allowed)])
         return result
     target = parameters.get('target')
-    if operation == 'timberfold_inspect' and target is None:
+    if operation != 'revitthyme_status' and target is None:
         result.update(status='target_required', diagnostics=['Discover target using revitthyme_status.'])
         return result
     if target is not None and target != result['target']:
         result.update(status='target_mismatch', diagnostics=['Active session/document changed; rediscover target.'])
         return result
-    if operation == 'timberfold_inspect' and uiapp.ActiveUIDocument is None:
+    if operation != 'revitthyme_status' and uiapp.ActiveUIDocument is None:
         result.update(status='no_document', diagnostics=['Open a project to inspect.'])
         return result
     try:
-        data = status(uiapp) if operation == 'revitthyme_status' else inspect(uiapp)
+        if operation == 'revitthyme_status':
+            data = status(uiapp)
+        elif operation == 'preissue_check':
+            data = preissue_check(uiapp, parameters)
+        else:
+            data = inspect(uiapp)
         result.update(status=data.pop('status', 'succeeded'), data=data)
-        result['skipped_ids'] = data.get('scope', {}).get('skipped_interior_wall_ids', [])
+        if operation == 'timberfold_inspect':
+            result['skipped_ids'] = data.get('scope', {}).get('skipped_interior_wall_ids', [])
     except Exception as error:
         result.update(status='failed', diagnostics=[str(error)])
     return result

@@ -26,6 +26,8 @@ Naming patterns use case-sensitive wildcard matching of the complete trimmed val
 
 Standards use schema version 1 and reject unknown fields, invalid types, empty lists and overlong values. String lists are limited to 50 entries of at most 200 characters. Invalid standards return `invalid_standards` before reading elements. A malformed or unreadable user file is also an explicit configuration failure.
 
+Configured view type names are checked against the actual host `ViewType` enum before element collection. A typo returns `invalid_standards`; unavailable host enum validation returns `host_validation_unavailable` and the check does not collect elements. A valid configured type absent from the model remains an explicitly empty checked scope.
+
 Routes accepts only `target` and optional `standards`. Discover the target with `/revitthyme/status/` and submit requests serially, following the existing [client execution constraint](OPERATIONS.md#client-execution-constraint). The endpoint keeps pyRevit's `uiapp`/ExternalEvent execution; it does not open a new listener or bypass the Revit API context.
 
 ```json

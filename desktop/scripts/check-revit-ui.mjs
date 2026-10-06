@@ -34,12 +34,13 @@ try{
  await verifySectionLayout(page);check(true,"Rendered main plane labels do not overlap");
  check(await page.getByText("Main plan: Looking "+values["plan-direction"]+(values["plan-direction"]==="up"?" ↑":" ↓"),{exact:true}).isVisible(),"Native main direction is independently displayed");
  if(values.underlay){
+  const disabled=values.underlay==="none"||values.underlay.startsWith("none-");
   const direction=values.underlay.endsWith("up")?"up":"down";
-  const text="Underlay Orientation: Look "+(direction==="up"?"Up ↑":"Down ↓")+" · "+(values.underlay==="none"?"None":"Enabled");
+  const text="Underlay Orientation: Look "+(direction==="up"?"Up ↑":"Down ↓")+" · "+(disabled?"None":"Enabled");
   check(await page.getByText(text,{exact:true}).isVisible(),"Native underlay orientation/enabled state matches independent setup");
   const band=page.getByLabel("Underlay level band");
-  check(await band.count()===(values.underlay==="none"?0:1),"Enabled native underlay controls its rendered level band");
-  if(values.underlay!=="none"){
+  check(await band.count()===(disabled?0:1),"Enabled native underlay controls its rendered level band");
+  if(!disabled){
    const arrow=page.getByLabel("Underlay looking "+direction+" direction");
    const [start,end]=await arrow.evaluate(e=>[Number(e.getAttribute("y1")),Number(e.getAttribute("y2"))]);
    check(direction==="up"?end<start:end>start,"Native underlay arrow points in the captured direction");

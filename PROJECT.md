@@ -33,6 +33,7 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | Read-only project diagnostic | Implemented in `scripts/check-project.ps1` |
 | Project automation CLI | Implemented with Rust 1.99.0; Windows help/doctor, project diagnostic and CLI boundary checks verified |
 | Local CI | Implemented through `project ci`: scope routing, format/lint/build, real CLI checks, setup readiness/idempotence and Cargo cache checks; exact-SHA results in ignored artifacts/local-ci |
+| Portable local checks | `project check-portable` validates Mac/Linux fixtures, CLI and package bytes with exact target/checker revisions; Windows installer, IronPython and Revit qualification stay separate |
 | TimberFold implementation | External checkout; read-only inspection integrated, generation not integrated |
 | RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
 | Native C# host | Planned |

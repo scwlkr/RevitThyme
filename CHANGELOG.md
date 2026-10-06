@@ -2,6 +2,8 @@
 
 ## Unreleased - Native qualification repairs - 2026-10-06
 
+- Reject unresolved native Level Above/Below sentinels rather than guessing a nearby level's elevation. Resolved native choices store actual level IDs and remain supported. Adapter 0.2.4 keeps protocol 2; the preview never converts model references automatically. Record this proposed restriction and the actual native mismatch in the M3 assessment.
+- Add actual packaged transport and native BRep section-comparison drivers to the existing project CLI. Retain numbered stale/restriction/range/drag/queue/reconnect and responsiveness evidence separately from source/package CI.
 - Reject native edit modes between transactions using the SDK's edit-scope readiness check; `IsModifiable` alone misses this state. Adapter 0.2.3 retains protocol 2. Keep the no-write actual-native regression driver outside the package.
 - Identify open Revit documents through native document equality instead of managed wrapper references, retaining process/session/view/revision checks and close invalidation.
 - Keep authenticated idle connections available; retain bounded handshake, incomplete-frame and reply timeouts. Add an actual Windows pipe regression that fails on the prior 30-second idle disconnect.

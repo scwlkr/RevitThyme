@@ -30,7 +30,7 @@ On 2026-10-06 the user accepted the following priorities for Visual View Range. 
 | 14 | Additional cross-user/network attack trials | Defer actual additional attack trials: O11/P4/R10 boundaries. Existing authentication, local-only transport and renderer-security checks remain required. |
 | 15 | Migrate every other suite tool and remove the legacy host | Move to replacement M4 parity/distribution and M5 approved cutover. Outside this feature milestone; no legacy removal is authorized. |
 
-Required checks 1–9 still need their remaining actual results before this bounded qualification can pass. Check 10 gates the separate Python-free claim. Deferred checks 11–14 remain visible gaps for their broader claims and do not block the accepted one-instance preview scope. Check 15 belongs to later milestones. Merge, release and cutover retain separate authorization; this agreement grants none of them.
+Required checks 1–9 need recorded actual results before this bounded qualification can pass; see the [current numbered assessment](../../verification/rust-view-range-m3-remaining.md), including the explicit unresolved-reference restriction proposed after a native mismatch. Check 10 gates the separate Python-free claim. Deferred checks 11–14 remain visible gaps for their broader claims and do not block the accepted one-instance preview scope. Check 15 belongs to later milestones. Merge, release and cutover retain separate authorization; this agreement grants none of them.
 
 ## Offline and source acceptance
 

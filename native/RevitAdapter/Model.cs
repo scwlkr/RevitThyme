@@ -104,11 +104,11 @@ public sealed class Model(UIApplication app, Host host) : IModel
         if (id == PlanViewRange.Current || unlimited) level = current;
         else if (id == PlanViewRange.LevelAbove || id == PlanViewRange.LevelBelow)
         {
-            var levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>();
-            level = id == PlanViewRange.LevelAbove
-                ? levels.Where(l => l.ProjectElevation > current.ProjectElevation).OrderBy(l => l.ProjectElevation).FirstOrDefault()!
-                : levels.Where(l => l.ProjectElevation < current.ProjectElevation).OrderByDescending(l => l.ProjectElevation).FirstOrDefault()!;
-            if (level is null) throw new InvalidDataException("Relative level cannot be resolved.");
+            // A resolved native "Level Above (name)" stores that level's positive ID.
+            // Bare sentinels do not identify a level; nearest elevation can disagree
+            // with native clipping. Never turn an unresolved reference into a guess.
+            throw new Rejection("unresolved_relative_level",
+                "A View Range plane has an unresolved Level Above/Below reference. Choose a named level in native View Range, then refresh. No settings were changed.");
         }
         else level = doc.GetElement(id) as Level ?? throw new InvalidDataException("Reference is not a level.");
         if (!double.IsFinite(offset) || !double.IsFinite(level.ProjectElevation)) throw new InvalidDataException("Nonfinite native values.");

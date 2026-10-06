@@ -1,5 +1,7 @@
 # WLK-114 native qualification assessment
 
+This is the preserved earlier assessment. The [remaining numbered qualification report](rust-view-range-m3-remaining.md) supersedes its pending rows and installation status, while retaining these historical observations and their exact revisions.
+
 Date: 2026-10-06. Work: [WLK-114](https://linear.app/wlkr-labs/issue/WLK-114/m3-visual-view-range-installed-revit-qualification). Scope: bounded actual Visual View Range qualification and two runtime repairs, stacked on draft PR #8. No merge, release, save/sync, legacy retirement or external TimberFold modification.
 
 ## Revisions and evidence boundaries

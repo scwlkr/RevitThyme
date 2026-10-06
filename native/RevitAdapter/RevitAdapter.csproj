@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblyName>RevitThyme.RevitAdapter</AssemblyName><Version>0.2.3</Version>
+    <AssemblyName>RevitThyme.RevitAdapter</AssemblyName><Version>0.2.4</Version>
     <RevitApiPath Condition="'$(RevitApiPath)' == ''">C:\Program Files\Autodesk\Revit 2027</RevitApiPath>
   </PropertyGroup>
   <ItemGroup>

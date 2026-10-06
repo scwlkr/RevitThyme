@@ -30,6 +30,8 @@ Keep language-specific libraries inside each implementation. Cross-process worke
 
 ## Host constraints
 
+Development source adds [Pre-Issue Check](PRE-ISSUE-CHECK.md) at the same named operation seam. A narrow adapter reads scalar facts from the active host project in the caller's Revit API context; portable logic validates declarative standards and evaluates the snapshot. Findings and per-check coverage are structured independently of the ribbon/Routes caller. Its read-back covers only the document modified flag; model geometry, installed runtime and host behavior need separate qualification.
+
 External requests queue into Revit through supported mechanisms such as ExternalEvent. The host re-resolves the document and elements when executing, since the active document or model can change while a job waits. A session/document token must identify the intended document; a display title alone is insufficient.
 
 Model changes use transactions with rollback on failure. Group related document changes into an undoable operation where Revit permits it. File creation and external-worker side effects cannot be undone by a Revit transaction: keep a unique run directory and report partial artifacts on failure.

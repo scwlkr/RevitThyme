@@ -17,6 +17,8 @@ The visual identity combines thyme leaves, earthy greens and timber colors. Each
 
 TimberFold generation continues through its separate working installation. Inspection counts do not prove fabrication support.
 
+The development source also includes [Pre-Issue Check](docs/PRE-ISSUE-CHECK.md): read-only room, door, view/template and sheet QA through the ribbon and named Routes. Firm naming standards are configurable; absent standards and unreadable data remain `not_checked`. This addition has portable fixture validation; installed IronPython/Revit qualification is still pending and it is not part of the published v0.2.0 evidence.
+
 ## Install
 
 Install pyRevit for Revit 2027. Download the ZIP and checksum from [Releases](https://github.com/scwlkr/RevitThyme/releases), verify and extract it. From the extracted folder:

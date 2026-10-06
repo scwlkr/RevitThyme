@@ -17,4 +17,6 @@ Ribbon: Suite Status, Tool Settings and Inspect TimberFold. Settings selects an 
 
 ## Client execution constraint
 
+Development source adds `preissue_check` at POST `/preissue/check/`, with a required discovered `target` and optional strictly validated `standards` object. Otherwise it reads the fixed per-user standards file. The [Pre-Issue contract](PRE-ISSUE-CHECK.md) defines findings, coverage, configuration and exclusions. No-document, family-document, target mismatch and invalid standards have explicit states. This addition is not included in the published v0.2.0 host evidence; use serial requests and qualify the installed adapter before claiming host support.
+
 Issue Routes requests serially. The development bridge and suite share pyRevit execution infrastructure; overlapping requests produced crossed/error responses in the first-host investigation. The verified eight-case contract driver runs serially. Concurrent clients and a dedicated queued MCP adapter remain unverified/planned in this preview.

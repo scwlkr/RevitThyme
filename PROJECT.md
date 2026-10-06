@@ -35,6 +35,7 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | Local CI | Implemented through `project ci`: scope routing, format/lint/build, real CLI checks, setup readiness/idempotence and Cargo cache checks; exact-SHA results in ignored artifacts/local-ci |
 | TimberFold implementation | External checkout; read-only inspection integrated, generation not integrated |
 | RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
+| Pre-Issue Check | Development source adds configurable read-only document QA and structured coverage/findings; portable fixture tests pass, installed Revit qualification pending |
 | Native C# host | Planned |
 | RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; dedicated MCP server planned |
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
@@ -47,6 +48,8 @@ TimberFold source was inspected on 2026-10-05 at commit `45d49b4969d7cd67bb1bde8
 The TimberFold docs record completed digital workflows, including Cedar Cottage, and remaining physical-fit work. Those are source-project records, not new live validation by RevitThyme. Consult the tool's current PROJECT.md and verification artifacts before relying on them.
 
 ## First work
+
+The user-authorized automation expansion adds deterministic read-only Pre-Issue Check using the existing pyRevit foundation. It preserves TimberFold and source geometry. Rule-based findings do not certify code compliance or issue readiness; host extraction, ribbon and read-back qualification are required before a new release claim.
 
 1. Validate installed v0.2.0 read-only operations and packaged ribbon. Preserve no-document, wrong-target and disconnected diagnostics. The public package has no TimberFold generation implementation.
 2. Define a small C# host pilot implementing the same read-only status operation. Verify the installed SDK/runtime and supported Revit build first.

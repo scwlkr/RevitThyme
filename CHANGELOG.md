@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — Pre-Issue Check
+
+- Add shared read-only room/door/view/sheet checks with stable findings and explicit incomplete coverage, strict configurable firm standards and a branded ribbon button.
+- Separate scalar Revit extraction from portable deterministic rules; preserve target guards and package all new extension files and the example standards. IronPython/Revit and Windows installation remain unqualified for this addition; findings do not certify code compliance.
+
 ## 0.2.0 - 2026-10-05 - First pyRevit extension
 
 - Add a RevitThyme ribbon with Suite Status, Tool Settings and read-only TimberFold inspection.

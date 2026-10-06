@@ -113,6 +113,18 @@ class HttpTests(unittest.TestCase):
                 self.assertEqual(client.query('revitthyme_status')['state'], 'quarantined')
                 self.assertEqual(len(fixture.requests), 1)
 
+    def test_truncated_declared_body_is_rejected_even_when_json_is_complete(self):
+        # The fixture sends valid status JSON, advertises 100 extra bytes, then
+        # closes. A syntactically valid payload is insufficient HTTP completion.
+        with Fixture('truncated_body') as fixture:
+            client = self.client(fixture)
+            result = client.query('revitthyme_status')
+            self.assertEqual(result['state'], 'invalid_response', result)
+            self.assertIn('Content-Length', result['diagnostic'])
+            self.assertEqual(client.pending()['request_id'], result['request_id'])
+            self.assertEqual(client.query('revitthyme_status')['state'], 'quarantined')
+            self.assertEqual(len(fixture.requests), 1)
+
     def test_environment_proxies_are_ignored(self):
         with Fixture() as fixture, patch.dict('os.environ', {
             'http_proxy': 'http://127.0.0.1:1', 'HTTP_PROXY': 'http://127.0.0.1:1',

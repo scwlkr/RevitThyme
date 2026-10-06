@@ -79,6 +79,10 @@ def post(port, route, parameters, timeout):
         body = response.read(MAX_RESPONSE + 1)
         if len(body) > MAX_RESPONSE:
             raise InvalidResponse('Routes response exceeds the 2 MiB limit.')
+        # HTTPResponse.read(amt) can return early EOF without IncompleteRead.
+        # Complete JSON alone must not clear quarantine for an incomplete frame.
+        if response.length not in (None, 0):
+            raise InvalidResponse('Routes response ended before its declared Content-Length.')
         return body.decode('utf-8', errors='strict')
     finally:
         connection.close()

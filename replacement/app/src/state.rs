@@ -12,7 +12,8 @@ pub struct Cache {
 }
 impl Cache {
     pub fn adopt(&mut self, snapshot: Snapshot, triangles: Vec<Triangle>) -> Result<(), ApiError> {
-        if triangles.len() > 50_000
+        if !snapshot.view_kind.accepts(snapshot.plan_direction)
+            || triangles.len() > 50_000
             || snapshot.triangle_count as usize != triangles.len()
             || snapshot
                 .bounds_feet
@@ -27,6 +28,10 @@ impl Cache {
         }
         geometry::slice(&triangles, snapshot.bounds_feet, geometry::Axis::X, 0.5)
             .map_err(|_| error("invalid_capture", "Native coordinates rejected.", true))?;
+        snapshot
+            .underlay
+            .band(snapshot.bounds_feet[2], snapshot.bounds_feet[5])
+            .map_err(|m| error("invalid_capture", &m, true))?;
         self.snapshot = Some((snapshot, Instant::now(), triangles));
         Ok(())
     }
@@ -42,6 +47,13 @@ impl Cache {
     }
     pub fn capture(&mut self, request: CaptureRequest) -> Result<Snapshot, ApiError> {
         check_protocol(request.protocol)?;
+        if !request.view_kind.accepts(request.plan_direction) {
+            return Err(error(
+                "invalid_direction",
+                "Floor plans look down; ceiling plans look up. Structural plans support either direction.",
+                false,
+            ));
+        }
         self.serial = self
             .serial
             .checked_add(1)
@@ -50,12 +62,36 @@ impl Cache {
         if request.partial_fixture {
             triangles.truncate(36);
         }
+        use revitthyme_core::range::PlanDirection;
+        let underlay = Underlay {
+            enabled: !matches!(request.underlay_fixture, UnderlayFixture::None),
+            direction: if matches!(
+                request.underlay_fixture,
+                UnderlayFixture::Up | UnderlayFixture::UnboundedUp
+            ) {
+                PlanDirection::Up
+            } else {
+                PlanDirection::Down
+            },
+            base_level_id: "4294967302".into(),
+            base_level_name: "Underlay base".into(),
+            base_elevation_feet: 2.,
+            top_level_id: "4294967303".into(),
+            top_level_name: "Underlay top".into(),
+            top_elevation_feet: 6.,
+            top_unbounded: matches!(
+                request.underlay_fixture,
+                UnderlayFixture::UnboundedUp | UnderlayFixture::UnboundedDown
+            ),
+        };
         let snapshot = Snapshot {
             protocol:PROTOCOL, mode:Mode::Synthetic,
             snapshot_id: format!("{}-{}",self.session,self.serial),
             target: Target { process_id:0,process_start_ticks:"0".into(),session_id:self.session.clone(), document_id:"synthetic-house".into(), view_id:format!("{:?}-plan", request.view_kind), revision:self.serial },
             document_name:"Synthetic courtyard house".into(), view_name:format!("{:?} Plan · Level 1",request.view_kind),
-            view_kind:request.view_kind, original:fixture::original(request.view_kind),
+            view_kind:request.view_kind, plan_direction:request.plan_direction,
+            underlay,
+            original:fixture::original(request.view_kind,request.plan_direction),
             bounds_feet:[0.,0.,-0.5,20.,16.,10.5], triangle_count:triangles.len() as u32,
             partial:request.partial_fixture, diagnostics:vec![
                 "Synthetic geometry only. No Revit document is connected.".into(),
@@ -94,7 +130,7 @@ impl Cache {
         let (snapshot, triangles) = self.resolve(request)?;
         let proposed = snapshot
             .original
-            .edited(&request.edits, snapshot.view_kind)
+            .edited(&request.edits, snapshot.plan_direction)
             .map_err(|m| error("invalid_range", &m, false))?;
         let section = geometry::slice(
             triangles,
@@ -108,6 +144,10 @@ impl Cache {
             snapshot_id: snapshot.snapshot_id.clone(),
             input_revision: request.input_revision,
             section,
+            underlay_bands: snapshot
+                .underlay
+                .band(snapshot.bounds_feet[2], snapshot.bounds_feet[5])
+                .map_err(|m| error("invalid_capture", &m, true))?,
             display_offsets: Offsets {
                 top: request.unit.display(proposed.top.offset_feet),
                 cut: request.unit.display(proposed.cut.offset_feet),
@@ -160,11 +200,11 @@ mod tests {
     use super::*;
     use revitthyme_core::{
         geometry::Axis,
-        range::{Unit, ViewKind},
+        range::{PlanDirection, Unit, ViewKind},
     };
     fn request(snapshot: &Snapshot) -> PreviewRequest {
         PreviewRequest {
-            protocol: 1,
+            protocol: 2,
             snapshot_id: snapshot.snapshot_id.clone(),
             target: snapshot.target.clone(),
             input_revision: 1,
@@ -179,8 +219,10 @@ mod tests {
         let mut cache = Cache::new("owned".into());
         let first = cache
             .capture(CaptureRequest {
-                protocol: 1,
+                protocol: 2,
                 view_kind: ViewKind::Floor,
+                plan_direction: PlanDirection::Down,
+                underlay_fixture: UnderlayFixture::None,
                 partial_fixture: false,
             })
             .unwrap();
@@ -189,13 +231,15 @@ mod tests {
         r.target.session_id = "other-process".into();
         assert!(cache.preview(&r).is_err());
         r = request(&first);
-        r.protocol = 2;
+        r.protocol = 99;
         assert!(cache.preview(&r).is_err());
         r = request(&first);
         cache
             .capture(CaptureRequest {
-                protocol: 1,
+                protocol: 2,
                 view_kind: ViewKind::Ceiling,
+                plan_direction: PlanDirection::Up,
+                underlay_fixture: UnderlayFixture::None,
                 partial_fixture: false,
             })
             .unwrap();
@@ -210,8 +254,10 @@ mod tests {
         let mut cache = Cache::new("fixture".into());
         let s = cache
             .capture(CaptureRequest {
-                protocol: 1,
+                protocol: 2,
                 view_kind: ViewKind::Floor,
+                plan_direction: PlanDirection::Down,
+                underlay_fixture: UnderlayFixture::None,
                 partial_fixture: true,
             })
             .unwrap();

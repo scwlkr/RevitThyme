@@ -116,7 +116,7 @@ impl Service {
             return self
                 .outcome(
                     OutcomeRequest {
-                        protocol: 1,
+                        protocol: 2,
                         request_id: request.request_id,
                         target: request.target,
                     },
@@ -149,7 +149,7 @@ impl Service {
             ));
         }
         let native = Request {
-            protocol: 1,
+            protocol: 2,
             request_id: request.request_id.clone(),
             operation: "apply",
             target: Some(p.target.clone()),
@@ -164,7 +164,7 @@ impl Service {
         self.proposal = None;
         match self.client.call(&native).await {
             Ok(reply)=>reply.mutation(request.target),
-            Err(_)=>Ok(MutationResult {protocol:1,request_id:request.request_id,target:request.target,status:MutationStatus::OutcomeUnconfirmed,
+            Err(_)=>Ok(MutationResult {protocol: 2,request_id:request.request_id,target:request.target,status:MutationStatus::OutcomeUnconfirmed,
                 code:"lost_response".into(),message:"Apply response unavailable. Inspect this request's outcome and refresh. No automatic retry.".into(),
                 refresh_required:true,native_values:vec![],changed_ids:vec![],skipped_ids:vec![]})
         }

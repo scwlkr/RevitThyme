@@ -7,7 +7,7 @@ if (args.Contains("--serve")) { await FixtureServer.Run(); return; }
 int passed = 0;
 void Check(bool value, string name) { if (!value) throw new Exception(name); passed++; Console.WriteLine("PASS " + name); }
 var model = new FakeModel(); var facts = model.Capture();
-Request Request(Operation operation = Operation.Apply, string? id = null) => new(1, id ?? Guid.NewGuid().ToString(), operation, facts.Capture.Target,
+Request Request(Operation operation = Operation.Apply, string? id = null) => new(Wire.Protocol, id ?? Guid.NewGuid().ToString(), operation, facts.Capture.Target,
     facts.Capture.SnapshotId, facts.Capture.Original with { Cut = facts.Capture.Original.Cut with { OffsetFeet = 5 } }, 0, "", true);
 var result = Apply.Execute(model, facts, Request());
 Check(result.Status == Status.AppliedVerified && result.ChangedIds.SequenceEqual(new[] { facts.Capture.Target.ViewId }), "Changed Apply returns independently expected range and exact changed view ID");

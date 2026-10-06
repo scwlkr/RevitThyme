@@ -44,6 +44,7 @@ public sealed class Model(UIApplication app, Host host) : IModel
         var geometry = Geometry.Capture(doc);
         var capture = new Capture(Guid.NewGuid().ToString(), target, doc.Title, view.Name,
             view.ViewType == ViewType.CeilingPlan ? "ceiling" : view.ViewType == ViewType.EngineeringPlan ? "engineering" : "floor",
+            Orientation.Direction(doc, view), Orientation.Underlay(doc, view),
             new(values[0], values[1], values[2], values[3]), geometry.Bounds, (uint)geometry.Triangles.Length,
             geometry.Partial, geometry.Diagnostics, 600);
         return new(capture, raw, geometry.Triangles, DateTime.UtcNow);
@@ -52,6 +53,9 @@ public sealed class Model(UIApplication app, Host host) : IModel
     {
         var state = Active();
         if (CurrentTarget() != facts.Capture.Target) throw new Rejection("stale_target", "Document, view or model revision changed. Refresh.");
+        if (Orientation.Direction(state.doc, state.view) != facts.Capture.PlanDirection
+            || Orientation.Underlay(state.doc, state.view) != facts.Capture.Underlay)
+            throw new Rejection("stale_orientation", "Plan direction or underlay changed. Refresh before reviewing Apply.");
         return state;
     }
     public RawRange Read(Facts facts)

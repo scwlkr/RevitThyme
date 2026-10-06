@@ -17,8 +17,8 @@ internal static class PipeChecks
             var client = new NamedPipeClientStream(".", name, PipeDirection.InOut, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
             await client.ConnectAsync(timeout.Token); return client;
         }
-        var hello = new Hello(1, model.Target.ProcessId, model.Target.ProcessStartTicks, model.Target.SessionId, credential, Guid.NewGuid().ToString());
-        foreach (var bad in new[] { hello with { Credential = new('b', 64) }, hello with { ProcessStartTicks = "0" }, hello with { SessionId = Guid.NewGuid().ToString() }, hello with { Protocol = 2 } })
+        var hello = new Hello(Wire.Protocol, model.Target.ProcessId, model.Target.ProcessStartTicks, model.Target.SessionId, credential, Guid.NewGuid().ToString());
+        foreach (var bad in new[] { hello with { Credential = new('b', 64) }, hello with { ProcessStartTicks = "0" }, hello with { SessionId = Guid.NewGuid().ToString() }, hello with { Protocol = 1 } })
         {
             using var client = await Connect(); await Frames.Write(client, bad, timeout.Token);
             bool closed = false;

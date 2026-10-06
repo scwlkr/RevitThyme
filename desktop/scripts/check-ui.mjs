@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {mkdirSync,writeFileSync} from "node:fs";
 import path from "node:path";
 import {spawnSync} from "node:child_process";
+import {verifySectionLayout} from "./section-layout.mjs";
+import {orientationUi} from "./orientation-ui.mjs";
 const root=path.resolve(import.meta.dirname,"../.."),folder=path.join(root,"artifacts/m1");
 mkdirSync(folder,{recursive:true});
 const executablePath=path.join(root,"desktop/out/RevitThyme-win32-x64/RevitThyme.exe");
@@ -15,6 +17,12 @@ try{
  await page.getByRole("button",{name:"Review Apply",exact:true}).waitFor({timeout:15000});
  await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]')?.getAttribute("aria-disabled"));
  check((await page.getByLabel("Cut Plane offset").inputValue()).startsWith("1219.2"),"Packaged Expo loads assets and Rust preview through preload");
+ await page.getByLabel("View Depth offset").fill("0");
+ await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await verifySectionLayout(page);
+ check(true,"Coincident Bottom and View Depth labels do not overlap");
+ await page.getByRole("button",{name:"Reset",exact:true}).click();
+ await orientationUi(app,page,path.join(root,"artifacts/wlk-117"),check);
  check(await page.evaluate(()=>{try{window.require("node:fs");return false;}catch{return !window.process?.versions?.node;}}),"Renderer cannot access Node filesystem or native process");
  check(await page.evaluate(()=>Object.keys(window.revitthyme).sort().join(",")==="apply,cancelApply,capture,mode,outcome,preview,propose,reconnect"),"Narrow named bridge has no credential/file/shell/URL method");
  await page.getByRole("img",{name:"RevitThyme",exact:true}).waitFor();
@@ -130,13 +138,13 @@ try{
  await page.getByLabel("Fixture view").selectOption("floor");
  await page.getByRole("button",{name:"Refresh fixture",exact:true}).click();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- const before=await page.evaluate(()=>window.revitthyme.capture({protocol:1,view_kind:"floor",partial_fixture:false}));
+ const before=await page.evaluate(()=>window.revitthyme.capture({protocol: 2,view_kind:"floor",plan_direction:"down",underlay_fixture:"none",partial_fixture:false}));
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText(/stale_snapshot/).waitFor();
  check(true,"Out of date displayed target is rejected");
  await page.getByRole("button",{name:"Reconnect",exact:true}).click();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- const after=await page.evaluate(()=>window.revitthyme.capture({protocol:1,view_kind:"floor",partial_fixture:false}));
+ const after=await page.evaluate(()=>window.revitthyme.capture({protocol: 2,view_kind:"floor",plan_direction:"down",underlay_fixture:"none",partial_fixture:false}));
  check(before.target.session_id!==after.target.session_id,"Reconnect starts a fresh owned sidecar session");
  const ownerPid=await app.evaluate(()=>process.pid);
  const crashed=spawnSync("powershell.exe",["-NoProfile","-NonInteractive","-Command",'\n$owned = @(Get-CimInstance Win32_Process -Filter "ParentProcessId = $env:M1_OWNER_PID" | Where-Object Name -eq "revitthyme-app.exe")\nif ($owned.Count -ne 1 -or $owned[0].ExecutablePath -ne $env:M1_CHILD_EXE) { throw "Expected one owned packaged Rust child" }\nStop-Process -Id $owned[0].ProcessId -ErrorAction Stop\n'],{encoding:"utf8",env:{...process.env,M1_OWNER_PID:String(ownerPid),M1_CHILD_EXE:path.join(path.dirname(executablePath),"resources/revitthyme-app.exe")}});
@@ -150,7 +158,7 @@ try{
  const forged=await app.evaluate(async({app,BrowserWindow})=>{
    const foreign=new BrowserWindow({show:false,webPreferences:{preload:app.getAppPath()+"/build/preload.cjs",sandbox:true,contextIsolation:true,nodeIntegration:false}});
    await foreign.loadURL("about:blank");
-   const result=await foreign.webContents.executeJavaScript('window.revitthyme.capture({protocol:1,view_kind:"floor",partial_fixture:false}).then(()=>"accepted",e=>e.message)');
+   const result=await foreign.webContents.executeJavaScript('window.revitthyme.capture({protocol: 2,view_kind:"floor",plan_direction:"down",underlay_fixture:"none",partial_fixture:false}).then(()=>"accepted",e=>e.message)');
    foreign.destroy();return result;
  });
  check(forged.includes("Untrusted IPC sender"),"Packaged IPC rejects an unrelated window");

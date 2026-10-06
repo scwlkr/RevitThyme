@@ -1,6 +1,6 @@
 {
   "name": "revitthyme-desktop",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "main": "expo-router/entry",
   "description": "RevitThyme Visual View Range offline milestone",

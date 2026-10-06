@@ -3,7 +3,7 @@
     "name": "RevitThyme",
     "slug": "revitthyme",
     "scheme": "revitthyme",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "userInterfaceStyle": "automatic",
     "plugins": [
       "expo-router"

@@ -11,6 +11,24 @@ pub enum ViewKind {
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
 #[serde(rename_all = "snake_case")]
+pub enum PlanDirection {
+    Down,
+    Up,
+}
+impl ViewKind {
+    pub fn accepts(self, direction: PlanDirection) -> bool {
+        self == Self::Engineering
+            || direction
+                == if self == Self::Ceiling {
+                    PlanDirection::Up
+                } else {
+                    PlanDirection::Down
+                }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum Unit {
     Mm,
     M,
@@ -81,7 +99,7 @@ impl Range {
             depth: edit(&self.depth),
         }
     }
-    pub fn edited(&self, edits: &Edits, kind: ViewKind) -> Result<Self, String> {
+    pub fn edited(&self, edits: &Edits, direction: PlanDirection) -> Result<Self, String> {
         let mut result = self.clone();
         for (name, plane, edit) in [
             ("Top", &mut result.top, &edits.top),
@@ -115,15 +133,15 @@ impl Range {
         let top = elevation(&result.top, true);
         let cut = elevation(&result.cut, true);
         let bottom = elevation(&result.bottom, false);
-        let depth = elevation(&result.depth, kind == ViewKind::Ceiling);
+        let depth = elevation(&result.depth, direction == PlanDirection::Up);
         if top < cut || bottom > cut {
             return Err("Top must be above Cut, and Bottom below Cut.".into());
         }
-        if kind == ViewKind::Ceiling && depth < top {
-            return Err("Ceiling View Depth must be at or above Top.".into());
+        if direction == PlanDirection::Up && depth < top {
+            return Err("Looking up: View Depth must be at or above Top.".into());
         }
-        if kind != ViewKind::Ceiling && depth > bottom {
-            return Err("View Depth must be at or below Bottom.".into());
+        if direction == PlanDirection::Down && depth > bottom {
+            return Err("Looking down: View Depth must be at or below Bottom.".into());
         }
         Ok(result)
     }

@@ -50,6 +50,6 @@ internal static class Geometry
         for (int i = 0; i < 3; i++) if (bounds[i + 3] - bounds[i] < 0.001) bounds[i + 3] = bounds[i] + 0.001;
         return new(triangles.ToArray(), bounds, reasons.Count > 0,
             ["Local-document model geometry in project coordinates/internal feet; may include hidden, phase and design-option geometry.",
-             "Links, annotation, crop, plan regions, underlays and final plan visibility are excluded.", .. reasons.Order()]);
+             "Links, annotation, crop, plan regions, projected underlay visibility and final plan visibility are excluded.", .. reasons.Order()]);
     }
 }

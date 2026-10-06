@@ -7,7 +7,7 @@
       "name": "GPL-3.0-or-later",
       "identifier": "GPL-3.0-or-later"
     },
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "paths": {
     "/v1/apply": {
@@ -491,17 +491,26 @@
         "required": [
           "protocol",
           "view_kind",
+          "plan_direction",
+          "underlay_fixture",
           "partial_fixture"
         ],
         "properties": {
           "partial_fixture": {
             "type": "boolean"
           },
+          "plan_direction": {
+            "$ref": "#/components/schemas/PlanDirection",
+            "description": "Used only by the offline fixture. Native capture always reads Revit's type."
+          },
           "protocol": {
             "type": "integer",
             "format": "int32",
             "maximum": 4294967295,
             "minimum": 0
+          },
+          "underlay_fixture": {
+            "$ref": "#/components/schemas/UnderlayFixture"
           },
           "view_kind": {
             "$ref": "#/components/schemas/ViewKind"
@@ -686,6 +695,13 @@
         },
         "additionalProperties": false
       },
+      "PlanDirection": {
+        "type": "string",
+        "enum": [
+          "down",
+          "up"
+        ]
+      },
       "Plane": {
         "type": "object",
         "required": [
@@ -728,6 +744,7 @@
           "snapshot_id",
           "input_revision",
           "section",
+          "underlay_bands",
           "proposed",
           "display_offsets",
           "display_limits",
@@ -781,6 +798,13 @@
           },
           "snapshot_id": {
             "type": "string"
+          },
+          "underlay_bands": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UnderlayBand"
+            },
+            "maxItems": 1
           }
         },
         "additionalProperties": false
@@ -1022,6 +1046,8 @@
           "document_name",
           "view_name",
           "view_kind",
+          "plan_direction",
+          "underlay",
           "original",
           "bounds_feet",
           "triangle_count",
@@ -1067,6 +1093,9 @@
           "partial": {
             "type": "boolean"
           },
+          "plan_direction": {
+            "$ref": "#/components/schemas/PlanDirection"
+          },
           "protocol": {
             "type": "integer",
             "format": "int32",
@@ -1084,6 +1113,10 @@
             "format": "int32",
             "maximum": 4294967295,
             "minimum": 0
+          },
+          "underlay": {
+            "$ref": "#/components/schemas/Underlay",
+            "description": "Independent from the main range; underlay visibility is not simulated."
           },
           "view_kind": {
             "$ref": "#/components/schemas/ViewKind"
@@ -1129,6 +1162,88 @@
           }
         },
         "additionalProperties": false
+      },
+      "Underlay": {
+        "type": "object",
+        "required": [
+          "enabled",
+          "direction",
+          "base_level_id",
+          "base_level_name",
+          "base_elevation_feet",
+          "top_level_id",
+          "top_level_name",
+          "top_elevation_feet",
+          "top_unbounded"
+        ],
+        "properties": {
+          "base_elevation_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "base_level_id": {
+            "type": "string"
+          },
+          "base_level_name": {
+            "type": "string"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/PlanDirection"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "top_elevation_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "top_level_id": {
+            "type": "string"
+          },
+          "top_level_name": {
+            "type": "string"
+          },
+          "top_unbounded": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnderlayBand": {
+        "type": "object",
+        "required": [
+          "direction",
+          "bottom_feet",
+          "top_feet",
+          "top_unbounded"
+        ],
+        "properties": {
+          "bottom_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/PlanDirection"
+          },
+          "top_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "top_unbounded": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UnderlayFixture": {
+        "type": "string",
+        "enum": [
+          "none",
+          "up",
+          "down",
+          "unbounded_up",
+          "unbounded_down"
+        ]
       },
       "Unit": {
         "type": "string",

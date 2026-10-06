@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - Visual View Range readability and orientation - 2026-10-06
+
+- Separate coincident/nearby plane callouts with leader lines, wrap desktop controls and show out-of-section/Unlimited planes on the correct side. Start native sections at the middle of the captured model.
+- Capture structural plan type direction and independent underlay metadata in the minimal .NET adapter; use captured up/down direction for Rust depth validation and display it in the existing Expo/Electron feature.
+- Version the strict native/API contract to protocol 2, regenerate OpenAPI/TypeScript/Zod and package compatible Rust/desktop 0.1.1 and adapter 0.2.1 components.
+- Add failing-before/passing-after range and rendered-label regressions plus Windows pipe and packaged UI checks for floor/ceiling/structural up/down, opposite underlay and desktop scaling. Source/package verification is separate from pending updated-adapter qualification in actual Revit.
+
 ## Unreleased - Rust replacement M2 - 2026-10-06
 
 - Add minimal .NET 10/Revit 2027.2 source for current-plan capture, bounded local model triangles, session-bound local pipes and serialized ExternalEvent execution.

@@ -4,6 +4,7 @@ import {mkdirSync,writeFileSync} from "node:fs";
 import {execFileSync} from "node:child_process";
 import path from "node:path";
 import {fixture,root} from "./native-fixture.mjs";
+import {verifySectionLayout,verifyUnderlay} from "./section-layout.mjs";
 const f=await fixture(),samples=[];let browser,page,passed=false;
 const check=(value,name)=>{assert.ok(value,name);samples.push({name,passed:true});console.log("PASS "+name);};
 try{
@@ -49,6 +50,35 @@ try{
  await page.getByRole("button",{name:"Reconnect",exact:true}).click();await cut.waitFor();
  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isEnabled(),"Reconnect captures fresh native facts before another review");
  check(await page.evaluate(()=>typeof window.revitthyme?.apply==="function"&&typeof window.require==="undefined"&&!Object.keys(window.revitthyme).some(k=>/credential|pipe|file|shell/i.test(k))),"Native preload exposes only named operations; no credential/pipe/filesystem/Node access");
+ mkdirSync(path.join(root,"artifacts/wlk-117"),{recursive:true});
+ for(const direction of ["up","down"]){
+  await f.command("orientation "+direction);
+  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+  await page.getByText("Main plan: Looking "+direction+(direction==="up"?" ↑":" ↓"),{exact:true}).waitFor();
+  await page.getByText("Underlay Orientation: "+(direction==="up"?"Look Down ↓":"Look Up ↑")+" · Enabled",{exact:true}).waitFor();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
+  await verifySectionLayout(page);
+  check(true,"Native packaged structural "+direction+" uses captured direction and displays opposite underlay independently");
+  await page.getByLabel("View Depth offset").fill(direction==="up"?"2133.6":"609.6");
+  await page.getByText(direction==="up"?/Looking up: View Depth must be at or above Top/:/Looking down: View Depth must be at or below Bottom/).waitFor();
+  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Native UI blocks wrong-side "+direction+" depth");
+  await page.getByRole("button",{name:"Reset",exact:true}).click();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  await page.screenshot({path:path.join(root,"artifacts/wlk-117","native-fixture-"+direction+".png"),fullPage:true});
+ }
+ for(const choice of ["none","up","down","unbounded_up","unbounded_down"]){
+  await f.command("underlay "+choice);
+  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
+  await verifyUnderlay(page,choice,10);await verifySectionLayout(page);
+  check(true,"Native Underlay Orientation " +choice+" reaches packaged band/arrow without changing main range");
+  await page.getByRole("button",{name:"Review Apply",exact:true}).waitFor({state:"visible"});
+  await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]').disabled);
+  await page.getByRole("img",{name:"Model section"}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(root,"artifacts/wlk-117","native-underlay-"+choice+".png"),fullPage:true});
+ }
  mkdirSync(path.join(root,"artifacts/m2"),{recursive:true});await page.screenshot({path:path.join(root,"artifacts/m2/native-packaged.png"),fullPage:true});passed=true;
 }catch(error){if(page)console.error((await page.locator("body").innerText()).slice(0,2200));throw error;}
 finally{

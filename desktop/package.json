@@ -1,0 +1,45 @@
+{
+  "name": "revitthyme-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "description": "RevitThyme Visual View Range offline milestone",
+  "author": "WLKR LABS",
+  "license": "GPL-3.0-or-later",
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "export": "expo export --platform web",
+    "bundle": "node scripts/bundle.mjs",
+    "package": "electron-forge package --platform=win32 --arch=x64"
+  },
+  "dependencies": {
+    "expo": "57.0.27",
+    "expo-router": "57.0.25",
+    "expo-linking": "57.0.12",
+    "expo-constants": "57.0.21",
+    "expo-status-bar": "57.0.1",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-web": "~0.21.0",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.1",
+    "nativewind": "4.2.7",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "@electron-forge/cli": "8.0.1",
+    "@electron-forge/maker-zip": "8.0.1",
+    "typescript": "6.0.3",
+    "@types/react": "~19.2.0",
+    "@types/node": "^24.0.0",
+    "tailwindcss": "3.4.19",
+    "babel-preset-expo": "57.0.13",
+    "esbuild": "^0.27.0",
+    "playwright": "^1.58.0"
+  }
+}

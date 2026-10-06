@@ -1,0 +1,95 @@
+use revitthyme_core::{
+    fixture,
+    geometry::{Axis, slice},
+    range::{Unit, ViewKind},
+};
+
+#[test]
+fn independent_tetrahedron_and_coplanar_edges() {
+    let a = [0., 0., 0.];
+    let b = [2., 0., 0.];
+    let c = [0., 2., 0.];
+    let d = [0., 0., 2.];
+    let section = slice(
+        &[[a, b, c], [a, b, d], [a, c, d], [b, c, d]],
+        [0., 0., 0., 2., 2., 2.],
+        Axis::X,
+        0.5,
+    )
+    .unwrap();
+    let mut vertices: Vec<_> = section.segments.into_iter().flatten().collect();
+    vertices.sort_by(|a, b| a.partial_cmp(b).unwrap());
+    vertices.dedup();
+    assert_eq!(vertices, vec![[0., 0.], [0., 1.], [1., 0.]]);
+    let face = slice(
+        &fixture::box_mesh([0., 0., 0.], [2., 3., 4.]),
+        [0., 0., 0., 2., 3., 4.],
+        Axis::X,
+        0.,
+    )
+    .unwrap();
+    assert!(
+        face.segments
+            .iter()
+            .all(|[a, b]| a[0] == b[0] || a[1] == b[1])
+    );
+}
+#[test]
+fn opening_and_transformed_furniture_coordinates() {
+    let section = slice(
+        &fixture::house(),
+        [0., 0., -0.5, 20., 16., 10.5],
+        Axis::Y,
+        0.015625,
+    )
+    .unwrap();
+    for [a, b] in section.segments {
+        if a[1].min(b[1]) <= 1. && a[1].max(b[1]) >= 1. {
+            assert!(a[0].max(b[0]) <= 8. || a[0].min(b[0]) >= 12.);
+        }
+    }
+    let furniture = fixture::box_mesh([0., 0., 0.], [2., 3., 2.5])
+        .into_iter()
+        .map(|t| t.map(|[x, y, z]| [14. - y, 6. + x, z]))
+        .collect::<Vec<_>>();
+    let s = slice(&furniture, [11., 6., 0., 14., 8., 2.5], Axis::Y, 0.5).unwrap();
+    for p in s.segments.into_iter().flatten() {
+        assert!((11.0..=14.).contains(&p[0]));
+        assert!((0.0..=2.5).contains(&p[1]));
+    }
+}
+#[test]
+fn units_precision_level_relative_and_native_rule_prechecks() {
+    for unit in [Unit::Mm, Unit::M, Unit::Ft] {
+        for feet in [-12.5, 0., 4.000000000123] {
+            assert!((unit.feet(unit.display(feet)) - feet).abs() < 1e-13);
+        }
+    }
+    for kind in [ViewKind::Floor, ViewKind::Engineering, ViewKind::Ceiling] {
+        let r = fixture::original(kind);
+        assert_eq!(r.edited(&r.edits(), kind).unwrap(), r);
+        let mut edits = r.edits();
+        edits.cut.unlimited = true;
+        assert!(r.edited(&edits, kind).is_err());
+        edits = r.edits();
+        edits.cut.value = f64::NAN;
+        assert!(r.edited(&edits, kind).is_err());
+        edits = r.edits();
+        edits.depth.value = 2.;
+        assert!(r.edited(&edits, kind).is_err());
+    }
+    let mut r = fixture::original(ViewKind::Floor);
+    r.top.base_feet = 10.;
+    r.top.offset_feet = -2.;
+    assert!(r.edited(&r.edits(), ViewKind::Floor).is_ok());
+    let mut edits = r.edits();
+    edits.top.unlimited = true;
+    edits.depth.unlimited = true;
+    assert!(r.edited(&edits, ViewKind::Floor).is_ok());
+}
+#[test]
+fn malformed_geometry_and_budgets_are_rejected() {
+    assert!(slice(&[], [0.; 6], Axis::X, f64::NAN).is_err());
+    assert!(slice(&vec![[[0.; 3]; 3]; 50_001], [0.; 6], Axis::X, 0.5).is_err());
+    assert!(slice(&[[[f64::INFINITY; 3]; 3]], [0.; 6], Axis::X, 0.5).is_err());
+}

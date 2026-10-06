@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "RevitThyme",
+    "slug": "revitthyme",
+    "scheme": "revitthyme",
+    "version": "0.1.0",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

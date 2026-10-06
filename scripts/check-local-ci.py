@@ -38,12 +38,12 @@ def main():
     env = {**os.environ, "PYTHONUTF8": "1", "RUSTUP_AUTO_INSTALL": "0"}
     checks = []
 
-    def run(name, command, expected=0, cwd=ROOT):
+    def run(name, command, expected=0, cwd=ROOT, timeout=60):
         started = time.monotonic()
         try:
             result = subprocess.run(
                 command, cwd=cwd, env=env, capture_output=True, text=True,
-                encoding="utf-8", errors="replace", timeout=60,
+                encoding="utf-8", errors="replace", timeout=timeout,
             )
         except (OSError, subprocess.TimeoutExpired) as error:
             result = subprocess.CompletedProcess(command, 1, "", str(error))
@@ -79,6 +79,9 @@ def main():
         if args.require_clean:
             run("Public CI boundary", [str(ROOT / "project.cmd"), "check-public-ci"])
         run("Release package and installer", [str(ROOT / "project.cmd"), "check-release"])
+        run("M1 Rust and typed feature contracts", [str(ROOT / "project.cmd"), "check-m1"], timeout=180)
+        run("M1 Windows application package", [str(ROOT / "project.cmd"), "package-m1"], timeout=300)
+        run("M1 actual packaged interaction", [str(ROOT / "project.cmd"), "check-m1-ui"], timeout=180)
         run("Rust formatting", ["cargo", "fmt", "--manifest-path", str(MANIFEST), "--check"])
         run("Rust lint and build", ["cargo", "clippy", "--offline", "--locked", "--all-targets",
                                     "--manifest-path", str(MANIFEST), "--", "-D", "warnings"])

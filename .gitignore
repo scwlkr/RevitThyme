@@ -29,3 +29,9 @@ node_modules/
 *.dxf
 *.zip
 /tools/project-cli/target/
+/replacement/target/
+/desktop/build/
+/desktop/dist/
+/desktop/out/
+/desktop/.expo/
+/desktop/package-manifest.json

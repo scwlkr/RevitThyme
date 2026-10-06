@@ -40,6 +40,8 @@ The existing package-m1 route packages the extended feature and adapter, preserv
 
 ## Remaining runtime and distribution gates
 
+Win32 pipe flags and client PID semantics were checked against [Microsoft CreateNamedPipe](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createnamedpipea) and [GetNamedPipeClientProcessId](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getnamedpipeclientprocessid). Revit calls/signatures were checked against the installed 2027 API XML and SDK build; runtime results still require approved execution.
+
 M3 must qualify discovery/loading, real ExternalEvent/modal scheduling, native geometry/openings/transforms, level/Unlimited/native rules, restrictions, target invalidation, native failures/Pending/finalizers, rollback/readback and undo/redo. Maximum native capture latency and Revit responsiveness are unmeasured. Cross-user/remote attack trials and simultaneous actual Revit processes are unexecuted; source flags/same-user pipe tests do not establish those scenarios.
 
 P6–P8 installation/update/uninstall/rollback, physical destinations, component compatibility/recovery, complete notices/signing and another-machine trials remain separate. Hosted CI still checks the legacy portable boundary. No installer/cutover is selected. Native restart loses bounded outcomes; unknown results require fresh independent readback and user-directed recovery, never automatic Apply.

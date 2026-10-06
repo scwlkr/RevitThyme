@@ -35,8 +35,9 @@ export function useEditor() {
    if(snapshot) {setInvalidInputs(new Set());setInputReset(n=>n+1);update({edits:originals(snapshot)});}
  },[snapshot,update]);
  const cancel=useCallback(()=>{
+   if(busy||mutation)return;
    reset();setCancelled(true);setProposal(undefined);
- },[reset]);
+ },[reset,busy,mutation]);
  async function capture(reconnect=false) {
    const token=++epoch.current;revision.current++;setBusy(true);setError("");setProposal(undefined);setPreview(undefined);setRequest(undefined);setSnapshot(undefined);setInvalidInputs(new Set());
    try {

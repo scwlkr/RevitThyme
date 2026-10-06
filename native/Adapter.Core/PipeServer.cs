@@ -8,12 +8,21 @@ namespace RevitThyme.Native;
 public sealed class PipeServer(string name, int processId, string startTicks, string sessionId, Session session, Action schedule) : IDisposable
 {
     private readonly CancellationTokenSource lifetime = new();
+    private readonly object bindingGate = new();
     private string credential = "";
     private NamedPipeServerStream? active;
     private string activeConnection = "";
     private readonly TaskCompletionSource ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
     public Task Ready => ready.Task;
-    public void SetCredential(string value) { credential = value; if (activeConnection.Length > 0) session.Disconnect(activeConnection); active?.Dispose(); session.Invalidate(); }
+    public void SetCredential(string value)
+    {
+        lock (bindingGate)
+        {
+            credential = value;
+            if (activeConnection.Length > 0) session.Disconnect(activeConnection);
+            active?.Dispose(); session.Invalidate();
+        }
+    }
     public Task Run() => Task.Run(async () =>
     {
         while (!lifetime.IsCancellationRequested)
@@ -22,7 +31,7 @@ public sealed class PipeServer(string name, int processId, string startTicks, st
             try
             {
                 using var pipe = LocalPipe.Create(name);
-                active = pipe;
+                lock (bindingGate) active = pipe;
                 ready.TrySetResult();
                 await pipe.WaitForConnectionAsync(lifetime.Token);
                 // OS-provided PID rejects remote clients (zero/not a local session) before reading credentials.
@@ -30,10 +39,13 @@ public sealed class PipeServer(string name, int processId, string startTicks, st
                     || Process.GetProcessById((int)pid).SessionId != Process.GetCurrentProcess().SessionId) throw new InvalidDataException("Local client required.");
                 using var helloTimeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); helloTimeout.CancelAfter(5000);
                 var hello = await Frames.Read<Hello>(pipe, helloTimeout.Token);
-                if (hello.Protocol != 1 || hello.ProcessId != processId || hello.ProcessStartTicks != startTicks || hello.SessionId != sessionId
-                    || credential.Length != 64 || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(credential), Encoding.UTF8.GetBytes(hello.Credential))
-                    || !Guid.TryParse(hello.ConnectionId, out _)) throw new InvalidDataException("Handshake rejected.");
-                connection = hello.ConnectionId; activeConnection = connection; session.Connect(connection);
+                lock (bindingGate)
+                {
+                    if (hello.Protocol != 1 || hello.ProcessId != processId || hello.ProcessStartTicks != startTicks || hello.SessionId != sessionId
+                        || credential.Length != 64 || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(credential), Encoding.UTF8.GetBytes(hello.Credential))
+                        || !Guid.TryParse(hello.ConnectionId, out _) || !pipe.IsConnected) throw new InvalidDataException("Handshake rejected.");
+                    connection = hello.ConnectionId; activeConnection = connection; session.Connect(connection);
+                }
                 await Frames.Write(pipe, new { protocol = 1, session_id = sessionId, process_id = processId, process_start_ticks = startTicks }, lifetime.Token);
                 while (!lifetime.IsCancellationRequested)
                 {
@@ -47,10 +59,10 @@ public sealed class PipeServer(string name, int processId, string startTicks, st
                 }
             }
             catch (Exception ex) when (ex is IOException or InvalidDataException or OperationCanceledException or System.Text.Json.JsonException or ArgumentException or ObjectDisposedException) { }
-            finally { active = null; activeConnection = ""; if (connection.Length > 0) session.Disconnect(connection); }
+            finally { lock (bindingGate) { active = null; activeConnection = ""; if (connection.Length > 0) session.Disconnect(connection); } }
         }
     });
-    public void Dispose() { lifetime.Cancel(); active?.Dispose(); }
+    public void Dispose() { lifetime.Cancel(); lock (bindingGate) active?.Dispose(); }
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool GetNamedPipeClientProcessId(IntPtr pipe, out uint processId);

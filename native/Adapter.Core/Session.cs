@@ -13,9 +13,10 @@ public sealed class Session
     private readonly Queue<string> queue = new();
     private readonly HashSet<string> connections = [];
     private Facts? facts;
-    public uint Revision { get; private set; } = 1;
+    private uint revision = 1;
+    public uint Revision { get { lock (gate) return revision; } }
     public void Connect(string connection) { lock (gate) connections.Add(connection); }
-    public void Invalidate() { lock (gate) { Revision = checked(Revision + 1); facts = null; } }
+    public void Invalidate() { lock (gate) { revision = checked(revision + 1); facts = null; } }
     public void Disconnect(string connection)
     {
         lock (gate)

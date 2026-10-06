@@ -45,8 +45,8 @@ export function ViewRangeScreen(){
   </View>
   {!!e.snapshot && <View className="gap-1">{e.snapshot.diagnostics.map((d,i)=><Text key={i} className={e.snapshot!.partial && i===2?"text-timber font-semibold":"text-muted text-xs"}>{d}</Text>)}</View>}
   <View className="flex-row items-center gap-3 border-t border-line pt-4">
-   <Button disabled={!e.snapshot||e.busy} onPress={e.reset}>Reset</Button><Button disabled={!e.snapshot||e.busy} onPress={e.cancel}>Cancel</Button>
-   <Text accessibilityLiveRegion="polite" className="text-muted flex-1">{e.cancelled?"Cancelled. Captured values restored; no model changes.":e.preview?"Preview only · "+e.preview.elapsed_ms.toFixed(2)+" ms Rust section":"Waiting for a valid preview"}</Text>
+   <Button disabled={!e.snapshot||e.busy||!!e.mutation} onPress={e.reset}>Reset</Button><Button disabled={!e.snapshot||e.busy||!!e.mutation} onPress={e.cancel}>Cancel</Button>
+   <Text accessibilityLiveRegion="polite" className="text-muted flex-1">{e.mutation?"Native outcome shown above. Reset/Cancel do not undo Apply.":e.cancelled?"Cancelled. Captured values restored; no model changes.":e.preview?"Preview only · "+e.preview.elapsed_ms.toFixed(2)+" ms Rust section":"Waiting for a valid preview"}</Text>
    <Button primary disabled={!e.ready||e.busy} onPress={()=>void e.review()}>Review Apply</Button>
   </View>
   {e.proposal && <View accessibilityLiveRegion="polite" className="bg-surface border border-line p-5 gap-3">

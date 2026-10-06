@@ -18,7 +18,7 @@ Reports: ignored artifacts/m2/check.json, native-api.json, artifacts/m1/check.js
 
 Forge exports/launches the actual Windows x64 portable executable without a development server. Package checks verify ASAR/owned-adapter allowlists and all asset/sidecar/native hashes, excluding models/settings/TimberFold/Autodesk assemblies. No registration is installed.
 
-M1's 33 packaged UI/security observations and missing/crashed sidecar recovery remain covered. Nine native UI observations run through production .NET DesktopLaunch, including its exact child-PID bootstrap channel, native target, mandatory confirmation, unchanged/no-transaction, precise mm-to-feet Apply, outcome-only inspection, stale rejection, queued cancellation, reconnect and narrow preload. A test-only allocated loopback CDP port permits observation; production enables no debugging port. The model is explicitly an offline fixture. Artifacts/m2/native-ui.json and native-packaged.png are **packaged UI with offline adapter**, not actual Revit evidence.
+M1's 33 packaged UI/security observations and missing/crashed sidecar recovery remain covered. Ten native UI observations run through production .NET DesktopLaunch, including its exact child-PID bootstrap channel, native target, mandatory confirmation, unchanged/no-transaction, precise mm-to-feet Apply, truthful post-Apply Escape/Cancel, outcome-only inspection, stale rejection, queued cancellation, reconnect and narrow preload. A test-only allocated loopback CDP port permits observation; production enables no debugging port. The model is explicitly an offline fixture. Artifacts/m2/native-ui.json and native-packaged.png are **packaged UI with offline adapter**, not actual Revit evidence.
 
 ## Actual Revit and preservation
 

@@ -29,6 +29,8 @@ try{
  await page.getByText("Native outcome: applied_verified",{exact:true}).waitFor();
  const observation=await f.command("observe");
  check(observation.transactions===1&&observation.cut===5,"Packaged numeric mm edit applies exactly 5 ft through Rust and native IPC");
+ await page.keyboard.press("Escape");
+ check(await page.getByText("Native outcome: applied_verified",{exact:true}).isVisible()&&await page.getByRole("button",{name:"Cancel",exact:true}).isDisabled(),"Escape/Cancel after native Apply cannot claim the mutation was cancelled or undone");
  await page.getByRole("button",{name:"Inspect Apply outcome",exact:true}).click();
  check((await f.command("observe")).transactions===1,"Inspect outcome never reruns mutation");
  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();await cut.fill("1828.8");await cut.blur();

@@ -5,6 +5,7 @@
 - Identify open Revit documents through native document equality instead of managed wrapper references, retaining process/session/view/revision checks and close invalidation.
 - Keep authenticated idle connections available; retain bounded handshake, incomplete-frame and reply timeouts. Add an actual Windows pipe regression that fails on the prior 30-second idle disconnect.
 - Package adapter 0.2.2 with the existing protocol-2 Rust/UI components. Add a separately built, excluded-from-package qualification harness for controlled native rollback/failure observations on explicitly approved disposable targets.
+- Verify bounded actual Revit 2027.2 floor/ceiling/engineering Apply, floor unchanged/Unlimited/Undo/Redo, finite and Unbounded underlay Look Up/Look Down, stale review rejection, native-invalid ranges and controlled rollback/error/warning cases. Retain private screenshots/readbacks separately from Windows source/package results; full R1–R12 and legacy-free runtime qualification remain pending.
 
 ## Unreleased - Visual View Range readability and orientation - 2026-10-06
 

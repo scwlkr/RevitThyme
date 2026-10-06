@@ -6,7 +6,7 @@ Work: [WLK-114](https://linear.app/wlkr-labs/issue/WLK-114/m3-visual-view-range-
 
 The user granted full approval for necessary qualification work on the named disposable test house, including temporary underlay/range changes, repairs, installations, normal close/open and discarding test changes. Keep the file unsaved. Live jobs, save/sync, merge/release, legacy retirement and external TimberFold remain excluded.
 
-Before each case independently inspect the exact path/process/view and native values. Only the existing approved plan's settings change for underlay and main Apply trials; no source geometry changes. Underlay cases use existing ground/upper levels at 0/10 ft, finite Look Up/Look Down and Unbounded. Each setup/restoration transaction closes within its API callback; no transaction/group remains open across external callbacks. Restore original settings and discard unsaved qualification changes on the final normal restart.
+Before each case independently inspect the exact path/process/view and native values. Only existing approved plans' settings change for underlay and main Apply trials; no source geometry changes. Underlay cases use existing ground/upper levels at 0/10 ft, finite Look Up/Look Down and Unbounded. Each setup/restoration transaction closes within its API callback; no transaction/group remains open across external callbacks. Restore original settings and discard unsaved qualification changes on the final normal restart.
 
 ## Root causes and changes
 
@@ -21,3 +21,5 @@ Adapter 0.2.2 packages with the existing Rust/desktop 0.1.1 and protocol 2. No n
 `project check-m2` builds the production adapter and excluded qualification harness, exercises offline orchestration and real Windows pipes. `project m3 ui` connects only to an explicitly launched loopback CDP diagnostic preview and drives the packaged production UI. Mutations require its explicit `--approved-writes` invocation, native target review and confirmation. Screenshots/results stay in ignored artifacts/m3.
 
 Source/package checks do not qualify Revit. Actual results must record the installed SHA, native readbacks, DocumentChanged/Undo/Redo evidence, geometry/file preservation and screenshots separately. R1–R12 aggregate qualification and the manifest's qualified-build list remain pending until every required actual scenario is assessed. Inaccessible Pending/finalizer, multiple-instance/cross-user/remote, complete geometry and second-machine scenarios must remain explicit gaps.
+
+The [M3 verification assessment](../verification/rust-view-range-m3.md) records the completed actual subset and remaining gates. The installed immutable app is `080e13dbf421434daa779f0ba62e1f53c4f5fd26`; later harness/UI-driver changes do not replace that bundle. The private `artifacts/m3/TEST-REPORT.md` links original screenshots, native readbacks, rollback traces, installation ownership and preservation records.

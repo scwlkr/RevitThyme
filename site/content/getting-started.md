@@ -1,44 +1,45 @@
-# Make room for RevitThyme
+# Getting started
 
-RevitThyme is a growing Revit tool suite from WLKR LABS. The **v0.2.0 preview** adds three ribbon buttons through a custom pyRevit extension. Its current operations read your model; they do not save, synchronize or change it.
+**v0.2.0 preview** provides three read-only ribbon tools.
 
-## Before you begin
+## Requirements
 
-- Windows and a licensed installation of Revit 2027.
+- Windows and licensed Revit 2027.
 - Independently installed [pyRevit](https://github.com/pyrevitlabs/pyRevit/releases) with IronPython 2.7.
-- The development host uses Revit 2027.2 build 27.2.0.39 and pyRevit 6.5.5.26237+2044. Other builds and another-machine behavior remain unverified.
+- Tested: Revit 2027.2 (27.2.0.39), pyRevit 6.5.5.26237+2044. Other builds and second-computer use are unverified.
 
 ## 1. Download and verify
 
-Get the [v0.2.0 ZIP](https://github.com/scwlkr/RevitThyme/releases/download/v0.2.0/RevitThyme-0.2.0.zip) and [SHA-256 checksum](https://github.com/scwlkr/RevitThyme/releases/download/v0.2.0/RevitThyme-0.2.0.zip.sha256). Compare the downloaded ZIP's hash with the checksum file before extracting.
+Download the [ZIP](https://github.com/scwlkr/RevitThyme/releases/download/v0.2.0/RevitThyme-0.2.0.zip) and [checksum](https://github.com/scwlkr/RevitThyme/releases/download/v0.2.0/RevitThyme-0.2.0.zip.sha256). Compare the hash before extracting:
 
 ```powershell
 Get-FileHash .\RevitThyme-0.2.0.zip -Algorithm SHA256
 ```
 
-The ZIP contains the extension and installer. Revit, pyRevit, TimberFold and private source models are supplied separately.
+Revit, pyRevit and TimberFold are separate installations.
 
 ## 2. Install the extension
 
-Extract into a new folder. Open ordinary PowerShell in that folder and run:
+Extract to a new folder. Open ordinary PowerShell there:
 
 ```powershell
 & .\scripts\install.ps1
 ```
 
-Load the extension on your next normal Revit start. The installer never saves or closes your model. Close Revit yourself before upgrading or uninstalling. See [Installation & updates](../../docs/DEPLOYMENT.md) for backups and recovery.
+Start Revit normally. Close Revit yourself before updates or uninstalling. See [Installation & updates](../../docs/DEPLOYMENT.md) for recovery.
 
-## 3. Meet the ribbon
+## 3. Open the ribbon
 
-Open **RevitThyme → Suite Status** to see suite and host versions, document identity and readiness.
+Open **RevitThyme → Suite Status**.
 
-**Tool Settings** selects an existing external TimberFold folder. **Inspect TimberFold** reports wall and roof candidates and obvious unsupported conditions. Inspection is a first check; it does not extract fabrication geometry or generate a cut kit.
+- **Suite Status**: versions, active document and readiness.
+- **Tool Settings**: select your TimberFold folder.
+- **Inspect TimberFold**: wall/roof candidates and unsupported conditions.
 
-## Where to go next
+Inspection does not generate fabrication geometry. Generation runs through TimberFold separately.
 
-- [Tools & operations](../../docs/OPERATIONS.md) explains each implemented operation.
-- [Troubleshooting](troubleshooting.md) covers a missing ribbon and common setup issues.
-- [Roadmap](../../docs/ROADMAP.md) separates working features from upcoming milestones.
-- [Contributing](../../CONTRIBUTING.md) shows how to build and check the source.
+## Next
 
-Ribbon use needs no AI client. A dedicated MCP server, fabrication preview and generation remain planned.
+- [Tools & operations](../../docs/OPERATIONS.md)
+- [Troubleshooting](troubleshooting.md)
+- [Roadmap](../../docs/ROADMAP.md)

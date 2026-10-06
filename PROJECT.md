@@ -9,7 +9,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 ## Accepted direction
 
 - Product name: **RevitThyme**.
-- Public download and documentation website: **revitthyme.wlkrlabs.com**, inspired by pyRevit's guide structure and using the existing plant/timber identity. Keep website publishing artifacts separate from the Revit extension package; implement a dependency-free static site for the current presentation scope.
+- Public download and documentation website: **revitthyme.wlkrlabs.com**, with pyRevit-inspired guide navigation, visible search, plain typography and concise task-focused copy. Retain the plant/timber identity and a small supporting house illustration. Keep website publishing artifacts separate from the Revit extension package; use a dependency-free static site.
 - Visual direction: an agricultural, eco and plant feel, using the supplied teal building/thyme wordmark, green leaves and warm timber accents. Ship distinct light/dark ribbon icons with editable vector sources.
 - Prepare a separate project with general documentation and TimberFold as its starting tool.
 - Keep the host's responsibilities separate from each tool's implementation.

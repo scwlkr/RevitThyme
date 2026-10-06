@@ -1,11 +1,11 @@
 [
-  {"slug":"getting-started","title":"Getting started","group":"Start here","source":"site/content/getting-started.md","summary":"Install the extension and meet your RevitThyme ribbon."},
-  {"slug":"installation","title":"Installation & updates","group":"Start here","source":"docs/DEPLOYMENT.md","summary":"Requirements, checksums, installation, upgrades and recovery."},
-  {"slug":"tools","title":"Tools & operations","group":"Use RevitThyme","source":"docs/OPERATIONS.md","summary":"Suite Status, Tool Settings and Inspect TimberFold."},
-  {"slug":"troubleshooting","title":"Troubleshooting","group":"Use RevitThyme","source":"site/content/troubleshooting.md","summary":"Missing ribbon, Routes issues and common installation questions."},
-  {"slug":"architecture","title":"Architecture","group":"Build with us","source":"docs/ARCHITECTURE.md","summary":"The host, shared operations, external workers and future MCP adapter."},
-  {"slug":"contributing","title":"Contributing","group":"Build with us","source":"CONTRIBUTING.md","summary":"Development workflow, local checks and contribution guidelines."},
-  {"slug":"roadmap","title":"Roadmap","group":"Project","source":"docs/ROADMAP.md","summary":"Implemented milestones, planned tools and verification gates."},
-  {"slug":"changelog","title":"Changelog","group":"Project","source":"CHANGELOG.md","summary":"Release history and completed capabilities."},
-  {"slug":"security","title":"Security","group":"Project","source":"SECURITY.md","summary":"Loopback connections, credentials and reporting vulnerabilities."}
+  {"slug":"getting-started","title":"Getting started","group":"Start here","source":"site/content/getting-started.md","summary":"Download, install and open the ribbon."},
+  {"slug":"installation","title":"Installation & updates","group":"Start here","source":"docs/DEPLOYMENT.md","summary":"Requirements, updates and recovery."},
+  {"slug":"tools","title":"Tools & operations","group":"Tools","source":"docs/OPERATIONS.md","summary":"Status, settings and model inspection."},
+  {"slug":"troubleshooting","title":"Troubleshooting","group":"Tools","source":"site/content/troubleshooting.md","summary":"Ribbon, installation and bridge issues."},
+  {"slug":"architecture","title":"Architecture","group":"Development","source":"docs/ARCHITECTURE.md","summary":"Hosts, operations and external workers."},
+  {"slug":"contributing","title":"Contributing","group":"Development","source":"CONTRIBUTING.md","summary":"Source workflow and local checks."},
+  {"slug":"roadmap","title":"Roadmap","group":"Project","source":"docs/ROADMAP.md","summary":"Implemented and planned milestones."},
+  {"slug":"changelog","title":"Changelog","group":"Project","source":"CHANGELOG.md","summary":"Release history."},
+  {"slug":"security","title":"Security","group":"Project","source":"SECURITY.md","summary":"Connections and vulnerability reports."}
 ]

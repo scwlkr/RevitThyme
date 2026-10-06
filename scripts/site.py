@@ -31,6 +31,7 @@ def layout(title, description, content, route, section=""):
     template = (SITE / "layout.html").read_text(encoding="utf-8")
     values = {"TITLE": html.escape(title), "DESCRIPTION": html.escape(description, quote=True),
               "CANONICAL": ORIGIN + route, "CONTENT": content,
+              "HOME_ACTIVE": 'aria-current="page"' if route == "/" else "",
               "DOCS_ACTIVE": 'aria-current="page"' if section == "docs" else "",
               "DOWNLOAD_ACTIVE": 'aria-current="page"' if section == "download" else ""}
     for key, value in values.items():
@@ -42,23 +43,29 @@ def sidebar(selected):
     groups = defaultdict(list)
     for page in PAGES:
         groups[page["group"]].append(page)
-    nav = '<button class="search-trigger" data-open-search>Search docs <kbd>Ctrl K</kbd></button>'
-    nav += '<button class="docs-mobile-nav" aria-expanded="false" aria-controls="docs-navigation">Browse documentation ↓</button>'
+    nav = '<button class="docs-mobile-nav" aria-expanded="false" aria-controls="docs-navigation">Browse docs ↓</button>'
     nav += '<nav class="docs-navigation" id="docs-navigation" aria-label="Documentation">'
-    nav += '<div class="docs-nav-group"><a href="/docs/">Overview</a></div>'
+    nav += '<div class="docs-nav-group">'
+    for key, title, route in (("home", "Home", "/"), ("download", "Download", "/download/"), ("overview", "Documentation", "/docs/")):
+        active = ' aria-current="page"' if selected == key else ""
+        nav += f'<a href="{route}"{active}>{title}</a>'
+    nav += '</div>'
     for group, pages in groups.items():
         nav += f'<div class="docs-nav-group"><p>{html.escape(group)}</p>'
         for page in pages:
             active = ' aria-current="page"' if selected == page["slug"] else ""
             nav += f'<a href="/docs/{page["slug"]}/"{active}>{html.escape(page["title"])}</a>'
         nav += "</div>"
-    return nav + '</nav><div class="docs-version">v0.2.0 · Preview release</div>'
+    return nav + '</nav><div class="docs-version">v0.2.0 · Preview</div>'
 
 
 def docs_shell(content, selected="", headings=()):
-    toc = '<aside class="docs-toc" aria-label="On this page"><p>On this page</p>'
-    toc += "".join(f'<a href="#{anchor}">{html.escape(title)}</a>' for anchor, title in headings)
-    return f'<main id="main" class="docs-layout"><aside class="docs-sidebar">{sidebar(selected)}</aside><article class="docs-content">{content}</article>{toc}</aside></main>'
+    toc = ""
+    if headings:
+        toc = '<aside class="docs-toc" aria-label="On this page"><p>On this page</p>'
+        toc += "".join(f'<a href="#{anchor}">{html.escape(title)}</a>' for anchor, title in headings)
+        toc += "</aside>"
+    return f'<main id="main" class="docs-layout"><aside class="docs-sidebar">{sidebar(selected)}</aside><article class="docs-content">{content}</article>{toc}</main>'
 
 
 def build():
@@ -73,10 +80,10 @@ def build():
     shutil.copytree(SITE / "assets", OUTPUT / "assets")
     for name in ("revitthyme-logo", "status", "settings", "timberfold"):
         shutil.copyfile(ROOT / f"assets/branding/{name}.svg", OUTPUT / f"assets/{name}.svg")
-    layout("RevitThyme — Tools with room to grow", "Downloads and documentation for the growing RevitThyme Revit tool suite. Built on pyRevit.",
-           (SITE / "home.html").read_text(encoding="utf-8"), "/")
+    layout("RevitThyme — Download & docs", "Download RevitThyme and browse installation, tools and development guides. Built on pyRevit.",
+           docs_shell((SITE / "home.html").read_text(encoding="utf-8"), "home", (("download", "Download"), ("tools", "Tools"), ("guides", "Guides"))), "/")
     layout("Download RevitThyme", "Download the v0.2.0 preview ZIP and checksum. Installation requirements and guides for Windows / Revit 2027.",
-           (SITE / "download.html").read_text(encoding="utf-8"), "/download/", "download")
+           docs_shell((SITE / "download.html").read_text(encoding="utf-8"), "download", (("release", "Release"), ("install", "Install"), ("requirements", "Requirements"))), "/download/", "download")
     index = []
     for position, page in enumerate(PAGES):
         source = ROOT / page["source"]
@@ -84,7 +91,7 @@ def build():
         body, headings = markdown.render(text, source, ROOT, PAGES)
         content = f'<div class="breadcrumb"><a href="/docs/">Documentation</a><span>/</span><span>{html.escape(page["group"])}</span></div>'
         source_link = page["source"] if not page["source"].startswith("site/") else "docs/DEPLOYMENT.md"
-        content += f'<h1>{html.escape(page["title"])}</h1><div class="doc-meta">v0.2.0 preview · <a href="{markdown.GITHUB}{source_link}">Source guide on GitHub ↗</a></div><div class="markdown">{body}</div>'
+        content += f'<h1>{html.escape(page["title"])}</h1><div class="doc-meta">v0.2.0 preview · <a href="{markdown.GITHUB}{source_link}">Source ↗</a></div><div class="markdown">{body}</div>'
         content += '<nav class="doc-pagination" aria-label="Adjacent guides">'
         if position:
             previous = PAGES[position - 1]
@@ -98,12 +105,19 @@ def build():
         parsed_text = PageParser()
         parsed_text.feed(body)
         index.append({"title": page["title"], "summary": page["summary"], "url": route, "text": " ".join(" ".join(parsed_text.text).split())})
-    content = '<p class="eyebrow">REVITTHYME DOCUMENTATION</p><h1>A practical guide.<br>Room to explore.</h1><p class="docs-home-intro">Get started, understand the tools, or build the next chapter with us.</p><div class="doc-index-grid">'
+    content = '<h1>Documentation</h1><div class="guide-index">'
+    group = None
+    headings = []
     for page in PAGES:
-        content += f'<a class="doc-index-card" href="/docs/{page["slug"]}/"><span>{html.escape(page["group"])}</span><h2>{html.escape(page["title"])} ↗</h2><p>{html.escape(page["summary"])}</p></a>'
-    content += '</div><p class="docs-home-note">This is the v0.2.0 preview documentation. The ribbon and read-only Routes are implemented. A native host, dedicated MCP server, fabrication preview and generation remain planned.</p>'
-    layout("Documentation — RevitThyme", "Installation, tools, architecture, troubleshooting and roadmap guides for RevitThyme.", docs_shell(content), "/docs/", "docs")
-    layout("Page not found — RevitThyme", "Find your way back to the RevitThyme documentation.", '<main id="main" class="wrap section"><p class="eyebrow">404 · A PATH LESS TRAVELLED</p><h1>Let’s get you<br>back on track.</h1><a class="button primary" href="/docs/">Explore documentation ↗</a></main>', "/404/")
+        if page["group"] != group:
+            anchor = page["group"].lower().replace(" ", "-")
+            headings.append((anchor, page["group"]))
+            content += f'<h2 id="{anchor}">{html.escape(page["group"])}</h2>'
+            group = page["group"]
+        content += f'<a class="guide-row" href="/docs/{page["slug"]}/"><strong>{html.escape(page["title"])}</strong><span>{html.escape(page["summary"])}</span></a>'
+    content += '</div><p class="scope-note">v0.2.0: read-only tools. Preview, generation and MCP are planned.</p>'
+    layout("Documentation — RevitThyme", "Installation, tools, architecture, troubleshooting and roadmap guides for RevitThyme.", docs_shell(content, "overview", headings), "/docs/", "docs")
+    layout("Page not found — RevitThyme", "Page not found.", docs_shell('<h1>Page not found</h1><p><a href="/docs/">Browse documentation →</a></p>'), "/404/")
     shutil.copyfile(OUTPUT / "404/index.html", OUTPUT / "404.html")
     write(OUTPUT / "search-index.json", json.dumps(index, ensure_ascii=False) + "\n")
     routes = ["/", "/download/", "/docs/"] + [row["url"] for row in index]

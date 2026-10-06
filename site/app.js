@@ -1,9 +1,3 @@
-const menu = document.querySelector('.menu-toggle');
-menu?.addEventListener('click', () => {
-  const open = menu.getAttribute('aria-expanded') !== 'true';
-  menu.setAttribute('aria-expanded', String(open));
-  document.querySelector('#site-nav').classList.toggle('is-open', open);
-});
 const docsToggle = document.querySelector('.docs-mobile-nav');
 docsToggle?.addEventListener('click', () => {
   const open = docsToggle.getAttribute('aria-expanded') !== 'true';
@@ -33,13 +27,13 @@ async function openSearch(opener) {
   dialog.showModal();
   input.focus();
   if (!searchIndex) {
-    status.textContent = 'Loading documentation…';
+    status.textContent = 'Loading…';
     try {
       const response = await fetch('/search-index.json');
       if (!response.ok) throw new Error('Search unavailable');
       searchIndex = await response.json();
     } catch {
-      status.textContent = 'Search is unavailable. Browse the documentation links instead.';
+      status.textContent = 'Search unavailable. Use the guide navigation.';
       return;
     }
   }
@@ -51,8 +45,8 @@ function renderResults() {
   const terms = query.split(/\s+/).filter(Boolean);
   const found = searchIndex.filter(page => terms.every(term => `${page.title} ${page.text}`.toLowerCase().includes(term))).slice(0, 9);
   results.replaceChildren();
-  status.textContent = query ? `${found.length} matching guide${found.length === 1 ? '' : 's'}` : 'Explore the guides, or type to search.';
-  if (!found.length) status.textContent = 'No matching guides. Try a broader term, such as install or model.';
+  status.textContent = `${found.length} guide${found.length === 1 ? '' : 's'}`;
+  if (!found.length) status.textContent = 'No results. Try another term.';
   found.forEach(page => {
     const link = document.createElement('a');
     link.href = page.url;
@@ -62,7 +56,7 @@ function renderResults() {
     const snippet = document.createElement('p');
     const position = page.text.toLowerCase().indexOf(terms[0] || '');
     const start = Math.max(0, position - 65);
-    snippet.textContent = query ? `${start ? '…' : ''}${page.text.slice(start, start + 180)}…` : page.summary;
+    snippet.textContent = query ? `${start ? '…' : ''}${page.text.slice(start, start + 110)}…` : page.summary;
     link.append(title, snippet);
     results.append(link);
   });
@@ -73,6 +67,11 @@ dialog.addEventListener('click', event => { if (event.target === dialog) { const
 dialog.addEventListener('close', () => searchOpener?.focus());
 input.addEventListener('input', renderResults);
 document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && dialog.open) {
+    event.preventDefault();
+    dialog.close();
+    return;
+  }
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
     event.preventDefault();
     if (!dialog.open) openSearch(document.activeElement);

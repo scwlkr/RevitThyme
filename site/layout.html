@@ -14,21 +14,21 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-header"><div class="header-inner">
     <a class="brand" href="/" aria-label="RevitThyme home"><img src="/assets/revitthyme-logo.svg" alt="RevitThyme" width="194" height="58"></a>
-    <button class="menu-toggle" aria-expanded="false" aria-controls="site-nav">Menu <span aria-hidden="true">☰</span></button>
-    <nav id="site-nav" aria-label="Main navigation">
-      <a href="/docs/" @@DOCS_ACTIVE@@>Documentation</a><a href="/docs/roadmap/">Roadmap</a>
-      <a href="https://github.com/scwlkr/RevitThyme">GitHub <span aria-hidden="true">↗</span></a>
-      <a class="nav-download" href="/download/" @@DOWNLOAD_ACTIVE@@>Download <span aria-hidden="true">↓</span></a>
+    <a class="header-version" href="/docs/changelog/">v0.2.0 preview</a>
+    <button class="search-trigger" data-open-search>Search docs <kbd>Ctrl K</kbd></button>
+  </div><div class="header-nav"><nav id="site-nav" aria-label="Main navigation">
+      <a href="/" @@HOME_ACTIVE@@>Home</a><a href="/download/" @@DOWNLOAD_ACTIVE@@>Download</a>
+      <a href="/docs/" @@DOCS_ACTIVE@@>Documentation</a><a href="https://github.com/scwlkr/RevitThyme">GitHub <span aria-hidden="true">↗</span></a>
     </nav>
   </div></header>
   @@CONTENT@@
   <footer class="site-footer"><div class="footer-inner">
-    <div><a class="footer-title" href="/">RevitThyme</a><p>Tools with room to grow.</p><p class="small">A WLKR LABS project.</p></div>
-    <div class="footer-links"><a href="/docs/">Documentation</a><a href="/docs/changelog/">Changelog</a><a href="https://github.com/scwlkr/RevitThyme/issues">Get help ↗</a><a href="/docs/security/">Security</a><a href="https://github.com/scwlkr/RevitThyme/blob/master/LICENSE">GPL-3.0-or-later ↗</a></div>
-    <p class="footer-note">Built on pyRevit. Revit is a trademark of Autodesk, Inc.<br>RevitThyme is an independent project.</p>
+    <p>RevitThyme · WLKR LABS</p>
+    <div class="footer-links"><a href="https://github.com/scwlkr/RevitThyme/issues">Help ↗</a><a href="/docs/security/">Security</a><a href="https://github.com/scwlkr/RevitThyme/blob/master/LICENSE">GPL-3.0-or-later ↗</a></div>
+    <p class="footer-note">Independent project. Revit is an Autodesk trademark.</p>
   </div></footer>
-  <dialog id="search-dialog" aria-labelledby="search-title"><div class="search-top"><h2 id="search-title">Search the docs</h2><button data-close-search aria-label="Close search">×</button></div>
-    <label for="search-input">What are you looking for?</label><input id="search-input" type="search" placeholder="Try installation, TimberFold, or Routes…" autocomplete="off">
+  <dialog id="search-dialog" aria-labelledby="search-title"><div class="search-top"><h2 id="search-title">Search docs</h2><button data-close-search aria-label="Close search">×</button></div>
+    <label class="sr-only" for="search-input">Search query</label><input id="search-input" type="search" placeholder="Search docs…" autocomplete="off">
     <p id="search-status" class="small" role="status" aria-live="polite"></p><div id="search-results"></div>
   </dialog>
 </body>

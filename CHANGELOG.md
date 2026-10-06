@@ -6,6 +6,8 @@
 - Add nine documentation guides with sidebar navigation, heading anchors, browser search, keyboard dismissal and copyable commands. Render canonical repository guides at build time.
 - Add dependency-free static build, local preview, sanitized publishing stage and page/asset/link checks through the project CLI and CI. Keep website assets outside the Revit installer allowlist.
 - Redraw the website cottage with a coherent gable roof, shared architectural projection, aligned openings, restrained timber detail and a modest planter after screenshot review and a generated reference concept.
+- Simplify the website into a documentation hub with shared guide navigation, global search, plain typography, compact download/install pages and shorter site-authored copy. Preserve the corrected house and canonical technical guides.
+- Make Escape dismiss populated search in one keypress and restore focus to its opener.
 
 ## 0.2.0 - 2026-10-05 - First pyRevit extension
 

@@ -42,6 +42,8 @@ Full local CI uses external TimberFold configured in config/local.example.json o
 
 Use project.cmd check-live after installing to exercise Routes and identity failure cases. Live reports stay in ignored artifacts; publish only sanitized evidence. See [operations](docs/OPERATIONS.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and [changelog](CHANGELOG.md).
 
+A source checkout provides `./project query-revit` (Windows: `project.cmd query-revit`) for named read-only status and TimberFold queries. The [query client](docs/QUERY-CLIENT.md) coordinates cooperating processes and quarantines uncertain requests until independently reconciled. It is developer tooling; Windows locking and installed Revit behavior still need qualification.
+
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE) and [third-party notices](THIRD-PARTY-NOTICES.md). Users supply licensed Revit and independently installed pyRevit. TimberFold source and dependencies are not in v0.2.0.

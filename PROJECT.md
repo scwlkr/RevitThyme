@@ -37,6 +37,7 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
 | Native C# host | Planned |
 | RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; dedicated MCP server planned |
+| Named query client | Source-only CPython client serializes cooperating status/inspection callers and retains uncertain outcomes; server jobs/idempotence and host qualification remain separate |
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
 | Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 

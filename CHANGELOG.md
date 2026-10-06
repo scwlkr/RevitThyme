@@ -11,6 +11,11 @@
 - Prepare GPL-3.0-or-later licensing, contribution/security docs, GitHub issue/PR templates and manual release automation.
 - Preserve external TimberFold and all model geometry. No generation, standalone MCP server or second-computer claim in this release.
 
+## Unreleased — Named query client
+
+- Add a reusable local status/inspection client and `query-revit` CLI route with validated read-only responses, a process lock and durable request correlation/quarantine.
+- Leave timeout/crash outcomes uncertain until independent host recovery is recorded. Refuse proxies, redirects and automatic retries; server idempotence, Windows locking and live Revit behavior remain unqualified.
+
 ## Unreleased — 2026-10-05 — Development setup
 
 - Add wstack development standards and WLKR LABS Linear routing while preserving Revit-specific constraints and external TimberFold ownership.

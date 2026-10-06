@@ -1,0 +1,775 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "revitthyme-app",
+    "description": "",
+    "license": {
+      "name": "GPL-3.0-or-later",
+      "identifier": "GPL-3.0-or-later"
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/capture": {
+      "post": {
+        "tags": [],
+        "operationId": "capture",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaptureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/preview": {
+      "post": {
+        "tags": [],
+        "operationId": "preview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Preview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/propose": {
+      "post": {
+        "tags": [],
+        "operationId": "propose",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proposal"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "code",
+          "message",
+          "refresh_required"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "refresh_required": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Axis": {
+        "type": "string",
+        "enum": [
+          "x",
+          "y"
+        ]
+      },
+      "CaptureRequest": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "view_kind",
+          "partial_fixture"
+        ],
+        "properties": {
+          "partial_fixture": {
+            "type": "boolean"
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "view_kind": {
+            "$ref": "#/components/schemas/ViewKind"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Edit": {
+        "type": "object",
+        "required": [
+          "value",
+          "unit",
+          "unlimited"
+        ],
+        "properties": {
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          },
+          "unlimited": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Edits": {
+        "type": "object",
+        "required": [
+          "top",
+          "cut",
+          "bottom",
+          "depth"
+        ],
+        "properties": {
+          "bottom": {
+            "$ref": "#/components/schemas/Edit"
+          },
+          "cut": {
+            "$ref": "#/components/schemas/Edit"
+          },
+          "depth": {
+            "$ref": "#/components/schemas/Edit"
+          },
+          "top": {
+            "$ref": "#/components/schemas/Edit"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Mode": {
+        "type": "string",
+        "enum": [
+          "synthetic"
+        ]
+      },
+      "Offsets": {
+        "type": "object",
+        "required": [
+          "top",
+          "cut",
+          "bottom",
+          "depth"
+        ],
+        "properties": {
+          "bottom": {
+            "type": "number",
+            "format": "double"
+          },
+          "cut": {
+            "type": "number",
+            "format": "double"
+          },
+          "depth": {
+            "type": "number",
+            "format": "double"
+          },
+          "top": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Plane": {
+        "type": "object",
+        "required": [
+          "level_id",
+          "level_name",
+          "base_feet",
+          "offset_feet",
+          "unlimited",
+          "allow_unlimited"
+        ],
+        "properties": {
+          "allow_unlimited": {
+            "type": "boolean"
+          },
+          "base_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "level_id": {
+            "type": "string",
+            "description": "Decimal string: native IDs may exceed 32 bits."
+          },
+          "level_name": {
+            "type": "string"
+          },
+          "offset_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "unlimited": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Preview": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "snapshot_id",
+          "input_revision",
+          "section",
+          "proposed",
+          "display_offsets",
+          "display_limits",
+          "elevations_feet",
+          "diagnostics",
+          "elapsed_ms"
+        ],
+        "properties": {
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "display_limits": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "maxItems": 2,
+            "minItems": 2
+          },
+          "display_offsets": {
+            "$ref": "#/components/schemas/Offsets"
+          },
+          "elapsed_ms": {
+            "type": "number",
+            "format": "double"
+          },
+          "elevations_feet": {
+            "$ref": "#/components/schemas/Offsets"
+          },
+          "input_revision": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "proposed": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "section": {
+            "$ref": "#/components/schemas/Section"
+          },
+          "snapshot_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PreviewRequest": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "snapshot_id",
+          "target",
+          "input_revision",
+          "axis",
+          "fraction",
+          "unit",
+          "edits"
+        ],
+        "properties": {
+          "axis": {
+            "$ref": "#/components/schemas/Axis"
+          },
+          "edits": {
+            "$ref": "#/components/schemas/Edits"
+          },
+          "fraction": {
+            "type": "number",
+            "format": "double",
+            "maximum": 1,
+            "minimum": 0
+          },
+          "input_revision": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "snapshot_id": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "unit": {
+            "$ref": "#/components/schemas/Unit"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Proposal": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "mode",
+          "target",
+          "snapshot_id",
+          "input_revision",
+          "before",
+          "after",
+          "identical",
+          "changed_ids",
+          "side_effects",
+          "native_write_available",
+          "message"
+        ],
+        "properties": {
+          "after": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "before": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "changed_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "identical": {
+            "type": "boolean"
+          },
+          "input_revision": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "message": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "native_write_available": {
+            "type": "boolean"
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "side_effects": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "snapshot_id": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Range": {
+        "type": "object",
+        "required": [
+          "top",
+          "cut",
+          "bottom",
+          "depth"
+        ],
+        "properties": {
+          "bottom": {
+            "$ref": "#/components/schemas/Plane"
+          },
+          "cut": {
+            "$ref": "#/components/schemas/Plane"
+          },
+          "depth": {
+            "$ref": "#/components/schemas/Plane"
+          },
+          "top": {
+            "$ref": "#/components/schemas/Plane"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Section": {
+        "type": "object",
+        "required": [
+          "segments",
+          "bounds_feet",
+          "position_feet"
+        ],
+        "properties": {
+          "bounds_feet": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "maxItems": 4,
+            "minItems": 4
+          },
+          "position_feet": {
+            "type": "number",
+            "format": "double"
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "maxItems": 2,
+                "minItems": 2
+              },
+              "maxItems": 2,
+              "minItems": 2
+            },
+            "maxItems": 150000
+          }
+        },
+        "additionalProperties": false
+      },
+      "Snapshot": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "mode",
+          "snapshot_id",
+          "target",
+          "document_name",
+          "view_name",
+          "view_kind",
+          "original",
+          "bounds_feet",
+          "triangle_count",
+          "partial",
+          "diagnostics",
+          "expires_in_seconds",
+          "native_write_available"
+        ],
+        "properties": {
+          "bounds_feet": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "format": "double"
+            },
+            "maxItems": 6,
+            "minItems": 6
+          },
+          "diagnostics": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "document_name": {
+            "type": "string"
+          },
+          "expires_in_seconds": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "native_write_available": {
+            "type": "boolean"
+          },
+          "original": {
+            "$ref": "#/components/schemas/Range"
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "snapshot_id": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "triangle_count": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "view_kind": {
+            "$ref": "#/components/schemas/ViewKind"
+          },
+          "view_name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Target": {
+        "type": "object",
+        "required": [
+          "session_id",
+          "document_id",
+          "view_id",
+          "revision"
+        ],
+        "properties": {
+          "document_id": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "session_id": {
+            "type": "string"
+          },
+          "view_id": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Unit": {
+        "type": "string",
+        "enum": [
+          "mm",
+          "m",
+          "ft"
+        ]
+      },
+      "ViewKind": {
+        "type": "string",
+        "enum": [
+          "floor",
+          "engineering",
+          "ceiling"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "applicationCredential": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  },
+  "security": [
+    {
+      "applicationCredential": []
+    }
+  ]
+}

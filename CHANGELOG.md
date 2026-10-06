@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - Rust replacement M1 - 2026-10-06
+
+- Add the interactive offline Visual View Range feature: Rust sections/units/range rules, authenticated Axum and derived strict OpenAPI/Zod/TypeScript contracts.
+- Add the branded Expo Web/NativeWind screen in a sandboxed Electron Forge package, with plane drag/keyboard/numeric controls, slice locator, units, Reset/Cancel, explicit Apply review, stale-response rejection and reconnect recovery.
+- Add independent geometry/API and .NET 10 frame-contract checks, package allowlist/hashes, and actual packaged UI/security drivers behind the project CLI and full local CI.
+- Preserve existing runtime, drafts and external TimberFold. Native adapter source and approved Revit qualification remain M2/M3; no native Apply or release claim.
+
 ## 0.2.0 - 2026-10-05 - First pyRevit extension
 
 - Add a RevitThyme ribbon with Suite Status, Tool Settings and read-only TimberFold inspection.

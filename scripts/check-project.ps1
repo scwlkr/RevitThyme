@@ -150,8 +150,9 @@ if ($null -ne $suite) {
 }
 
 # Validate local Markdown file links; this check deliberately does not fetch web pages.
-$markdownFiles = Get-ChildItem -LiteralPath $projectRoot -Filter '*.md' -File -Recurse |
-    Where-Object { $_.FullName -notmatch '[\\/](\.git|runs|artifacts|node_modules|\.venv)[\\/]' }
+$markdownPaths = & git -C $projectRoot ls-files --cached --others --exclude-standard -- '*.md'
+if ($LASTEXITCODE -ne 0) { throw 'Cannot enumerate project Markdown files.' }
+$markdownFiles = $markdownPaths | ForEach-Object { Get-Item -LiteralPath (Join-Path $projectRoot $_) }
 foreach ($markdownFile in $markdownFiles) {
     $markdown = Get-Content -LiteralPath $markdownFile.FullName -Raw
     foreach ($link in [regex]::Matches($markdown, '\[[^\]]+\]\(([^)]+)\)')) {

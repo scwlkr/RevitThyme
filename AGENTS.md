@@ -1,5 +1,7 @@
 # RevitThyme development instructions
 
+For replacement work, the user's accepted [Rust/wstack specification](docs/specs/RUST-WSTACK-REPLACEMENT.md) supersedes the historical Python-host/Rust-automation-only exceptions below. Preserve the installed legacy host until approved parity/cutover. M1 is the offline feature slice; native adapter implementation and approved Revit qualification are separate M2/M3 gates.
+
 Read PROJECT.md and README.md before work. For host, MCP or operation changes, read docs/ARCHITECTURE.md. For implementation milestones, read docs/ROADMAP.md. For packaging or another-machine installation, read docs/DEPLOYMENT.md.
 
 - Work in C:\Revit\RevitThyme. RevitThyme is a Revit suite/host project; distinguish its implemented capabilities from plans.

@@ -3,6 +3,26 @@ use crate::Route;
 #[rustfmt::skip]
 pub const ROUTES: &[Route] = &[
     Route {
+        name: "check-m1",
+        program: "node",
+        args: &["scripts/m1.mjs", "check"],
+    },
+    Route {
+        name: "package-m1",
+        program: "node",
+        args: &["scripts/m1.mjs", "package"],
+    },
+    Route {
+        name: "check-m1-ui",
+        program: "node",
+        args: &["scripts/m1.mjs", "ui"],
+    },
+    Route {
+        name: "m1",
+        program: "node",
+        args: &["scripts/m1.mjs"],
+    },
+    Route {
         name: "repair-routes",
         program: "python",
         args: &["-X", "utf8", "scripts/repair-pyrevit-routes.py"],

@@ -35,3 +35,7 @@ The setup skill's CI inventory remains a conservative text-hint report; actual l
 
 - [x] Public workflows always run the full portable release boundary; there are no path filters. Local project ci retains docs/full scope routing. Hosted Windows checks are required for the requested public project and package releases. <!-- setup:ci-scope -->
 - [x] Portable checks retain aggregate evidence at the checked SHA. Full local exact-SHA checks remain a separate maintainer gate; public checks cannot prove Revit or TimberFold behavior. Pending/failed hosted results are not release evidence. <!-- setup:ci-verify -->
+
+## Rust M1 check alignment - WLK-109
+
+Local full CI now also runs `check-m1`, `package-m1` and the actual packaged `check-m1-ui` driver. The hosted portable-release job continues to verify the legacy distribution boundary. It does not run the Rust replacement or desktop drivers; hosted M1 alignment remains unverified and needs a separately configured Windows Node/pnpm/.NET job before any hosted M1 qualification claim. The implementation and native acceptance gates are tracked in Linear and [the M1 handoff](docs/RUST-VIEW-RANGE-M1.md).

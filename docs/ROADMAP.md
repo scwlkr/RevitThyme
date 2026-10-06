@@ -1,6 +1,6 @@
 # Build roadmap
 
-Replacement M1 is delivered in draft PR #6. [M2 native source](RUST-VIEW-RANGE-M2.md) continues it on WLK-111 with Windows offline/packaged orchestration evidence. M3 installed disposable-fixture qualification remains unexecuted and requires approval first. Neither milestone has landed or released.
+Replacement M1 is delivered in draft PR #6. [M2 native source](RUST-VIEW-RANGE-M2.md) continues it on WLK-111 with Windows offline/packaged orchestration evidence. [M3 qualification](../verification/rust-view-range-m3.md) has an approved, completed actual-Revit subset in draft PR #9; remaining practical checks 1–9 follow the [accepted scope](specs/RUST-WSTACK-ACCEPTANCE.md#approved-bounded-m3-qualification-scope). Python-free operation needs check 10, broader checks 11–14 have their recorded deferred/nonblocking dispositions, and suite migration/cutover (15) belongs to replacement M4/M5. These replacement milestones remain unlanded and unreleased.
 
 Each milestone ends with working behavior and evidence. A scaffold or successful compilation alone does not satisfy a live milestone.
 

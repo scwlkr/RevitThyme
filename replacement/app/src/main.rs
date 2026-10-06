@@ -1,161 +1,13 @@
+mod api;
 mod contract;
+mod native;
+mod native_service;
 mod state;
-use axum::{
-    Json, Router,
-    extract::{DefaultBodyLimit, State},
-    http::{Request, StatusCode},
-    middleware::{self, Next},
-    response::{IntoResponse, Response},
-    routing::post,
-};
-use contract::*;
-use revitthyme_core::{geometry::*, range::*};
+use api::{AppState, Contract};
+use contract::PROTOCOL;
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
-use utoipa::{Modify, OpenApi};
-
-#[derive(Clone)]
-struct AppState {
-    cache: Arc<Mutex<state::Cache>>,
-    credential: Arc<String>,
-}
-type ApiResult<T> = Result<Json<T>, (StatusCode, Json<ApiError>)>;
-fn failure(e: ApiError) -> (StatusCode, Json<ApiError>) {
-    let status = match e.code.as_str() {
-        "stale_snapshot" | "protocol_mismatch" => StatusCode::CONFLICT,
-        _ => StatusCode::UNPROCESSABLE_ENTITY,
-    };
-    (status, Json(e))
-}
-fn input<T>(
-    request: Result<Json<T>, axum::extract::rejection::JsonRejection>,
-) -> Result<T, (StatusCode, Json<ApiError>)> {
-    request.map(|Json(value)| value).map_err(|_| {
-        (
-            StatusCode::BAD_REQUEST,
-            Json(state::error(
-                "malformed_request",
-                "Malformed or oversized JSON request.",
-                false,
-            )),
-        )
-    })
-}
-async fn auth(State(app): State<AppState>, req: Request<axum::body::Body>, next: Next) -> Response {
-    if req
-        .headers()
-        .get("authorization")
-        .and_then(|v| v.to_str().ok())
-        != Some(&format!("Bearer {}", app.credential))
-    {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(state::error(
-                "unauthorized",
-                "Application credential required.",
-                false,
-            )),
-        )
-            .into_response();
-    }
-    next.run(req).await
-}
-#[utoipa::path(post,path="/v1/capture",request_body=CaptureRequest,responses((status=200,body=Snapshot),(status=400,body=ApiError),(status=401,body=ApiError),(status=409,body=ApiError),(status=422,body=ApiError)))]
-async fn capture(
-    State(app): State<AppState>,
-    request: Result<Json<CaptureRequest>, axum::extract::rejection::JsonRejection>,
-) -> ApiResult<Snapshot> {
-    let request = input(request)?;
-    app.cache
-        .lock()
-        .map_err(|_| {
-            failure(state::error(
-                "unavailable",
-                "Restart the application.",
-                true,
-            ))
-        })?
-        .capture(request)
-        .map(Json)
-        .map_err(failure)
-}
-#[utoipa::path(post,path="/v1/preview",request_body=PreviewRequest,responses((status=200,body=Preview),(status=400,body=ApiError),(status=401,body=ApiError),(status=409,body=ApiError),(status=422,body=ApiError)))]
-async fn preview(
-    State(app): State<AppState>,
-    request: Result<Json<PreviewRequest>, axum::extract::rejection::JsonRejection>,
-) -> ApiResult<Preview> {
-    let request = input(request)?;
-    app.cache
-        .lock()
-        .map_err(|_| {
-            failure(state::error(
-                "unavailable",
-                "Restart the application.",
-                true,
-            ))
-        })?
-        .preview(&request)
-        .map(Json)
-        .map_err(failure)
-}
-#[utoipa::path(post,path="/v1/propose",request_body=PreviewRequest,responses((status=200,body=Proposal),(status=400,body=ApiError),(status=401,body=ApiError),(status=409,body=ApiError),(status=422,body=ApiError)))]
-async fn propose(
-    State(app): State<AppState>,
-    request: Result<Json<PreviewRequest>, axum::extract::rejection::JsonRejection>,
-) -> ApiResult<Proposal> {
-    let request = input(request)?;
-    app.cache
-        .lock()
-        .map_err(|_| {
-            failure(state::error(
-                "unavailable",
-                "Restart the application.",
-                true,
-            ))
-        })?
-        .propose(&request)
-        .map(Json)
-        .map_err(failure)
-}
-#[derive(OpenApi)]
-#[openapi(
-    paths(capture, preview, propose),
-    modifiers(&ApplicationAuth),
-    security(("applicationCredential" = [])),
-    components(schemas(
-        Target,
-        CaptureRequest,
-        Snapshot,
-        Mode,
-        PreviewRequest,
-        Preview,
-        Offsets,
-        Proposal,
-        ApiError,
-        Axis,
-        Section,
-        ViewKind,
-        Unit,
-        Plane,
-        Range,
-        Edit,
-        Edits
-    ))
-)]
-struct Contract;
-
-struct ApplicationAuth;
-impl Modify for ApplicationAuth {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
-        if let Some(components) = openapi.components.as_mut() {
-            components.add_security_scheme(
-                "applicationCredential",
-                SecurityScheme::Http(HttpBuilder::new().scheme(HttpAuthScheme::Bearer).build()),
-            );
-        }
-    }
-}
+use utoipa::OpenApi;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -163,10 +15,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("{}", Contract::openapi().to_pretty_json()?);
         return Ok(());
     }
-    if std::env::args().nth(1).as_deref() != Some("--synthetic") {
-        return Err(
-            "M1 requires explicit --synthetic; no native adapter exists in this milestone.".into(),
-        );
+    let mode = std::env::args().nth(1).unwrap_or_default();
+    if mode != "--synthetic" && mode != "--native" {
+        return Err("Choose explicit --synthetic or owned --native startup.".into());
     }
     // Credential arrives on an owned stdin pipe, never argv, environment, logs or renderer.
     let mut input = BufReader::new(tokio::io::stdin());
@@ -189,21 +40,57 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     {
         return Err("Invalid session identity".into());
     }
+    let latest_revision = Arc::new(std::sync::atomic::AtomicU32::new(0));
+    let native = if mode == "--native" {
+        let pipe = std::env::args().nth(3).ok_or("Missing pipe")?;
+        let process_id: i32 = std::env::args().nth(4).ok_or("Missing PID")?.parse()?;
+        let process_start_ticks = std::env::args().nth(5).ok_or("Missing start")?;
+        let session_id = std::env::args().nth(6).ok_or("Missing native session")?;
+        if process_id <= 0
+            || !native::valid_id(&session)
+            || !native::valid_id(&session_id)
+            || process_start_ticks.len() > 20
+            || !process_start_ticks.chars().all(|c| c.is_ascii_digit())
+            || pipe != format!("RevitThyme-{process_id}-{session_id}")
+        {
+            return Err("Invalid native binding".into());
+        }
+        let mut secret = String::new();
+        BufReader::new((&mut input).take(65))
+            .read_line(&mut secret)
+            .await?;
+        if !secret.ends_with('\n') {
+            return Err("Invalid native startup frame".into());
+        }
+        secret.pop();
+        if secret.len() != 64 || !secret.chars().all(|c| c.is_ascii_hexdigit()) {
+            return Err("Invalid native credential".into());
+        }
+        let client = native::Client::new(native::Binding {
+            pipe,
+            process_id,
+            process_start_ticks,
+            session_id,
+            credential: secret,
+            connection_id: session.clone(),
+        });
+        Some(Arc::new(tokio::sync::Mutex::new(
+            native_service::Service::new(client, latest_revision.clone()),
+        )))
+    } else {
+        None
+    };
     let app = AppState {
+        latest_revision,
+        native,
         cache: Arc::new(Mutex::new(state::Cache::new(session.clone()))),
         credential: Arc::new(credential),
     };
-    let routes = Router::new()
-        .route("/v1/capture", post(capture))
-        .route("/v1/preview", post(preview))
-        .route("/v1/propose", post(propose))
-        .layer(DefaultBodyLimit::max(16 * 1024))
-        .layer(middleware::from_fn_with_state(app.clone(), auth))
-        .with_state(app);
+    let routes = api::router(app);
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
     println!(
         "{}",
-        serde_json::json!({"protocol":PROTOCOL,"version":env!("CARGO_PKG_VERSION"),"port":listener.local_addr()?.port(),"session":session,"mode":"synthetic"})
+        serde_json::json!({"protocol":PROTOCOL,"version":env!("CARGO_PKG_VERSION"),"port":listener.local_addr()?.port(),"session":session,"mode":if mode=="--native"{"native"}else{"synthetic"}})
     );
     axum::serve(listener, routes)
         .with_graceful_shutdown(async move {

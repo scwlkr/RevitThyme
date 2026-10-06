@@ -11,6 +11,28 @@ pub struct Cache {
     snapshot: Option<(Snapshot, Instant, Vec<Triangle>)>,
 }
 impl Cache {
+    pub fn adopt(&mut self, snapshot: Snapshot, triangles: Vec<Triangle>) -> Result<(), ApiError> {
+        if triangles.len() > 50_000
+            || snapshot.triangle_count as usize != triangles.len()
+            || snapshot
+                .bounds_feet
+                .iter()
+                .any(|n| !n.is_finite() || n.abs() > 1_000_001.)
+        {
+            return Err(error(
+                "invalid_capture",
+                "Native capture exceeded bounds.",
+                true,
+            ));
+        }
+        geometry::slice(&triangles, snapshot.bounds_feet, geometry::Axis::X, 0.5)
+            .map_err(|_| error("invalid_capture", "Native coordinates rejected.", true))?;
+        self.snapshot = Some((snapshot, Instant::now(), triangles));
+        Ok(())
+    }
+    pub fn invalidate(&mut self) {
+        self.snapshot = None;
+    }
     pub fn new(session: String) -> Self {
         Self {
             session,
@@ -31,7 +53,7 @@ impl Cache {
         let snapshot = Snapshot {
             protocol:PROTOCOL, mode:Mode::Synthetic,
             snapshot_id: format!("{}-{}",self.session,self.serial),
-            target: Target { session_id:self.session.clone(), document_id:"synthetic-house".into(), view_id:format!("{:?}-plan", request.view_kind), revision:self.serial },
+            target: Target { process_id:0,process_start_ticks:"0".into(),session_id:self.session.clone(), document_id:"synthetic-house".into(), view_id:format!("{:?}-plan", request.view_kind), revision:self.serial },
             document_name:"Synthetic courtyard house".into(), view_name:format!("{:?} Plan · Level 1",request.view_kind),
             view_kind:request.view_kind, original:fixture::original(request.view_kind),
             bounds_feet:[0.,0.,-0.5,20.,16.,10.5], triangle_count:triangles.len() as u32,
@@ -107,9 +129,9 @@ impl Cache {
     pub fn propose(&self, request: &PreviewRequest) -> Result<Proposal, ApiError> {
         let preview = self.preview(request)?;
         let (snapshot, _) = self.resolve(request)?;
-        Ok(Proposal { protocol:PROTOCOL,mode:Mode::Synthetic,target:snapshot.target.clone(),snapshot_id:snapshot.snapshot_id.clone(),input_revision:request.input_revision,
+        Ok(Proposal { proposal_id:format!("{}-{}",snapshot.snapshot_id,request.input_revision),protocol:PROTOCOL,mode:snapshot.mode,target:snapshot.target.clone(),snapshot_id:snapshot.snapshot_id.clone(),input_revision:request.input_revision,
             before:snapshot.original.clone(),identical:preview.proposed==snapshot.original,after:preview.proposed,
-            changed_ids:vec![],side_effects:vec![],native_write_available:false,
+            changed_ids:vec![],side_effects:vec![],native_write_available:snapshot.native_write_available,
             message:"Apply preview only. Native validation and transactions require the M2 .NET adapter and approved M3 qualification. No model has changed.".into() })
     }
 }

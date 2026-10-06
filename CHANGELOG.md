@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased - Rust replacement M2 - 2026-10-06
+
+- Add minimal .NET 10/Revit 2027.2 source for current-plan capture, bounded local model triangles, session-bound local pipes and serialized ExternalEvent execution.
+- Add native validity/restriction checks, explicit Apply, one transaction/group with rollback and pre/post-commit readback, bounded outcome/deduplication and queued cancellation.
+- Connect the existing Rust/Axum and Expo/Electron feature to native capture/review/Apply/outcomes; preserve M1 and generated contracts.
+- Package owned adapter files without Autodesk assemblies or automatic registration. Windows production-frame/pipe/failure and packaged native-orchestration tests pass; actual Revit qualification remains pending. No install, live write, merge or release.
+
 ## Unreleased - Rust replacement M1 - 2026-10-06
 
 - Add the interactive offline Visual View Range feature: Rust sections/units/range rules, authenticated Axum and derived strict OpenAPI/Zod/TypeScript contracts.

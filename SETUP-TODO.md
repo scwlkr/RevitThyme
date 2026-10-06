@@ -38,4 +38,6 @@ The setup skill's CI inventory remains a conservative text-hint report; actual l
 
 ## Rust M1 check alignment - WLK-109
 
+M2 extends local full CI with Windows adapter compilation, real local pipe/queue/failure checks and packaged native-orchestration UI tests. Hosted Windows still lacks replacement gates and a licensed Revit SDK reference path. No Autodesk assemblies may be uploaded to resolve this gap. WLK-111 owns implementation/runtime qualification; this item records CI setup alignment only.
+
 Local full CI now also runs `check-m1`, `package-m1` and the actual packaged `check-m1-ui` driver. The hosted portable-release job continues to verify the legacy distribution boundary. It does not run the Rust replacement or desktop drivers; hosted M1 alignment remains unverified and needs a separately configured Windows Node/pnpm/.NET job before any hosted M1 qualification claim. The implementation and native acceptance gates are tracked in Linear and [the M1 handoff](docs/RUST-VIEW-RANGE-M1.md).

@@ -9,6 +9,8 @@ pub const PROTOCOL: u32 = 1;
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Target {
+    pub process_id: i32,
+    pub process_start_ticks: String,
     pub session_id: String,
     pub document_id: String,
     pub view_id: String,
@@ -49,6 +51,7 @@ pub struct Snapshot {
 #[serde(rename_all = "snake_case")]
 pub enum Mode {
     Synthetic,
+    Native,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
@@ -90,9 +93,10 @@ pub struct Offsets {
     pub bottom: f64,
     pub depth: f64,
 }
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Proposal {
+    pub proposal_id: String,
     #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub mode: Mode,
@@ -107,6 +111,66 @@ pub struct Proposal {
     pub side_effects: Vec<String>,
     pub native_write_available: bool,
     pub message: String,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct RawPlane {
+    pub level_id: String,
+    pub offset_feet: f64,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct RawRange {
+    pub top: RawPlane,
+    pub cut: RawPlane,
+    pub bottom: RawPlane,
+    pub depth: RawPlane,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct ApplyRequest {
+    #[schema(maximum = 4294967295.0)]
+    pub protocol: u32,
+    pub request_id: String,
+    pub proposal_id: String,
+    pub target: Target,
+    pub confirmed: bool,
+}
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct OutcomeRequest {
+    #[schema(maximum = 4294967295.0)]
+    pub protocol: u32,
+    pub request_id: String,
+    pub target: Target,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
+#[serde(rename_all = "snake_case")]
+pub enum MutationStatus {
+    Queued,
+    Executing,
+    AppliedVerified,
+    UnchangedVerified,
+    RollbackConfirmed,
+    OutcomeUnconfirmed,
+    Rejected,
+    Cancelled,
+}
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[serde(deny_unknown_fields)]
+pub struct MutationResult {
+    #[schema(maximum = 4294967295.0)]
+    pub protocol: u32,
+    pub request_id: String,
+    pub target: Target,
+    pub status: MutationStatus,
+    pub code: String,
+    pub message: String,
+    pub refresh_required: bool,
+    #[schema(max_items = 1)]
+    pub native_values: Vec<RawRange>,
+    pub changed_ids: Vec<String>,
+    pub skipped_ids: Vec<String>,
 }
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]

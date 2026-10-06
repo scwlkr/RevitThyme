@@ -4,7 +4,8 @@ import {readFileSync} from "node:fs";
 import {createHash} from "node:crypto";
 import path from "node:path";
 import {start,stop,call} from "./sidecar";
-import {CaptureRequestSchema,SnapshotSchema,PreviewRequestSchema,PreviewSchema,ProposalSchema} from "../src/contracts/generated";
+import {CaptureRequestSchema,SnapshotSchema,PreviewRequestSchema,PreviewSchema,ProposalSchema,ApplyRequestSchema,OutcomeRequestSchema,MutationResultSchema} from "../src/contracts/generated";
+import {nativeRequested} from "./native-launch";
 protocol.registerSchemesAsPrivileged([{scheme:"app",privileges:{standard:true,secure:true,supportFetchAPI:true}}]);
 let window:BrowserWindow;
 function sender(event:IpcMainInvokeEvent) {
@@ -35,6 +36,10 @@ app.whenReady().then(async()=>{
  ipcMain.handle("range:capture",async(e,r)=>{sender(e);return SnapshotSchema.parse(await call("capture",CaptureRequestSchema.parse(r)));});
  ipcMain.handle("range:preview",async(e,r)=>{sender(e);return PreviewSchema.parse(await call("preview",PreviewRequestSchema.parse(r)));});
  ipcMain.handle("range:propose",async(e,r)=>{sender(e);return ProposalSchema.parse(await call("propose",PreviewRequestSchema.parse(r)));});
+ ipcMain.handle("range:mode",async(e)=>{sender(e);return nativeRequested?"native":"synthetic";});
+ ipcMain.handle("range:apply",async(e,r)=>{sender(e);return MutationResultSchema.parse(await call("apply",ApplyRequestSchema.parse(r)));});
+ ipcMain.handle("range:outcome",async(e,r)=>{sender(e);return MutationResultSchema.parse(await call("outcome",OutcomeRequestSchema.parse(r)));});
+ ipcMain.handle("range:cancel",async(e,r)=>{sender(e);return MutationResultSchema.parse(await call("cancel",OutcomeRequestSchema.parse(r)));});
  ipcMain.handle("range:reconnect",async(e)=>{sender(e);await start();});
  start().catch(()=>{}); // UI presents recoverable startup failure on Capture.
  await window.loadURL("app://bundle/");

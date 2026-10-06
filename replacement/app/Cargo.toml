@@ -9,4 +9,4 @@ serde.workspace = true
 serde_json.workspace = true
 utoipa.workspace = true
 axum = "0.8"
-tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "io-std", "io-util", "signal"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "net", "io-std", "io-util", "signal", "time"] }

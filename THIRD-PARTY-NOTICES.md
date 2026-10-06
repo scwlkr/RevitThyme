@@ -12,6 +12,8 @@ Rust and Python are development tools, not bundled runtimes. The extension uses 
 
 ## Unreleased Rust replacement preview
 
+M2 adds original .NET adapter code compiled against user-supplied Revit 2027 APIs with CopyLocal disabled. No Autodesk binaries or .NET runtime are bundled; the adapter relies on Revit's .NET 10 host. Windows pipe/transaction interfaces use the installed framework with no new NuGet dependencies. This does not establish redistribution clearance, signing, installation or actual Revit qualification.
+
 The M1 source/package is separate from the legacy extension. Its Rust sidecar links Cargo-lockfile dependencies; Electron and exported Expo/React/React Native Web/NativeWind assets are bundled. Direct dependency licenses include MIT (Axum, Tokio, Expo, React, React Native Web, NativeWind, Tailwind, Zod, Electron, Forge), MIT OR Apache-2.0 (Serde), and MIT OR Apache-2.0 (Utoipa). Preserve upstream dependency license files and Electron's LICENSE/LICENSES.chromium.html. The preview contains no Autodesk assemblies or TimberFold dependencies.
 
 This is a development preview, not a redistribution-clearance claim. A complete bundled dependency notice inventory, signing and installer recovery are required before distribution/release; see [M1 evidence boundaries](docs/RUST-VIEW-RANGE-M1.md).

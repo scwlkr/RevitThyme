@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef,useCallback} from "react";
 import {bridge} from "../../contracts/bridge";
-import type {Snapshot,PreviewRequest,Preview,Proposal,Unit,Axis,ViewKind,Edits} from "../../contracts/generated";
+import type {Snapshot,PreviewRequest,Preview,Proposal,Unit,Axis,ViewKind,Edits,Mode,MutationResult,OutcomeRequest} from "../../contracts/generated";
 export const keys=["top","cut","bottom","depth"] as const;
 export type PlaneKey=typeof keys[number];
 function originals(s:Snapshot):Edits {
@@ -11,6 +11,10 @@ export function useEditor() {
  const [request,setRequest]=useState<PreviewRequest>();
  const [preview,setPreview]=useState<Preview>();
  const [proposal,setProposal]=useState<Proposal>();
+ const [mode,setMode]=useState<Mode>("synthetic");
+ const [mutation,setMutation]=useState<MutationResult>();
+ const [outcomeRequest,setOutcomeRequest]=useState<OutcomeRequest>();
+ const pending=!!mutation && ["queued","executing","outcome_unconfirmed"].includes(mutation.status);
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
  const [unit,setUnit]=useState<Unit>("mm");
@@ -31,15 +35,18 @@ export function useEditor() {
    if(snapshot) {setInvalidInputs(new Set());setInputReset(n=>n+1);update({edits:originals(snapshot)});}
  },[snapshot,update]);
  const cancel=useCallback(()=>{
+   if(busy||mutation)return;
    reset();setCancelled(true);setProposal(undefined);
- },[reset]);
+ },[reset,busy,mutation]);
  async function capture(reconnect=false) {
    const token=++epoch.current;revision.current++;setBusy(true);setError("");setProposal(undefined);setPreview(undefined);setRequest(undefined);setSnapshot(undefined);setInvalidInputs(new Set());
    try {
      if(reconnect)await bridge().reconnect();
+     setMode(await bridge().mode());
      const s=await bridge().capture({protocol:1,view_kind:kind,partial_fixture:partial});
      if(token!==epoch.current)return;
      setSnapshot(s);setCancelled(false);
+     if(!pending)setMutation(undefined);
      setRequest({protocol:1,snapshot_id:s.snapshot_id,target:s.target,input_revision:revision.current,axis:"y",fraction:0.015625,unit,edits:originals(s)});
    }catch(e){if(token===epoch.current)setError(String(e));}
    finally {if(token===epoch.current)setBusy(false);}
@@ -72,7 +79,30 @@ export function useEditor() {
    finally{if(token===epoch.current)setBusy(false);}
  }
  function changeUnit(next:Unit){setInvalidInputs(new Set());setInputReset(n=>n+1);update({unit:next});}
- return {snapshot,request,preview,proposal,error,busy,unit,kind,partial,cancelled,inputInvalid,inputReset,
+ async function applyConfirmed(){
+   if(!proposal||!proposal.native_write_available||pending)return;
+   const query={protocol:1,request_id:crypto.randomUUID(),target:proposal.target};setOutcomeRequest(query);setBusy(true);setError("");
+   // Retain this ID even if the HTTP/IPC response is lost. No caller retries Apply.
+   try{setMutation(await bridge().apply({...query,proposal_id:proposal.proposal_id,confirmed:true}));}
+   catch{setMutation({...query,status:"outcome_unconfirmed",code:"lost_response",message:"Apply response unavailable. Inspect outcome and refresh; do not retry.",refresh_required:true,native_values:[],changed_ids:[],skipped_ids:[]});}
+   finally{setProposal(undefined);setRequest(undefined);setPreview(undefined);setBusy(false);}
+ }
+ async function inspectOutcome(cancelQueued=false){
+   if(!outcomeRequest)return;setBusy(true);setError("");
+   try{setMutation(await (cancelQueued?bridge().cancelApply(outcomeRequest):bridge().outcome(outcomeRequest)));}
+   catch(e){setError(String(e));}finally{setBusy(false);}
+ }
+ useEffect(()=>{
+   if(!outcomeRequest||!mutation||!["queued","executing"].includes(mutation.status))return;
+   let abandoned=false;
+   const timer=setTimeout(async()=>{
+     try{const result=await bridge().outcome(outcomeRequest);if(!abandoned)setMutation(result);}
+     catch{if(!abandoned)setMutation(previous=>previous?{...previous,status:"outcome_unconfirmed",code:"lost_outcome",message:"Native outcome unavailable. Inspect the original request and refresh; no automatic Apply retry.",refresh_required:true}:previous);}
+   },200);
+   return()=>{abandoned=true;clearTimeout(timer);};
+ },[mutation,outcomeRequest]);
+ return {snapshot,request,preview,proposal,error,busy,unit,kind,partial,cancelled,inputInvalid,inputReset,mode,mutation,pending,
+   applyConfirmed,inspectOutcome,
    setKind,setPartial,setInputInvalid,capture,reset,cancel,edit,review,changeUnit,update,
-   ready:!!preview && preview.input_revision===request?.input_revision && !error && !inputInvalid};
+   ready:!!preview && preview.input_revision===request?.input_revision && !error && !inputInvalid && !pending && !mutation};
 }

@@ -1,23 +1,72 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 400" fill="none">
-  <defs><pattern id="grid" width="40" height="23" patternUnits="userSpaceOnUse"><path d="M0 0 40 23M40 0 0 23" stroke="#bbc8b1" stroke-width=".65"/></pattern><pattern id="wood" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 0V12M6 0V12" stroke="#b78e5e" stroke-width=".7"/></pattern></defs>
-  <path fill="url(#grid)" d="M25 220 293 65 560 220 293 375z"/><path fill="#bcc6ac" opacity=".5" d="m150 290 146-85 180 104-146 84z"/>
-  <path fill="#ddd2b5" stroke="#355a43" stroke-width="1.5" d="m125 265 154-89 190 110-154 89z"/>
-  <path d="m171 234 108-63 0-103-108 62z" fill="#cfb791" stroke="#355a43" stroke-width="2"/>
-  <path d="m279 171 136 79V145L279 68z" fill="#e9d8b8" stroke="#355a43" stroke-width="2"/>
-  <path d="m171 234 136 79 108-63-136-79z" fill="#c9ae85" stroke="#355a43" stroke-width="2"/>
-  <path d="m171 234 136 79V210l-68-95-68 15z" fill="#dfc49c" stroke="#355a43" stroke-width="2"/>
-  <path d="m307 313 108-63V145l-108 65z" fill="#e7d3ae" stroke="#355a43" stroke-width="2"/>
-  <path d="m162 128 115-66 73 95-114 66z" fill="#719071" stroke="#355a43" stroke-width="2"/>
-  <path d="m236 223 114-66 74-18-114 66z" fill="#44684d" stroke="#355a43" stroke-width="2"/>
-  <path d="m174 142 115-66m-99 86 115-66m-100 86 115-66m-99 86 115-66" stroke="#a7ba94" stroke-width="1.5"/>
-  <path d="m215 269 35 20v-58l-35-20z" fill="#30594d" stroke="#355a43" stroke-width="2"/>
-  <path d="m267 284 25 14v-36l-25-14z" fill="#719b8e" stroke="#355a43" stroke-width="2"/>
-  <path d="m327 255 29-17v-35l-29 17zM373 228l27-16v-35l-27 16z" fill="#719b8e" stroke="#355a43" stroke-width="2"/>
-  <path d="M342 212v35m44-61v34m-55 16 22-12m23-9 22-13" stroke="#e9dfc9" stroke-width="2"/>
-  <path d="m182 203 113 65m-113-49 113 65m-113-48 113 65m21-30 90-52m-90 68 90-52" stroke="#b99465" stroke-width="1"/>
-  <path d="m116 298 134 78m-135-92-9 10m151 77-9 10m173-83 52-30m-55 25 6 10m44-42 6 10" stroke="#698065" stroke-width="1"/>
-  <text x="161" y="349" fill="#54705a" font-family="monospace" font-size="10" transform="rotate(30 161 349)">A THOUGHTFUL FOUNDATION</text>
-  <path d="M455 248v-48m0 21c-35 0-39-30-39-30 35-4 39 30 39 30m0-5c28-1 36-28 36-28-29-3-36 28-36 28" stroke="#426344" stroke-width="2" fill="#92ac80"/>
-  <path d="m437 250 18-10 19 10-19 11z" fill="#b6956b"/><path d="m437 250 3 23 15 9 16-9 3-23-19 11z" fill="#c6a87b" stroke="#698065"/>
-  <path d="m98 209 24-14m-16-9 24 14M487 309l24-14m-16-9 24 14" stroke="#92a18b"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 400" fill="none" role="img" aria-labelledby="house-title house-description">
+  <title id="house-title">Timber cottage with a sage gable roof</title>
+  <desc id="house-description">A precise architectural illustration with a raised roof ridge, timber siding, two windows, a green door and a small planter on a thin foundation.</desc>
+  <!-- Shared axonometric projection: (146 + .8x + .8y, 270 - .3x + .4y - z).
+       House length 220, width 140, eaves 110, ridge 195. Roof overhang 9/8.
+       Each wall uses that same basis; openings end at its own wall baseline. -->
+  <defs>
+    <pattern id="ground-grid" width="28" height="28" patternUnits="userSpaceOnUse" patternTransform="matrix(.8 -.3 .8 .4 146 270)">
+      <path d="M0 28V0H28" stroke="#aab99d" stroke-width=".8"/>
+    </pattern>
+    <radialGradient id="grid-fade"><stop offset=".3" stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>
+    <mask id="ground-mask"><ellipse cx="290" cy="285" rx="252" ry="112" fill="url(#grid-fade)"/></mask>
+    <linearGradient id="roof-sage" x1="283" y1="68" x2="348" y2="191" gradientUnits="userSpaceOnUse"><stop stop-color="#94a68b"/><stop offset="1" stop-color="#748c72"/></linearGradient>
+    <pattern id="timber-boards" width="12" height="210" patternUnits="userSpaceOnUse"><path d="M12-90V120" stroke="#a17a50" stroke-opacity=".36" stroke-width=".8"/></pattern>
+    <clipPath id="gable-wall"><path d="M0 0 70-85 140 0V110H0Z"/></clipPath>
+    <filter id="ground-shadow" x="-20%" y="-40%" width="140%" height="180%"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+
+  <path d="M30 175H550V400H30Z" fill="url(#ground-grid)" opacity=".36" mask="url(#ground-mask)"/>
+  <path d="M145 283 278 349 488 280 360 220Z" fill="#607658" opacity=".19" filter="url(#ground-shadow)"/>
+
+  <!-- Thin slab, with separate front and side edges. -->
+  <path d="M126.8 270.8 258 336.4 453.2 263.2 322 197.6Z" fill="#eeeadb" stroke="#88917a" stroke-width="1.1"/>
+  <path d="M126.8 270.8 258 336.4V344.4L126.8 278.8Z" fill="#d7d1bc" stroke="#88917a" stroke-width="1.1"/>
+  <path d="M258 336.4 453.2 263.2V271.2L258 344.4Z" fill="#c4c7b4" stroke="#88917a" stroke-width="1.1"/>
+
+  <!-- Long wall: its local horizontal axis is the building's length. -->
+  <g transform="matrix(.8 -.3 0 1 258 216)">
+    <path d="M0 0H220V110H0Z" fill="#d8bb90" stroke="#536b50" stroke-width="1.4"/>
+    <path d="M0 0H220V110H0Z" fill="url(#timber-boards)"/>
+    <path d="M0 0H220V9H0Z" fill="#6a704e" opacity=".18"/>
+    <path d="M2 107H218M217 10V107" stroke="#a28258" stroke-width="1.2"/>
+    <path d="M127 28H181V72H127Z" fill="#48685a" stroke="#f1ddb9" stroke-width="5"/>
+    <path d="M130 31H178V69H130Z" fill="#6f8a75" stroke="#244b3c" stroke-width="1.6"/>
+    <path d="M133 34H151V47H133ZM157 34H175V47H157Z" fill="#99aa8d" opacity=".55"/>
+    <path d="M154 32V68M131 50H177" stroke="#294e3e" stroke-width="3"/>
+    <path d="M123 25H185V30H123ZM123 71H185V76H123Z" fill="#e9d3ab" stroke="#927c55" stroke-width=".9"/>
+  </g>
+
+  <!-- Gable end: width projects down-right; verticals stay vertical. -->
+  <g transform="matrix(.8 .4 0 1 146 160)">
+    <path d="M0 0 70-85 140 0V110H0Z" fill="#edd5ae" stroke="#536b50" stroke-width="1.4"/>
+    <g clip-path="url(#gable-wall)"><path d="M0-85H140V110H0Z" fill="url(#timber-boards)"/><path d="M0 0 70-85 140 0" stroke="#a88a60" stroke-width="15" opacity=".15"/></g>
+    <path d="M4 5V107H136V5" stroke="#c0a074" stroke-width="1.2"/>
+    <path d="M18 29H48V71H18Z" fill="#48685a" stroke="#f5e2bf" stroke-width="5"/>
+    <path d="M21 32H45V68H21Z" fill="#6f8a75" stroke="#244b3c" stroke-width="1.6"/>
+    <path d="M24 35H31V47H24ZM35 35H42V47H35Z" fill="#99aa8d" opacity=".55"/>
+    <path d="M33 33V67M22 50H44" stroke="#294e3e" stroke-width="2.5"/>
+    <path d="M14 26H52V31H14ZM14 70H52V75H14Z" fill="#ead4ad" stroke="#a18b61" stroke-width=".9"/>
+    <path d="M78 30H114V110H78Z" fill="#ead4ad" stroke="#a18b61" stroke-width="1"/>
+    <path d="M82 34H110V110H82Z" fill="#365b48" stroke="#244b3c" stroke-width="1.5"/>
+    <path d="M87 39H105V99H87Z" fill="#426651" stroke="#244b3c" stroke-width="1"/>
+    <path d="M78 27H114V32H78Z" fill="#f0dcb7" stroke="#a18b61" stroke-width="1"/>
+    <circle cx="87" cy="74" r="1.7" fill="#cfbe88"/>
+  </g>
+
+  <!-- Front rake and long fascia sit below the roof's shared perimeter. -->
+  <path d="M132.4 169.2 194.8 105.7 257.2 231.6V236.6L194.8 110.7 132.4 174.2Z" fill="#e9d5b1" stroke="#67745a" stroke-width="1.1" stroke-linejoin="round"/>
+  <path d="M257.2 231.6 447.6 160.2V165.2L257.2 236.6Z" fill="#dac39b" stroke="#67745a" stroke-width="1.1"/>
+  <path d="M194.8 105.7 385.2 34.3 447.6 160.2 257.2 231.6Z" fill="url(#roof-sage)" stroke="#365940" stroke-width="1.7" stroke-linejoin="round"/>
+  <!-- Standing seams follow the roof slope, from ridge to eave. -->
+  <path d="M216 97.8 278.4 223.7M239.6 88.9 302 214.8M263.2 80.1 325.6 206M286.8 71.2 349.2 197.1M310.4 62.4 372.8 188.3M334 53.5 396.4 179.4M357.6 44.7 420 170.6" stroke="#46664a" stroke-width="1.1"/>
+  <path d="M196.2 108.5 386.6 37.1M258.7 228.7 446.1 158.8" stroke="#b3c1a1" stroke-width="1.1" opacity=".75"/>
+  <path d="M132.4 169.2 194.8 105.7 385.2 34.3" stroke="#45664b" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- A modest planter, sized below the front window. -->
+  <path d="M151 273 178 286.5 195 280.1 168 266.6Z" fill="#abb297" stroke="#7e8b70" stroke-width=".9"/>
+  <path d="M151 273V287L178 300.5V286.5Z" fill="#c4c7b1" stroke="#7e8b70" stroke-width=".9"/>
+  <path d="M178 286.5 195 280.1V294.1L178 300.5Z" fill="#a3af98" stroke="#7e8b70" stroke-width=".9"/>
+  <path d="M155 272C149 267 152 262 158 261C157 255 163 252 169 255C172 250 180 253 181 258C189 257 194 263 189 267C196 272 188 279 181 277C176 282 166 279 165 276C160 279 154 277 155 272Z" fill="#839b68" stroke="#58784f" stroke-width="1"/>
+  <path d="M161 261 165 264M171 257 174 261M182 263 178 267M161 272 165 270M174 273 177 270M185 272 187 269" stroke="#b4c18d" stroke-width="1.6" stroke-linecap="round"/>
 </svg>

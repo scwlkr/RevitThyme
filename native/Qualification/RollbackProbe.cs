@@ -10,6 +10,18 @@ namespace RevitThyme.Qualification;
 public enum FailurePoint { BeforeSet, AfterSet, AfterRegenerate, BeforeCommit, AfterCommit, PostCommitRead, BeforeAssimilate, AfterAssimilate, NativeWarning, NativeError }
 public static class RollbackProbe
 {
+    public static object InvalidRange(UIApplication app, Host host, string approvedPath, string approvedView)
+    {
+        var doc = app.ActiveUIDocument.Document;
+        if (!string.Equals(doc.PathName, approvedPath, StringComparison.OrdinalIgnoreCase) || doc.ActiveView.UniqueId != approvedView
+            || doc.IsWorkshared || doc.IsReadOnly || doc.IsModifiable) throw new InvalidOperationException("Approved disposable target required.");
+        var model = new Model(app, host); var facts = model.Capture(); var before = model.Read(facts);
+        var proposed = facts.Capture.Original with { Cut = facts.Capture.Original.Cut with { OffsetFeet = 1_000_000 } };
+        var request = new Request(Wire.Protocol, Guid.NewGuid().ToString(), Operation.Apply, facts.Capture.Target,
+            facts.Capture.SnapshotId, proposed, 0, "", true);
+        var reply = Apply.Execute(model, facts, request); var after = model.Read(facts);
+        return new { Reply = reply, Before = before, After = after, OriginalRestored = before == after };
+    }
     public static object Run(UIApplication app, Host host, string approvedPath, string approvedView, FailurePoint point)
     {
         var doc = app.ActiveUIDocument.Document;
@@ -59,7 +71,9 @@ public static class RollbackProbe
                 if (point is FailurePoint.NativeWarning or FailurePoint.NativeError)
                 {
                     using var message = new FailureMessage(point == FailurePoint.NativeWarning
-                        ? BuiltInFailures.GeneralFailures.GenericWarning : BuiltInFailures.GeneralFailures.GenericNonFatalError);
+                        ? BuiltInFailures.GeneralFailures.GenericWarning : BuiltInFailures.GeneralFailures.GenericError);
+                    var expected = point == FailurePoint.NativeWarning ? FailureSeverity.Warning : FailureSeverity.Error;
+                    if (message.GetSeverity() != expected) throw new InvalidOperationException("Unexpected native failure severity; no failure posted.");
                     message.SetFailingElement(doc.ActiveView.Id); doc.PostFailure(message);
                     owner.Trace.Add("posted native " + message.GetSeverity());
                 }

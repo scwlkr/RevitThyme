@@ -13,4 +13,4 @@ try{
  if(action==="ui")run("node",["desktop/scripts/check-native-ui.mjs"]);
  if(!["build","check","ui"].includes(action))throw Error("Usage: project m2 [build|check|ui]");
 }catch(e){console.error(e.message);process.exitCode=1;}
-finally{mkdirSync(path.join(root,"artifacts/m2"),{recursive:true});const sha=spawnSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).stdout.trim();writeFileSync(path.join(root,"artifacts/m2",action+".json"),JSON.stringify({sha,base:"dfbf9632c3abe82364bce0d0a09026c17623c91b",scope:"source_offline",actual_revit:false,passed:!process.exitCode,checks},null,2)+"\n");}
+finally{mkdirSync(path.join(root,"artifacts/m2"),{recursive:true});const sha=spawnSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).stdout.trim();const scope=action==="ui"?"packaged_application_with_offline_native_fixture":"source_offline";writeFileSync(path.join(root,"artifacts/m2",action+".json"),JSON.stringify({sha,base:"dfbf9632c3abe82364bce0d0a09026c17623c91b",scope,actual_revit:false,passed:!process.exitCode,checks},null,2)+"\n");}

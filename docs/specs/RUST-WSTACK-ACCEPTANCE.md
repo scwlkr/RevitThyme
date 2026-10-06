@@ -8,6 +8,30 @@ Every result records source/head SHA, baseline, command or UI driver, actual too
 
 Drive the real feature's inputs and observe effects independently. Use existing CLI/UI drivers first; add small parameterized project adapters where needed so sessions can seed, reach, inspect and reset meaningful states. Record gaps in existing task/verification notes rather than building a parallel test platform. Retain screenshots for visual interactions and native readback for mutations.
 
+## Approved bounded M3 qualification scope
+
+On 2026-10-06 the user accepted the following priorities for Visual View Range. Checks 1–9 are the remaining practical M3 qualification work, alongside the completed evidence in [the M3 assessment](../../verification/rust-view-range-m3.md). This scopes the catalog below; it does not mark unexecuted cases passed or qualify every R1–R12 scenario. Initial qualification covers one Revit instance on the current Windows host. Existing automated tests, authentication, transaction guards and recorded evidence remain required and preserved.
+
+| Check | Qualification | Accepted disposition / catalog coverage |
+| --- | --- | --- |
+| 1 | Change document, native range, level or geometry after review; reject stale or wrong-target Apply | Keep: R5. Underlay and active-view cases already passed; remaining cases still required. |
+| 2 | Lose the Apply reply or repeat the request; inspect the outcome without a second transaction | Keep: R9 and O9. Actual lost-response and duplicate-request cases remain required. |
+| 3 | Close the window/document or cancel queued work; prevent a later queued write | Keep: R3/R10 and O9. Preview close passed; queued cancellation/shutdown still required. |
+| 4 | Disconnect/reconnect and try the old review; require a fresh review | Keep: R10 and O12. Actual reconnect invalidation remains required. |
+| 5 | Template-controlled, dependent/primary-with-dependents, read-only, family, active edit/transaction and unsupported views | Keep: R6. Explain exclusions without mutation; elevation passed, remaining restrictions still required. |
+| 6 | Remaining supported range options: Bottom/Depth Unlimited, alternate references, mm/feet Apply and upward-looking structural plans | Keep: R2 and O2/O3. Verify supported combinations; any proposed exclusion needs an explicit scope decision. |
+| 7 | Drag planes and change the slice in the actual connected UI without changing native range or Undo history | Keep: R3. Numeric preview, Reset and Escape passed; actual drag/slice observations remain required. |
+| 8 | Compare a known opening and rotated/mirrored family with the displayed section | Keep: R11. Independent actual geometry accuracy remains required; partial-capture warnings passed. |
+| 9 | Measure practical capture and drag speed on the test house | Keep: R11. Record machine/load and useful interaction measurements; no elaborate benchmark suite. |
+| 10 | Start and use the feature with pyRevit disabled | Required before a Python-free operation claim: R1. May wait during preview testing; currently unexecuted. |
+| 11 | Run two Revit instances and demonstrate isolation | Defer actual multi-instance qualification: R10. Initial scope is one instance; deterministic targeting and automated isolation coverage remain required. |
+| 12 | Install/update/uninstall/restore on a second computer | Defer until distribution: P6–P8. Preserve current-host physical installation/ownership checks; no second-computer claim. |
+| 13 | Manufacture every rare internal Revit failure, including inaccessible Pending/finalizer states | Remove exhaustive manufactured native-state testing as a near-term blocker: R7/R8. Preserve offline failure guards, inducible native results and truthful uncertain outcomes; inaccessible states remain unqualified. |
+| 14 | Additional cross-user/network attack trials | Defer actual additional attack trials: O11/P4/R10 boundaries. Existing authentication, local-only transport and renderer-security checks remain required. |
+| 15 | Migrate every other suite tool and remove the legacy host | Move to replacement M4 parity/distribution and M5 approved cutover. Outside this feature milestone; no legacy removal is authorized. |
+
+Required checks 1–9 have recorded actual results in the [current numbered assessment](../../verification/rust-view-range-m3-remaining.md), including the named-level restriction accepted by the user after a native mismatch. Check 10 also passed on the recorded installed bundle, qualifying this feature's Python-free runtime. Deferred checks 11–14 remain visible gaps for their broader claims and do not block the accepted one-instance preview scope. Check 15 belongs to later milestones. The latest 2026-10-06 request separately authorizes merging reviewed changes and preparing an unpublished release, superseding the earlier no-merge boundary. Publishing and legacy cutover remain outside that request.
+
 ## Offline and source acceptance
 
 | ID | Scenario | Required observation |
@@ -65,7 +89,7 @@ Reinspect active document/session before each scenario. Run mutations through ex
 | R11 | Geometry/limits | Actual openings/transforms agree with reference coordinates; truncated/unsupported geometry warnings visible; exclusions explain preview limitations |
 | R12 | Source preservation | No source-model geometry altered by range editing; TimberFold repository/baselines/install unchanged; no unintended saves/syncs |
 
-Do not manufacture otherwise inaccessible failure states in a production model. Document which native failures can be induced on the fixture, the injection mechanism and any remaining unqualified statuses. Required gaps block that release claim.
+Do not manufacture otherwise inaccessible failure states in a production model. Document which native failures can be induced on the fixture, the injection mechanism and any remaining unqualified statuses. Apply the approved scope above when deciding which gaps block bounded qualification or a broader claim; deferred or inaccessible scenarios never count as passed.
 
 ## Parity and cutover gate
 

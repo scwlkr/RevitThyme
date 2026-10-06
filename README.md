@@ -2,7 +2,9 @@
 
 ![RevitThyme](assets/branding/revitthyme-logo.svg)
 
-A pyRevit extension for Autodesk Revit, starting with TimberFold inspection.
+A Revit tool suite with a pyRevit extension and a native Visual View Range preview.
+
+**Visual View Range 0.3.0-preview.1** is an unpublished candidate with native capture, interactive sections and reviewed Apply/Undo. Bounded checks 1–10 passed on the current Revit 2027.2 host, including startup/use with pyRevit disabled. Unresolved Above/Below references require named levels. See the [user guide](docs/VISUAL-VIEW-RANGE.md), [release notes](docs/VIEW-RANGE-RELEASE-NOTES.md) and [separate qualification evidence](verification/rust-view-range-m3-remaining.md). The existing tools remain installed; broader suite replacement and second-computer distribution are separate work.
 
 **Version 0.2.0** provides a RevitThyme ribbon, shared read-only operations, a versioned ZIP and per-user installer. This is an independent extension built on pyRevit; no upstream implementation or Revit binaries are bundled.
 
@@ -10,7 +12,8 @@ The visual identity combines thyme leaves, earthy greens and timber colors. Each
 
 | Available now | Still planned |
 | --- | --- |
-| Suite Status: host versions and document identity | Native C# host pilot |
+| Suite Status: host versions and document identity | Broader native suite migration |
+| Native Visual View Range preview: capture, review, Apply and Undo | Second-computer native qualification |
 | TimberFold inspection: candidate walls/roofs and source-file diagnostics | Preview-bound fabrication generation |
 | Shared ribbon and loopback Routes | Named MCP server and asynchronous jobs |
 | Allowlisted ZIP, hashes, backup/upgrade/uninstall tooling | Bundled TimberFold worker and second-computer pilot |
@@ -29,9 +32,9 @@ Load the extension on a normal Revit start, then open **RevitThyme > Suite Statu
 
 ## Develop
 
-The stacked [M2 native source](docs/RUST-VIEW-RANGE-M2.md) adds the minimal .NET 10 capture/Apply adapter and ribbon-launched connection in the existing Rust/Expo/Electron feature. Standalone launch retains the offline fixture. Windows orchestration/package evidence uses an offline adapter fixture; actual Revit loading, geometry, transactions and undo remain unqualified. The portable bundle does not install an add-in automatically.
+The [native adapter](docs/RUST-VIEW-RANGE-M2.md) provides capture/Apply and ribbon-launched connection in the Rust/Expo/Electron feature. Standalone executable launch retains the offline fixture. [M3](verification/rust-view-range-m3-remaining.md) records bounded actual Revit qualification separately from Windows source/package checks. The portable bundle does not install an add-in automatically.
 
-The unreleased [Rust replacement M1](docs/RUST-VIEW-RANGE-M1.md) is a working offline Visual View Range preview in packaged Expo Web/Electron. It uses synthetic architecture and offers before/after Apply review; native Revit Apply is unavailable. It installs no adapter and preserves the shipped pyRevit host.
+The [M1 report](docs/RUST-VIEW-RANGE-M1.md) preserves the earlier synthetic offline milestone. Later M2/M3 work adds the native adapter and actual Revit Apply qualification while preserving the shipped pyRevit host.
 
 Clone the source repository for development; the install ZIP omits the developer CLI. Read [PROJECT.md](PROJECT.md), [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md) and [roadmap](docs/ROADMAP.md). Automation uses Windows Python 3.13 and Rust 1.99.0; the extension stays IronPython 2.7 compatible.
 

@@ -1,3 +1,4 @@
+using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Events;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
@@ -17,6 +18,14 @@ public sealed class Host : IExternalApplication, IExternalEventHandler
     private ExternalEvent? externalEvent;
     private PipeServer? pipe;
     private bool stopping;
+    // Revit's native equality/hash identify the open document across managed wrappers.
+    // Only API-context callbacks access this host-lifetime registry.
+    private readonly Dictionary<Document, string> documents = [];
+    internal string DocumentId(Document document)
+    {
+        if (!documents.TryGetValue(document, out var id)) documents.Add(document, id = Guid.NewGuid().ToString());
+        return id;
+    }
     private string PipeName => $"RevitThyme-{ProcessId}-{SessionId}";
     public Result OnStartup(UIControlledApplication app)
     {
@@ -38,10 +47,13 @@ public sealed class Host : IExternalApplication, IExternalEventHandler
         app.ControlledApplication.DocumentChanged -= Changed;
         app.ControlledApplication.DocumentClosing -= Closing;
         app.ViewActivated -= Activated; app.Idling -= Idle;
-        Session.Invalidate(); pipe?.Dispose(); externalEvent?.Dispose(); return Result.Succeeded;
+        documents.Clear(); Session.Invalidate(); pipe?.Dispose(); externalEvent?.Dispose(); return Result.Succeeded;
     }
     private void Changed(object? sender, DocumentChangedEventArgs e) => Session.Invalidate();
-    private void Closing(object? sender, DocumentClosingEventArgs e) => Session.Invalidate();
+    private void Closing(object? sender, DocumentClosingEventArgs e)
+    {
+        documents.Remove(e.Document); Session.Invalidate();
+    }
     private void Activated(object? sender, ViewActivatedEventArgs e) => Session.Invalidate();
     private void Idle(object? sender, IdlingEventArgs e) { if (Session.HasQueued) Schedule(); }
     private void Schedule()

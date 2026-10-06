@@ -49,13 +49,13 @@ public sealed class PipeServer(string name, int processId, string startTicks, st
                 await Frames.Write(pipe, new { protocol = Wire.Protocol, session_id = sessionId, process_id = processId, process_start_ticks = startTicks }, lifetime.Token);
                 while (!lifetime.IsCancellationRequested)
                 {
-                    using var frameTimeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); frameTimeout.CancelAfter(30_000);
-                    var r = await Frames.Read<Request>(pipe, frameTimeout.Token);
+                    var r = await Frames.ReadWhenAvailable<Request>(pipe, lifetime.Token);
                     Reply reply;
                     try { reply = session.Submit(r, connection); }
                     catch { reply = Reply.Result(r, Status.Rejected, "invalid_request", "Malformed, stale or incompatible native request.", true); }
                     if (reply.Status == Status.Queued) schedule();
-                    await Frames.Write(pipe, reply, frameTimeout.Token);
+                    using var writeTimeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); writeTimeout.CancelAfter(30_000);
+                    await Frames.Write(pipe, reply, writeTimeout.Token);
                 }
             }
             catch (Exception ex) when (ex is IOException or InvalidDataException or OperationCanceledException or System.Text.Json.JsonException or ArgumentException or ObjectDisposedException) { }

@@ -2,6 +2,8 @@ use crate::Route;
 
 #[rustfmt::skip]
 pub const ROUTES: &[Route] = &[
+    Route { name: "prepare-view-range-release", program: "python", args: &["-X", "utf8", "scripts/prepare-view-range-release.py"] },
+    Route { name: "m3", program: "node", args: &["scripts/m3.mjs"] },
     Route { name: "m2", program: "node", args: &["scripts/m2.mjs"] },
     Route { name: "check-m2", program: "node", args: &["scripts/m2.mjs", "check"] },
     Route {

@@ -6,6 +6,6 @@
     <AddInId>D88A1886-4314-48D3-BEC8-F6EC1BA9B6A4</AddInId>
     <FullClassName>RevitThyme.RevitAdapter.Host</FullClassName>
     <VendorId>WLKR</VendorId>
-    <VendorDescription>RevitThyme M2 development preview; actual Revit qualification required.</VendorDescription>
+    <VendorDescription>RevitThyme Visual View Range preview; bounded Revit 2027.2 support.</VendorDescription>
   </AddIn>
 </RevitAddIns>

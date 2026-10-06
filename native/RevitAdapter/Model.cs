@@ -1,6 +1,5 @@
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using System.Runtime.CompilerServices;
 using RevitThyme.Native;
 using Range = RevitThyme.Native.Range;
 using Plane = RevitThyme.Native.Plane;
@@ -8,8 +7,6 @@ using Plane = RevitThyme.Native.Plane;
 namespace RevitThyme.RevitAdapter;
 public sealed class Model(UIApplication app, Host host) : IModel
 {
-    private static readonly ConditionalWeakTable<Document, Identity> documents = new();
-    private sealed class Identity { public string Id = Guid.NewGuid().ToString(); }
     internal static readonly PlanViewPlane[] Planes = [PlanViewPlane.TopClipPlane, PlanViewPlane.CutPlane, PlanViewPlane.BottomClipPlane, PlanViewPlane.ViewDepthPlane];
     private (Document doc, ViewPlan view) Active()
     {
@@ -17,6 +14,10 @@ public sealed class Model(UIApplication app, Host host) : IModel
         if (doc.IsFamilyDocument) throw new Rejection("family_document", "View Range requires a project document.");
         if (doc.IsReadOnly) throw new Rejection("read_only", "Document is read-only.");
         if (doc.IsModifiable) throw new Rejection("modifiable", "Finish the active transaction or edit mode before capture/Apply.");
+        // IsModifiable is false between transactions inside a native edit scope.
+        // Constructing this probe does not start a scope or change the document.
+        using var readiness = new SketchEditScope(doc, "RevitThyme readiness");
+        if (!readiness.IsPermitted) throw new Rejection("active_edit", "Finish the active Revit edit mode before capture/Apply.");
         var view = doc.ActiveView as ViewPlan ?? throw new Rejection("unsupported_view", "Use a floor, engineering or ceiling plan.");
         if (view.IsTemplate || view.ViewType is not (ViewType.FloorPlan or ViewType.EngineeringPlan or ViewType.CeilingPlan))
             throw new Rejection("unsupported_view", "Use a non-template floor, engineering or ceiling plan.");
@@ -33,7 +34,7 @@ public sealed class Model(UIApplication app, Host host) : IModel
     public Target CurrentTarget()
     {
         var (doc, view) = Active();
-        return new(host.ProcessId, host.StartTicks, host.SessionId, documents.GetValue(doc, _ => new()).Id, view.UniqueId, host.Session.Revision);
+        return new(host.ProcessId, host.StartTicks, host.SessionId, host.DocumentId(doc), view.UniqueId, host.Session.Revision);
     }
     public Facts Capture()
     {
@@ -63,7 +64,7 @@ public sealed class Model(UIApplication app, Host host) : IModel
         // During our transaction the document is deliberately modifiable and revision may change at Commit.
         // Readback still resolves the exact document instance and view; never another active document.
         var doc = app.ActiveUIDocument?.Document ?? throw new InvalidDataException("Document closed.");
-        if (documents.GetValue(doc, _ => new()).Id != facts.Capture.Target.DocumentId || doc.ActiveView.UniqueId != facts.Capture.Target.ViewId)
+        if (host.DocumentId(doc) != facts.Capture.Target.DocumentId || doc.ActiveView.UniqueId != facts.Capture.Target.ViewId)
             throw new InvalidDataException("Readback target changed.");
         using var range = ((ViewPlan)doc.ActiveView).GetViewRange(); return ReadRange(range);
     }
@@ -103,11 +104,11 @@ public sealed class Model(UIApplication app, Host host) : IModel
         if (id == PlanViewRange.Current || unlimited) level = current;
         else if (id == PlanViewRange.LevelAbove || id == PlanViewRange.LevelBelow)
         {
-            var levels = new FilteredElementCollector(doc).OfClass(typeof(Level)).Cast<Level>();
-            level = id == PlanViewRange.LevelAbove
-                ? levels.Where(l => l.ProjectElevation > current.ProjectElevation).OrderBy(l => l.ProjectElevation).FirstOrDefault()!
-                : levels.Where(l => l.ProjectElevation < current.ProjectElevation).OrderByDescending(l => l.ProjectElevation).FirstOrDefault()!;
-            if (level is null) throw new InvalidDataException("Relative level cannot be resolved.");
+            // A resolved native "Level Above (name)" stores that level's positive ID.
+            // Bare sentinels do not identify a level; nearest elevation can disagree
+            // with native clipping. Never turn an unresolved reference into a guess.
+            throw new Rejection("unresolved_relative_level",
+                "A View Range plane has an unresolved Level Above/Below reference. Choose a named level in native View Range, then refresh. No settings were changed.");
         }
         else level = doc.GetElement(id) as Level ?? throw new InvalidDataException("Reference is not a level.");
         if (!double.IsFinite(offset) || !double.IsFinite(level.ProjectElevation)) throw new InvalidDataException("Nonfinite native values.");

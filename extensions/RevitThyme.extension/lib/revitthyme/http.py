@@ -20,4 +20,8 @@ def register():
     def timberfold_inspect(request, uiapp):
         return execute('timberfold_inspect', uiapp, request.data)
 
+    @api.route('/preissue/check/', methods=['POST'])
+    def preissue_check(request, uiapp):
+        return execute('preissue_check', uiapp, request.data)
+
     return api

@@ -17,6 +17,11 @@ def settings_path():
     return os.path.join(os.environ['LOCALAPPDATA'], 'RevitThyme', 'settings.json')
 
 
+def preissue_standards():
+    path = os.path.join(os.environ['LOCALAPPDATA'], 'RevitThyme', 'preissue-standards.json')
+    return read_json(path) if os.path.isfile(path) else None
+
+
 def tool_root():
     path = settings_path()
     if not os.path.isfile(path):

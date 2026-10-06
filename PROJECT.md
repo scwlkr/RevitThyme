@@ -9,6 +9,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 ## Accepted direction
 
 - Product name: **RevitThyme**.
+- Public download and documentation website: **revitthyme.wlkrlabs.com**, inspired by pyRevit's guide structure and using the existing plant/timber identity. Keep website publishing artifacts separate from the Revit extension package; implement a dependency-free static site for the current presentation scope.
 - Visual direction: an agricultural, eco and plant feel, using the supplied teal building/thyme wordmark, green leaves and warm timber accents. Ship distinct light/dark ribbon icons with editable vector sources.
 - Prepare a separate project with general documentation and TimberFold as its starting tool.
 - Keep the host's responsibilities separate from each tool's implementation.
@@ -38,6 +39,7 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | Native C# host | Planned |
 | RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; dedicated MCP server planned |
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
+| Download and documentation website | Static landing, download and searchable guide pages implemented; see docs/WEBSITE.md and WLK-105 for deployment evidence |
 | Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 
 The first-host cold-start smoke test passed on 2026-10-05: the user confirmed icons and Suite Status, native ribbon read-back found images on all three buttons, and eight installed read-only Routes checks passed. Earlier repairs and images had landed in Codex's MSIX AppData cache instead of native Revit's folders. They were reapplied to verified native paths; the installer and developer repair now refuse redirected destinations. The loaded Routes repair was read back in Revit. Repeated Reload stability and another-machine behavior remain unverified; use normal Revit startup on this host. This local maintenance patch does not establish a general pyRevit fork or wider version support.

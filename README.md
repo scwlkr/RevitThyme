@@ -19,6 +19,8 @@ TimberFold generation continues through its separate working installation. Inspe
 
 ## Install
 
+The [download and documentation website](https://revitthyme.wlkrlabs.com) introduces the current preview. Website source and publishing instructions are in [site](site/README.md) and [website deployment](docs/WEBSITE.md).
+
 Install pyRevit for Revit 2027. Download the ZIP and checksum from [Releases](https://github.com/scwlkr/RevitThyme/releases), verify and extract it. From the extracted folder:
 
 ```powershell

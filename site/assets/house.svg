@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 400" fill="none">
+  <defs><pattern id="grid" width="40" height="23" patternUnits="userSpaceOnUse"><path d="M0 0 40 23M40 0 0 23" stroke="#bbc8b1" stroke-width=".65"/></pattern><pattern id="wood" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M0 0V12M6 0V12" stroke="#b78e5e" stroke-width=".7"/></pattern></defs>
+  <path fill="url(#grid)" d="M25 220 293 65 560 220 293 375z"/><path fill="#bcc6ac" opacity=".5" d="m150 290 146-85 180 104-146 84z"/>
+  <path fill="#ddd2b5" stroke="#355a43" stroke-width="1.5" d="m125 265 154-89 190 110-154 89z"/>
+  <path d="m171 234 108-63 0-103-108 62z" fill="#cfb791" stroke="#355a43" stroke-width="2"/>
+  <path d="m279 171 136 79V145L279 68z" fill="#e9d8b8" stroke="#355a43" stroke-width="2"/>
+  <path d="m171 234 136 79 108-63-136-79z" fill="#c9ae85" stroke="#355a43" stroke-width="2"/>
+  <path d="m171 234 136 79V210l-68-95-68 15z" fill="#dfc49c" stroke="#355a43" stroke-width="2"/>
+  <path d="m307 313 108-63V145l-108 65z" fill="#e7d3ae" stroke="#355a43" stroke-width="2"/>
+  <path d="m162 128 115-66 73 95-114 66z" fill="#719071" stroke="#355a43" stroke-width="2"/>
+  <path d="m236 223 114-66 74-18-114 66z" fill="#44684d" stroke="#355a43" stroke-width="2"/>
+  <path d="m174 142 115-66m-99 86 115-66m-100 86 115-66m-99 86 115-66" stroke="#a7ba94" stroke-width="1.5"/>
+  <path d="m215 269 35 20v-58l-35-20z" fill="#30594d" stroke="#355a43" stroke-width="2"/>
+  <path d="m267 284 25 14v-36l-25-14z" fill="#719b8e" stroke="#355a43" stroke-width="2"/>
+  <path d="m327 255 29-17v-35l-29 17zM373 228l27-16v-35l-27 16z" fill="#719b8e" stroke="#355a43" stroke-width="2"/>
+  <path d="M342 212v35m44-61v34m-55 16 22-12m23-9 22-13" stroke="#e9dfc9" stroke-width="2"/>
+  <path d="m182 203 113 65m-113-49 113 65m-113-48 113 65m21-30 90-52m-90 68 90-52" stroke="#b99465" stroke-width="1"/>
+  <path d="m116 298 134 78m-135-92-9 10m151 77-9 10m173-83 52-30m-55 25 6 10m44-42 6 10" stroke="#698065" stroke-width="1"/>
+  <text x="161" y="349" fill="#54705a" font-family="monospace" font-size="10" transform="rotate(30 161 349)">A THOUGHTFUL FOUNDATION</text>
+  <path d="M455 248v-48m0 21c-35 0-39-30-39-30 35-4 39 30 39 30m0-5c28-1 36-28 36-28-29-3-36 28-36 28" stroke="#426344" stroke-width="2" fill="#92ac80"/>
+  <path d="m437 250 18-10 19 10-19 11z" fill="#b6956b"/><path d="m437 250 3 23 15 9 16-9 3-23-19 11z" fill="#c6a87b" stroke="#698065"/>
+  <path d="m98 209 24-14m-16-9 24 14M487 309l24-14m-16-9 24 14" stroke="#92a18b"/>
+</svg>

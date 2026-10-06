@@ -15,6 +15,7 @@ def main():
         ['cargo', 'clippy', '--offline', '--locked', '--all-targets', '--manifest-path',
          'tools/project-cli/Cargo.toml', '--', '-D', 'warnings'],
         [str(ROOT / 'project.cmd'), 'check-release'],
+        [str(ROOT / 'project.cmd'), 'site-check'],
         [str(ROOT / 'project.cmd'), 'package', '--require-clean'],
     ]
     for command in commands:

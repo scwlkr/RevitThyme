@@ -35,3 +35,4 @@ node_modules/
 /desktop/out/
 /desktop/.expo/
 /desktop/package-manifest.json
+/desktop/native/

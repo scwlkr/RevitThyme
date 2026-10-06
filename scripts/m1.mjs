@@ -31,6 +31,8 @@ try {
     run("pnpm",["exec","expo","install","--check"],desktop);
   } else if(action==="package") {
     if(process.platform!=="win32") throw Error("Only Windows x64 is qualified.");
+    run("dotnet",["build","native/RevitAdapter/RevitAdapter.csproj","-c","Release","--ignore-failed-sources"]);
+    run("node",["desktop/scripts/stage-native.mjs"]);
     run("cargo",["build","--manifest-path",manifest,"--release","--locked","--offline"]);
     run("pnpm",["export"],desktop);run("pnpm",["bundle"],desktop);
     run("node",["desktop/scripts/manifest.mjs"]);

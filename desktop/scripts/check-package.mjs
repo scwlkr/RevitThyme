@@ -10,13 +10,16 @@ assert.deepEqual(listPackage(path.join(folder,"app.asar")).map(file=>file.replac
 assert.equal(JSON.parse(extractFile(path.join(folder,"app.asar"),"package.json").toString()).main,"build/main.cjs");
 const manifest=JSON.parse(readFileSync(path.join(folder,"package-manifest.json")));
 assert.equal(manifest.protocol,1);
-assert.deepEqual(manifest.components,{rust_app:"0.1.0",desktop:"0.1.0",electron:"44.5.1",expo:"57.0.27"});
+assert.deepEqual(manifest.components,{rust_app:"0.1.0",desktop:"0.1.0",electron:"44.5.1",expo:"57.0.27",native_adapter:"0.2.0"});
 assert.equal(hash(path.join(folder,"revitthyme-app.exe")),manifest.sidecar_sha256);
 for(const [file,expected]of Object.entries(manifest.assets))assert.equal(hash(path.join(folder,"dist",file)),expected);
-assert.equal(manifest.native_adapter_included,false);
+assert.equal(manifest.native_adapter_included,true);
+assert.equal(manifest.build_reference_revit,"27.2.0.39");
+for(const [file,expected]of Object.entries(manifest.native))assert.equal(hash(path.join(folder,"native",file)),expected);
+assert.deepEqual(readdirSync(path.join(folder,"native")).sort(),["Adapter.Core.dll","RevitThyme.RevitAdapter.deps.json","RevitThyme.RevitAdapter.dll","RevitThyme.addin.template"].sort());
 assert.deepEqual(manifest.qualified_revit_builds,[]);
 function walk(folder){return readdirSync(folder,{withFileTypes:true}).flatMap(d=>d.isDirectory()?walk(path.join(folder,d.name)):[path.join(folder,d.name)]);}
 const names=walk(folder);
 assert.ok(names.every(file=>!/(RevitAPI|TimberFold|\.rvt$|\.rfa$|\.env|local\.json)/i.test(file)));
-assert.deepEqual(readdirSync(folder).sort(),["app.asar","dist","package-manifest.json","revitthyme-app.exe"]);
-console.log("Packaged allowlist and every sidecar/asset checksum pass; no Revit assemblies/models/adapter/TimberFold.");
+assert.deepEqual(readdirSync(folder).sort(),["app.asar","dist","native","package-manifest.json","revitthyme-app.exe"]);
+console.log("Packaged allowlist and every sidecar/asset/adapter checksum pass; no Autodesk assemblies/models/TimberFold; no automatic installation.");

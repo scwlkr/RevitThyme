@@ -1,5 +1,7 @@
 # Install and release
 
+The unreleased [M2 portable preview](RUST-VIEW-RANGE-M2.md) includes owned .NET adapter files and a registration template. It performs no automatic add-in installation. Do not use the legacy installer below for this adapter. Approved native discovery/install and disposable-Revit qualification remain separate gates; exact proposed steps are in the M2 handoff.
+
 Version 0.2.0 is a per-user pyRevit extension with read-only operations. RevitThyme does not distribute Revit, pyRevit, TimberFold or private models.
 
 ## Requirements

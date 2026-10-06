@@ -7,7 +7,7 @@ module.exports={
       const data=JSON.parse(fs.readFileSync(file,"utf8"));data.main="build/main.cjs";
       fs.writeFileSync(file,JSON.stringify(data));
     }],
-    extraResource:[path.resolve("../replacement/target/release/revitthyme-app.exe"),path.resolve("dist"),path.resolve("package-manifest.json")],
+    extraResource:[path.resolve("../replacement/target/release/revitthyme-app.exe"),path.resolve("dist"),path.resolve("package-manifest.json"),path.resolve("native")],
     ignore:(file)=>file!=="" && !/^\/(build(?:\/|$)|package\.json$)/.test(file),
   },
   makers:[{name:"@electron-forge/maker-zip",platforms:["win32"]}],

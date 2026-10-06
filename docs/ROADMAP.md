@@ -1,5 +1,7 @@
 # Build roadmap
 
+Replacement M1 is delivered in draft PR #6. [M2 native source](RUST-VIEW-RANGE-M2.md) continues it on WLK-111 with Windows offline/packaged orchestration evidence. M3 installed disposable-fixture qualification remains unexecuted and requires approval first. Neither milestone has landed or released.
+
 Each milestone ends with working behavior and evidence. A scaffold or successful compilation alone does not satisfy a live milestone.
 
 The table below records the existing foundation plan and evidence. The user's 2026-10-06 Rust/wstack replacement decision supersedes its future host comparison: use the [replacement milestones](specs/RUST-WSTACK-REPLACEMENT.md#migration-milestones) and [acceptance gates](specs/RUST-WSTACK-ACCEPTANCE.md) for that implementation. The specification does not change the installed product or complete any live milestone.

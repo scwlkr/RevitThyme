@@ -16,7 +16,7 @@ try{
  await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]')?.getAttribute("aria-disabled"));
  check((await page.getByLabel("Cut Plane offset").inputValue()).startsWith("1219.2"),"Packaged Expo loads assets and Rust preview through preload");
  check(await page.evaluate(()=>{try{window.require("node:fs");return false;}catch{return !window.process?.versions?.node;}}),"Renderer cannot access Node filesystem or native process");
- check(await page.evaluate(()=>Object.keys(window.revitthyme).sort().join(",")==="capture,preview,propose,reconnect"),"Narrow named bridge has no credential/file/shell/URL method");
+ check(await page.evaluate(()=>Object.keys(window.revitthyme).sort().join(",")==="apply,cancelApply,capture,mode,outcome,preview,propose,reconnect"),"Narrow named bridge has no credential/file/shell/URL method");
  await page.getByRole("img",{name:"RevitThyme",exact:true}).waitFor();
  check(await page.getByRole("img",{name:"RevitThyme",exact:true}).evaluate(img=>img.complete&&img.naturalWidth>0),"Packaged brand artwork loads from application protocol");
  await page.getByLabel("Cut Plane offset").fill("1524");

@@ -1,0 +1,11 @@
+import {mkdirSync,copyFileSync,readdirSync} from "node:fs";
+import path from "node:path";
+import assert from "node:assert/strict";
+const root=path.resolve(import.meta.dirname,"../..");
+const source=path.join(root,"native/RevitAdapter/bin/Release/net10.0-windows"),target=path.join(root,"desktop/native");
+mkdirSync(target,{recursive:true});
+const files=["Adapter.Core.dll","RevitThyme.RevitAdapter.dll","RevitThyme.RevitAdapter.deps.json"];
+for(const name of files)copyFileSync(path.join(source,name),path.join(target,name));
+copyFileSync(path.join(root,"native/RevitThyme.addin.template"),path.join(target,"RevitThyme.addin.template"));
+assert.deepEqual(readdirSync(target).sort(),[...files,"RevitThyme.addin.template"].sort());
+console.log("Staged only owned .NET adapter files/template; no registration or installation.");

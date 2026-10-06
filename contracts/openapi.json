@@ -10,6 +10,142 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/v1/apply": {
+      "post": {
+        "tags": [],
+        "operationId": "apply",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cancel": {
+      "post": {
+        "tags": [],
+        "operationId": "cancel",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MutationResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/capture": {
       "post": {
         "tags": [],
@@ -31,6 +167,74 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/outcome": {
+      "post": {
+        "tags": [],
+        "operationId": "outcome",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MutationResult"
                 }
               }
             }
@@ -244,6 +448,37 @@
         },
         "additionalProperties": false
       },
+      "ApplyRequest": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "request_id",
+          "proposal_id",
+          "target",
+          "confirmed"
+        ],
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          },
+          "proposal_id": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          }
+        },
+        "additionalProperties": false
+      },
       "Axis": {
         "type": "string",
         "enum": [
@@ -322,7 +557,82 @@
       "Mode": {
         "type": "string",
         "enum": [
-          "synthetic"
+          "synthetic",
+          "native"
+        ]
+      },
+      "MutationResult": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "request_id",
+          "target",
+          "status",
+          "code",
+          "message",
+          "refresh_required",
+          "native_values",
+          "changed_ids",
+          "skipped_ids"
+        ],
+        "properties": {
+          "changed_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "native_values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RawRange"
+            },
+            "maxItems": 1
+          },
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "refresh_required": {
+            "type": "boolean"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "skipped_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "$ref": "#/components/schemas/MutationStatus"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MutationStatus": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "executing",
+          "applied_verified",
+          "unchanged_verified",
+          "rollback_confirmed",
+          "outcome_unconfirmed",
+          "rejected",
+          "cancelled"
         ]
       },
       "Offsets": {
@@ -349,6 +659,29 @@
           "top": {
             "type": "number",
             "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OutcomeRequest": {
+        "type": "object",
+        "required": [
+          "protocol",
+          "request_id",
+          "target"
+        ],
+        "properties": {
+          "protocol": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 4294967295,
+            "minimum": 0
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
           }
         },
         "additionalProperties": false
@@ -504,6 +837,7 @@
       "Proposal": {
         "type": "object",
         "required": [
+          "proposal_id",
           "protocol",
           "mode",
           "target",
@@ -548,6 +882,9 @@
           "native_write_available": {
             "type": "boolean"
           },
+          "proposal_id": {
+            "type": "string"
+          },
           "protocol": {
             "type": "integer",
             "format": "int32",
@@ -589,6 +926,47 @@
           },
           "top": {
             "$ref": "#/components/schemas/Plane"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawPlane": {
+        "type": "object",
+        "required": [
+          "level_id",
+          "offset_feet"
+        ],
+        "properties": {
+          "level_id": {
+            "type": "string"
+          },
+          "offset_feet": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "RawRange": {
+        "type": "object",
+        "required": [
+          "top",
+          "cut",
+          "bottom",
+          "depth"
+        ],
+        "properties": {
+          "bottom": {
+            "$ref": "#/components/schemas/RawPlane"
+          },
+          "cut": {
+            "$ref": "#/components/schemas/RawPlane"
+          },
+          "depth": {
+            "$ref": "#/components/schemas/RawPlane"
+          },
+          "top": {
+            "$ref": "#/components/schemas/RawPlane"
           }
         },
         "additionalProperties": false
@@ -719,6 +1097,8 @@
       "Target": {
         "type": "object",
         "required": [
+          "process_id",
+          "process_start_ticks",
           "session_id",
           "document_id",
           "view_id",
@@ -726,6 +1106,13 @@
         ],
         "properties": {
           "document_id": {
+            "type": "string"
+          },
+          "process_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "process_start_ticks": {
             "type": "string"
           },
           "revision": {

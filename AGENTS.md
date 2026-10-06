@@ -1,5 +1,7 @@
 # RevitThyme development instructions
 
+M2 native source and Windows orchestration are described in [RUST-VIEW-RANGE-M2.md](docs/RUST-VIEW-RANGE-M2.md). SDK compilation, offline model fixtures and portable UI tests are not actual Revit evidence. Installing registration/code or creating/changing a disposable Revit fixture requires approval with exact steps first; never qualify against a live job.
+
 For replacement work, the user's accepted [Rust/wstack specification](docs/specs/RUST-WSTACK-REPLACEMENT.md) supersedes the historical Python-host/Rust-automation-only exceptions below. Preserve the installed legacy host until approved parity/cutover. M1 is the offline feature slice; native adapter implementation and approved Revit qualification are separate M2/M3 gates.
 
 Read PROJECT.md and README.md before work. For host, MCP or operation changes, read docs/ARCHITECTURE.md. For implementation milestones, read docs/ROADMAP.md. For packaging or another-machine installation, read docs/DEPLOYMENT.md.

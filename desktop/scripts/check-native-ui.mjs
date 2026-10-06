@@ -14,7 +14,7 @@ try{
  browser=await chromium.connectOverCDP(launched.cdp);const context=browser.contexts()[0];
  page=context.pages()[0]??await context.waitForEvent("page");page.setDefaultTimeout(15000);
  await page.getByText("Adapter orchestration fixture (no Revit)",{exact:false}).waitFor();
- check(await page.getByText("Native capture and validated Apply · M2 source preview").isVisible(),"Packaged UI presents explicit native connection and qualification boundary");
+ check(await page.getByText("Native capture and validated Apply",{exact:true}).isVisible(),"Packaged UI presents explicit native connection");
  const cut=page.getByLabel("Cut Plane offset");await cut.waitFor();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  const apply=page.getByRole("button",{name:"Apply to Revit",exact:true});

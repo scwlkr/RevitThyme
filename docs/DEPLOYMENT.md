@@ -1,6 +1,8 @@
 # Install and release
 
-The unreleased [M2 portable preview](RUST-VIEW-RANGE-M2.md) includes owned .NET adapter files and a registration template. It performs no automatic add-in installation. Do not use the legacy installer below for this adapter. Approved native discovery/install and disposable-Revit qualification remain separate gates; exact proposed steps are in the M2 handoff.
+Visual View Range 0.3.0-preview.1 is prepared separately from the v0.2.0 pyRevit release. Read the [native usage/installation/recovery guide](VISUAL-VIEW-RANGE.md) and [release notes](VIEW-RANGE-RELEASE-NOTES.md). After full exact-clean CI, run `project prepare-view-range-release --ci-report <report>` to create a local unpublished binary ZIP, tracked-source ZIP and checksums. The driver requires matching HEAD/package/CI revisions and verifies every binary ZIP entry. It never registers, replaces or removes an add-in, publishes a release or includes private qualification evidence.
+
+The bounded native qualification covers one current Windows/Revit 27.2.0.39 host. The pyRevit-disabled trial qualifies this feature, while the legacy suite stays installed. Multiple instances and another machine remain unqualified. Dependency notice clearance, signing and installer recovery remain distribution gates. The pyRevit installer below applies only to the existing v0.2.0 suite; do not use it for the native adapter.
 
 Version 0.2.0 is a per-user pyRevit extension with read-only operations. RevitThyme does not distribute Revit, pyRevit, TimberFold or private models.
 

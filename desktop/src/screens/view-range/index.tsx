@@ -13,12 +13,12 @@ export function ViewRangeScreen(){
  useEffect(()=>{document.documentElement.classList.toggle("dark",dark);},[dark]);
  return <ScrollView className="bg-background flex-1"><View className="p-6 gap-5">
   <View className="flex-row flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
-   <View className="flex-row flex-wrap items-center gap-4"><img src="/revitthyme-logo.svg" alt="RevitThyme" style={{width:150,height:54,background:"#fffffb",borderRadius:6,padding:6}}/><View><Text className="text-thyme text-sm font-semibold tracking-widest">{e.mode==="native"?"REVIT CONNECTION · DEVELOPMENT PREVIEW":"OFFLINE PREVIEW"}</Text><Text className="text-ink text-3xl font-semibold">Visual View Range</Text></View></View>
+   <View className="flex-row flex-wrap items-center gap-4"><img src="/revitthyme-logo.svg" alt="RevitThyme" style={{width:150,height:54,background:"#fffffb",borderRadius:6,padding:6}}/><View><Text className="text-thyme text-sm font-semibold tracking-widest">{e.mode==="native"?"REVIT CONNECTION · PREVIEW":"OFFLINE PREVIEW"}</Text><Text className="text-ink text-3xl font-semibold">Visual View Range</Text></View></View>
    <View className="flex-row flex-wrap items-center gap-3"><Link href="/about" className="text-thyme">About this preview</Link><Button onPress={()=>setDark(!dark)}>{dark?"Light theme":"Dark theme"}</Button></View>
   </View>
   <View className="bg-surface border-l-4 border-thyme p-4 gap-1">
-   <Text className="text-ink font-semibold">{e.mode==="native"?"Native capture and validated Apply · M2 source preview":"Synthetic architecture fixture · Offline milestone M1"}</Text>
-   <Text className="text-muted">{e.mode==="native"?"Capture the current Revit plan, review the exact target and explicitly confirm Apply. No save or sync. Actual Revit qualification remains pending.":"Explore a model section and review range changes. No Revit document is connected. Native Apply is unavailable."}</Text>
+   <Text className="text-ink font-semibold">{e.mode==="native"?"Native capture and validated Apply":"Synthetic architecture fixture · Offline milestone M1"}</Text>
+   <Text className="text-muted">{e.mode==="native"?"Capture the current Revit plan, review the exact target and explicitly confirm Apply. No save or sync. Use named levels when a native Above/Below reference cannot be resolved.":"Explore a model section and review range changes. No Revit document is connected. Native Apply is unavailable."}</Text>
   </View>
   <View className="flex-row items-center flex-wrap gap-3">
    {e.mode==="synthetic"&&<><select aria-label="Fixture view" value={e.kind} onChange={ev=>e.setKind(ev.target.value as ViewKind)}><option value="floor">Floor Plan</option><option value="engineering">Engineering Plan</option><option value="ceiling">Ceiling Plan</option></select>

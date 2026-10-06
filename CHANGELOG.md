@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0-preview.1 candidate — Visual View Range — 2026-10-06
+
+- Complete the accepted bounded M3 trials 1–10, including a normal pyRevit-disabled native ribbon/capture/Apply/Undo trial on Revit 27.2.0.39. Keep exact source/package and actual-host revisions separate in the assessment.
+- Accept the named-level restriction for unresolved Above/Below placeholders; retain Current, resolved level IDs and permitted Unlimited. Keep models unsaved and the existing suite installed.
+- Add the user guide, release notes and exact-clean CI-gated local candidate preparation with binary/source ZIPs, checksums and archive round-trip verification. The candidate remains unpublished; deferred distribution and broader suite work retain their own gates.
+
 ## Unreleased - Native qualification repairs - 2026-10-06
 
 - Complete approved practical M3 checks 1–9 with an explicit proposed unresolved-reference restriction. Requalify the exact 0.2.4 bundle in Revit 27.2.0.39 for rejection/Apply/Undo, Current/explicit references, mm, paired Unlimited, reply recovery, drag/slice, reconnect, section coordinates and responsiveness. Preserve original evidence and separate installed source/full CI from later documentation revisions.

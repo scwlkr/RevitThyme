@@ -1,6 +1,6 @@
 # Build roadmap
 
-Replacement M1 is delivered in draft PR #6. [M2 native source](RUST-VIEW-RANGE-M2.md) continues it on WLK-111 with Windows offline/packaged orchestration evidence. [M3 qualification](../verification/rust-view-range-m3.md) has an approved, completed actual-Revit subset in draft PR #9; remaining practical checks 1–9 follow the [accepted scope](specs/RUST-WSTACK-ACCEPTANCE.md#approved-bounded-m3-qualification-scope). Python-free operation needs check 10, broader checks 11–14 have their recorded deferred/nonblocking dispositions, and suite migration/cutover (15) belongs to replacement M4/M5. These replacement milestones remain unlanded and unreleased.
+Replacement M1/M2 source and bounded [M3 qualification](../verification/rust-view-range-m3-remaining.md) are complete within the accepted preview scope. Checks 1–10 passed on the recorded current-host bundle, including native operation with pyRevit disabled. The user accepted the named-level restriction and authorized merging the reviewed PR #5–9 stack and preparing an unpublished release candidate. The [guide](VISUAL-VIEW-RANGE.md) records the supported subset and release preparation. Broader checks 11–14 retain their deferred/nonblocking dispositions, and suite migration/cutover (15) belongs to replacement M4/M5. Publishing and second-computer distribution remain separate; existing tools stay installed.
 
 Each milestone ends with working behavior and evidence. A scaffold or successful compilation alone does not satisfy a live milestone.
 

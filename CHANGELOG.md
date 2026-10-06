@@ -2,6 +2,7 @@
 
 ## Unreleased - Native qualification repairs - 2026-10-06
 
+- Complete approved practical M3 checks 1–9 with an explicit proposed unresolved-reference restriction. Requalify the exact 0.2.4 bundle in Revit 27.2.0.39 for rejection/Apply/Undo, Current/explicit references, mm, paired Unlimited, reply recovery, drag/slice, reconnect, section coordinates and responsiveness. Preserve original evidence and separate installed source/full CI from later documentation revisions.
 - Reject unresolved native Level Above/Below sentinels rather than guessing a nearby level's elevation. Resolved native choices store actual level IDs and remain supported. Adapter 0.2.4 keeps protocol 2; the preview never converts model references automatically. Record this proposed restriction and the actual native mismatch in the M3 assessment.
 - Add actual packaged transport and native BRep section-comparison drivers to the existing project CLI. Retain numbered stale/restriction/range/drag/queue/reconnect and responsiveness evidence separately from source/package CI.
 - Reject native edit modes between transactions using the SDK's edit-scope readiness check; `IsModifiable` alone misses this state. Adapter 0.2.3 retains protocol 2. Keep the no-write actual-native regression driver outside the package.

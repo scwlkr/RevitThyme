@@ -24,6 +24,9 @@ try{
  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
  await cut.fill("1524");await cut.blur();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await page.getByLabel("Confirm displayed target and range").waitFor();
+ assert.equal(await page.getByText("Side effects: none.",{exact:false}).count(),0,"Changed native review must not claim no side effects");
+ assert.ok(await page.getByText("One plan-view range transaction and undo item; source geometry unchanged.",{exact:true}).isVisible(),"Native mutation effect must be disclosed before confirmation");
  await page.getByLabel("Confirm displayed target and range").check();await apply.click();
  await page.getByRole("button",{name:"Inspect Apply outcome",exact:true}).click();
  await page.getByText("Native outcome: applied_verified",{exact:true}).waitFor();

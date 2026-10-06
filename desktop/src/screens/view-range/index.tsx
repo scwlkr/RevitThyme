@@ -53,7 +53,7 @@ export function ViewRangeScreen(){
    <Text className="text-ink text-xl font-semibold">Apply preview · {e.proposal.identical?"identical values":"proposed change"}</Text>
    <Text className="text-muted">Target: {e.proposal.target.document_id} / {e.proposal.target.view_id} · revision {e.proposal.target.revision}</Text>
    <View className="gap-2">{keys.map(k=><Text key={k} className="text-ink">{labels[k]} · {e.proposal!.before[k].level_name} [{e.proposal!.before[k].level_id}] · {e.proposal!.before[k].unlimited?"Unlimited":e.proposal!.before[k].offset_feet+" ft"} → {e.proposal!.after[k].unlimited?"Unlimited":e.proposal!.after[k].offset_feet+" ft"}</Text>)}</View>
-   <Text className="text-muted">{e.proposal.message}</Text><Text className="text-muted">Affected view: {e.proposal.target.view_id}. Changed IDs: none. Side effects: none.</Text>
+   <Text className="text-muted">{e.proposal.message}</Text><Text className="text-muted">Affected view: {e.proposal.target.view_id}. {e.proposal.native_write_available?"No mutation submitted for this review.":"Changed IDs: none. Side effects: none."}</Text>
    <NativeReview key={e.proposal.proposal_id} proposal={e.proposal} busy={e.busy} onApply={()=>void e.applyConfirmed()}/>
   </View>}
  </View></ScrollView>;

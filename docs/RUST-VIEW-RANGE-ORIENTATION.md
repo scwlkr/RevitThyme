@@ -44,7 +44,7 @@ Unresolved choices are full final-plan/underlay visibility parity, approved runt
 
 ## Installation and remaining runtime proposal
 
-Installation/readonly steps 1–2 below were executed for the exact bundle above after the user granted standing installation approval. No repeated installation approval is required for this project. Step 3 remains a separate, unexecuted test-view-write proposal. Subsequent documentation-only commits do not replace the installed artifact or its exact-SHA evidence.
+Installation/read-only steps 1–2 below were executed for the exact bundle above after the user granted standing installation approval. No repeated installation approval is required for this project. Step 3 remains a separate, unexecuted test-view-write proposal. Documentation-only commits do not replace the installed artifact or its exact-SHA evidence; a later source package may be checked independently without reinstalling unchanged application code.
 
 1. Once the final manifest/CI identify a clean source SHA, propose copying that whole portable bundle to `%LOCALAPPDATA%\RevitThyme\native-preview\<SHA>\RevitThyme-win32-x64` and updating only the owned `%APPDATA%\Autodesk\Revit\Addins\2027\RevitThyme.NativePreview.addin` registration. Verify physical destinations and existing ownership/hashes; back up the prior owned registration and retain the previous M2 bundle. Do this only after installation approval and the user has closed Revit normally; never force-kill it or close their document.
 2. After restart, independently verify process/start/build, loaded assembly/package hashes and the exact approved test-house path. Run read-only capture/screenshot checks first. Do not submit main View Range Apply while its identity/idle qualification blockers remain open.

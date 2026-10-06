@@ -28,7 +28,7 @@ Actual Rust/native protocol-2 capture matches independently read original refere
 
 The installed geometry is visibly useful at the midpoint but remains explicitly partial at 50,000 triangles. Enabled underlays, actual lookup/down capture refresh/invalidation, main structural up, Apply/rollback/readback/undo/redo and other acceptance R1–R12 gaps remain pending. WLK-114's previously observed document identity and idle-disconnect defects are not fixed here. There is no merge/release/legacy-retirement or second-computer claim.
 
-The immutable source/package/full-CI and actual installed bundle above remain at `1a35d52740e53a9f7ac8bdb491d1d72b288957cb`. Subsequent documentation-only status/authorization commits are checked separately with the repository's light CI; they do not rebuild or replace that installed artifact.
+The immutable source/package/full-CI and actual installed bundle above remain at `1a35d52740e53a9f7ac8bdb491d1d72b288957cb`. Documentation-only status/authorization head `80426cc16852b01abc3f39be12094aa01ab1c5a5` also passed scope-selected full Windows CI and packaging; that new package does not replace the installed artifact. Later documentation corrections are checked with the repository's scope-routed CI.
 
 ## Separate review passes
 

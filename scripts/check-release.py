@@ -41,7 +41,8 @@ def verify(report):
             package = root / 'extracted package'
             stream.extractall(package)
         buttons = ('Suite.panel/Status.pushbutton', 'Suite.panel/Settings.pushbutton',
-                   'Fabrication.panel/TimberFold.pushbutton')
+                   'Fabrication.panel/TimberFold.pushbutton',
+                   'Documentation.panel/ViewRange.pushbutton')
         icons = [Path('RevitThyme.tab') / button / name
                  for button in buttons for name in ('icon.png', 'icon.dark.png')]
         extension = package / 'extensions/RevitThyme.extension'

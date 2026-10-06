@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     checks = []
     commands = [
+        [str(ROOT / 'project.cmd'), 'check-view-range'],
         ['git', 'diff', '--check'],
         ['cargo', 'fmt', '--manifest-path', 'tools/project-cli/Cargo.toml', '--check'],
         ['cargo', 'clippy', '--offline', '--locked', '--all-targets', '--manifest-path',

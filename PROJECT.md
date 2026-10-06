@@ -27,6 +27,8 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 
 ## Current state and evidence
 
+The requested Visual View Range tool is implemented in the 0.3.0 unreleased source preview: a modal ribbon editor over cached local-model solid slices, four range sliders, explicit level-relative units and atomic Apply/Cancel. See [workflow and limits](docs/VISUAL-VIEW-RANGE.md). Windows source/package and standalone IronPython/WPF evidence do not establish actual Revit extraction or Apply behavior. Live installation and disposable-model testing require specific approval. The existing released 0.2.0 installation and external TimberFold remain untouched.
+
 | Item | State |
 | --- | --- |
 | Project docs and local tool registry | Created in this foundation |

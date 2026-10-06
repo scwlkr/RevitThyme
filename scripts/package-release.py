@@ -30,7 +30,7 @@ def build(output, require_clean=False, quiet=False):
         path = (ROOT / source).resolve()
         if not path.is_relative_to(ROOT) or Path(target).is_absolute() or '..' in Path(target).parts:
             raise ValueError('Release path escapes package: ' + source)
-        if path.suffix.lower() not in ('.py', '.ps1', '.json', '.yaml', '.md', '.png', '.svg', ''):
+        if path.suffix.lower() not in ('.py', '.ps1', '.json', '.yaml', '.xaml', '.md', '.png', '.svg', ''):
             raise ValueError('Unapproved release file type: ' + source)
         payload[target] = path.read_bytes()
     record = {

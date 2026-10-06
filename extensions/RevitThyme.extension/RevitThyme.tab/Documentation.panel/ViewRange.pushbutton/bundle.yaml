@@ -1,0 +1,4 @@
+title: Visual View Range
+tooltip: See a model-derived section and adjust the active plan's Top, Cut Plane, Bottom and View Depth. Sliders preview locally; Apply changes the view in one undoable operation.
+author: RevitThyme
+context: doc-project

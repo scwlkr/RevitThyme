@@ -16,6 +16,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 - Support future use through a Revit interface and MCP, with a release that can be installed on a second computer.
 - Use wstack project instructions and a Rust CLI for repository automation; retain the Revit-specific host/worker languages. Track substantive work in the [RevitThyme Linear project](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9) under WLKR LABS. The setup follow-up authorizes needed dependencies and local CI, with no product migration.
 - Use `master` as the local default branch, matching the existing Git default. Land verified local work there; publishing/pushing remains an explicit separate request.
+- On 2026-10-06 the user granted standing approval for installations needed on this project and normal Revit close/open in its approved test session. Do not ask again for an already authorized project installation. Preserve unsaved changes unless their discard is authorized; fixture/model writes and save/sync retain their separate request boundaries. This does not authorize live-job edits, legacy retirement, merge or release.
 
 ## Replacement target agreed on 2026-10-06
 
@@ -27,7 +28,7 @@ This future target supersedes the host comparison below and the earlier Rust-nat
 
 [WLK-117](https://linear.app/wlkr-labs/issue/WLK-117/visual-view-range-readable-labels-and-look-uplook-down-plan-support) continues the exact M2 source from draft PR #7. Plane callouts are separated without moving physical elevations. Native captures carry main plan direction (floor down, ceiling up, structural type up/down) separately from underlay orientation, resolved level elevations, names/references and Unbounded top. Rust range/depth rules use the captured main direction; Revit validity remains authoritative. The UI displays both settings, keeps the section elevation axis upright and annotates the underlay level band and look-up/look-down sight direction separately; halftone and final projected visibility remain controlled by Revit. This required contract extension uses protocol 2 and a compatible component bundle (Rust/desktop 0.1.1, adapter 0.2.1). See [decisions and verification](docs/RUST-VIEW-RANGE-ORIENTATION.md).
 
-The authorized M3 session installed M2 source 5d6cd42febc87c089fe9830f7a997e8c3b9aac87 and verified preview-only interactions on the user-named test house. WLK-117 does not update that installation or change a Revit view/model. Native identity instability and idle pipe disconnection remain WLK-114 blockers; actual Apply, rollback and undo/redo qualification is still pending.
+The authorized M3 session initially installed M2 source 5d6cd42febc87c089fe9830f7a997e8c3b9aac87. After the standing installation approval, WLK-117 installed exact checked feature source `1a35d52740e53a9f7ac8bdb491d1d72b288957cb` (adapter 0.2.1) and verified protocol-2 native capture plus read-only packaged previews in mm/m/ft on the user-named test house. The prior bundle and registration backup remain preserved; the reopened document is unmodified and its disk hash unchanged. Enabled underlay writes remain unexecuted. Native identity instability and idle pipe disconnection remain WLK-114 blockers; actual Apply, rollback and undo/redo qualification is still pending.
 
 ## Existing foundation implementation plan
 

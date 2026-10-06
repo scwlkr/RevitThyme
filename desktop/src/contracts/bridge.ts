@@ -7,4 +7,3 @@ export interface Bridge {
 }
 declare global { interface Window { revitthyme?:Bridge } }
 export function bridge():Bridge { if(!window.revitthyme)throw Error("Open the packaged RevitThyme desktop app. No desktop connection is available.");return window.revitthyme; }
-

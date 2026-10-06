@@ -1,2 +1,14 @@
-module.exports={content:["./src/**/*.{ts,tsx}"],presets:[require("nativewind/preset")],darkMode:"class",theme:{extend:{colors:{background:"rgb(var(--background) / <alpha-value>)",surface:"rgb(var(--surface) / <alpha-value>)",ink:"rgb(var(--ink) / <alpha-value>)",muted:"rgb(var(--muted) / <alpha-value>)",line:"rgb(var(--line) / <alpha-value>)",thyme:"rgb(var(--thyme) / <alpha-value>)",timber:"rgb(var(--timber) / <alpha-value>)"}}},plugins:[]};
-
+module.exports = {
+  content: ["./src/**/*.{ts,tsx}"],
+  presets: [require("nativewind/preset")],
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: Object.fromEntries(
+        ["background", "surface", "ink", "muted", "line", "thyme", "timber", "on-thyme"]
+          .map(name => [name, `rgb(var(--${name}) / <alpha-value>)`])
+      ),
+    },
+  },
+  plugins: [],
+};

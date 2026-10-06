@@ -6,4 +6,3 @@ contextBridge.exposeInMainWorld("revitthyme",Object.freeze({
  propose:async(request:unknown)=>ProposalSchema.parse(await ipcRenderer.invoke("range:propose",PreviewRequestSchema.parse(request))),
  reconnect:async()=>ipcRenderer.invoke("range:reconnect"),
 }));
-

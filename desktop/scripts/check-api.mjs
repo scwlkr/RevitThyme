@@ -1,4 +1,5 @@
-import {spawn} from "node:child_process";
+import {spawn,execFileSync} from "node:child_process";
+import os from "node:os";
 import {createInterface} from "node:readline";
 import {randomBytes,randomUUID} from "node:crypto";
 import {mkdirSync,writeFileSync} from "node:fs";
@@ -39,6 +40,8 @@ try{
   }
   const extra={...request,arbitraryCode:"refused"};
   check(!s.PreviewRequestSchema.safeParse(extra).success && (await api("preview",extra)).status===400,"Closed Rust/Zod request rejects extra fields");
+  const overflow={...request,input_revision:4294967296};
+  check(!s.PreviewRequestSchema.safeParse(overflow).success && (await api("preview",overflow)).status===400,"Rust/Zod reject overflowing revision integers");
   check(!s.PreviewRequestSchema.safeParse({...request,edits:{...edits,cut:{...edits.cut,value:Infinity}}}).success,"Zod rejects nonfinite values");
   for(let i=0;i<80;i++){const start=performance.now();const p=s.PreviewSchema.parse((await api("preview",{...request,input_revision:i,fraction:i/80})).body);timings.push({round_trip_ms:performance.now()-start,rust_ms:p.elapsed_ms});}
   const old=request;
@@ -49,8 +52,7 @@ try{
  check(partial.partial && partial.diagnostics.some(d=>d.startsWith("Partial")),"Partial capture includes omission reason");
  check((await api("capture",{protocol:1,view_kind:"floor",partial_fixture:false,oversized:"x".repeat(17000)})).status===400,"HTTP body limit enforced");
  const sorted=timings.map(t=>t.round_trip_ms).sort((a,b)=>a-b);
- writeFileSync(path.join(folder,"api-evidence.json"),JSON.stringify({scope:"source_offline",fixture:"synthetic courtyard house / 108 triangles",node:process.version,samples,timings,round_trip_p95_ms:sorted[Math.floor(sorted.length*.95)],budget_ms:100,passed:sorted[Math.floor(sorted.length*.95)]<100,actual_revit:false},null,2)+"\n");
  check(sorted[Math.floor(sorted.length*.95)]<100,"Representative fixture p95 preview under 100 ms");
+ writeFileSync(path.join(folder,"api-evidence.json"),JSON.stringify({scope:"source_offline",source_sha:execFileSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).trim(),fixture:"synthetic courtyard house / 108 triangles",machine:{os:os.type(),release:os.release(),architecture:os.arch(),cpu:os.cpus()[0].model,logical_cpus:os.cpus().length,memory_gib:os.totalmem()/1024**3},load:"240 sequential local HTTP previews across three views; existing Revit session open; no imposed stress load",node:process.version,samples,timings,round_trip_p95_ms:sorted[Math.floor(sorted.length*.95)],budget_ms:100,passed:true,actual_revit:false},null,2)+"\n");
  console.log(samples.length+" Axum/OpenAPI/Zod contract observations pass; p95 "+sorted[Math.floor(sorted.length*.95)].toFixed(2)+" ms.");
 }finally{child.stdin.end();await new Promise(resolve=>child.once("exit",resolve));}
-

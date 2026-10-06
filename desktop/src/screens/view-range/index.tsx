@@ -11,7 +11,7 @@ export function ViewRangeScreen(){
  useEffect(()=>{document.documentElement.classList.toggle("dark",dark);},[dark]);
  return <ScrollView className="bg-background flex-1"><View className="p-6 gap-5">
   <View className="flex-row items-center justify-between gap-4 border-b border-line pb-4">
-   <View><Text className="text-thyme text-sm font-semibold tracking-widest">REVITTHYME / DOCUMENTATION</Text><Text className="text-ink text-3xl font-semibold">Visual View Range</Text></View>
+   <View className="flex-row items-center gap-4"><img src="/revitthyme-logo.svg" alt="RevitThyme" style={{width:150,height:54,background:"#fffffb",borderRadius:6,padding:6}}/><View><Text className="text-thyme text-sm font-semibold tracking-widest">OFFLINE PREVIEW</Text><Text className="text-ink text-3xl font-semibold">Visual View Range</Text></View></View>
    <View className="flex-row items-center gap-3"><Link href="/about" className="text-thyme">About this preview</Link><Button onPress={()=>setDark(!dark)}>{dark?"Light theme":"Dark theme"}</Button></View>
   </View>
   <View className="bg-surface border-l-4 border-thyme p-4 gap-1">
@@ -34,7 +34,7 @@ export function ViewRangeScreen(){
     <View className="flex-row justify-between"><Text className="text-ink font-semibold">Architectural section</Text><Text className="text-muted text-sm">{e.snapshot?.triangle_count??0} cached triangles</Text></View>
     <View style={{height:390}}>{e.preview?<Section preview={e.preview} unit={e.unit} onDrag={(k,value)=>e.edit(k,value,undefined,"ft")}/>:<Text className="text-muted">{e.busy?"Capturing fixture…":e.error?"Correct the proposal or refresh to see a valid section.":"Preparing section…"}</Text>}</View>
     {e.request && <View className="gap-2 border-t border-line pt-4"><View className="flex-row items-center gap-3"><Text className="text-ink">Slice locator</Text><select aria-label="Slice axis" value={e.request.axis} onChange={ev=>e.update({axis:ev.target.value as Axis})}><option value="x">X axis</option><option value="y">Y axis</option></select><Text className="text-muted">{Math.round(e.request.fraction*100)}%</Text></View><input aria-label="Slice position" type="range" min="0" max="1" step="0.001" value={e.request.fraction} onChange={ev=>e.update({fraction:Number(ev.target.value)})}/></View>}
-    <Text className="text-muted text-xs">Native captures must preserve openings and apply instance transforms once. This fixture includes a door opening, floor slabs and rotated furniture.</Text>
+    <Text className="text-muted text-xs">Explore the door opening, floor slabs and rotated furniture by moving the slice locator.</Text>
    </View>
    <View className="w-[310px]"><Text className="text-ink font-semibold">Level-relative planes</Text>
     {e.preview && keys.map(k=><RangeRow key={k+"-"+e.inputReset} name={k} plane={{...e.preview!.proposed[k],unlimited:e.request!.edits[k].unlimited}} unit={e.unit} value={e.preview!.display_offsets[k]} limits={e.preview!.display_limits} disabled={e.busy} onEdit={(v,u)=>e.edit(k,v,u)} onInvalid={invalid=>e.setInputInvalid(k,invalid)}/>)}

@@ -43,5 +43,5 @@ finally {
   mkdirSync(path.join(root,"artifacts/m1"),{recursive:true});
   const sha=spawnSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).stdout?.trim();
   const clean=spawnSync("git",["status","--porcelain"],{cwd:root,encoding:"utf8"}).stdout?.trim()==="";
-  writeFileSync(path.join(root,"artifacts/m1",action+".json"),JSON.stringify({sha,base:"e128a67917e393259b079838c8ac28b88a36f3b2",clean,scope:action==="ui"?"packaged_application":"source_offline",passed:!process.exitCode,checks,actual_revit:false},null,2)+"\n");
+  writeFileSync(path.join(root,"artifacts/m1",action+".json"),JSON.stringify({sha,base:"e128a67917e393259b079838c8ac28b88a36f3b2",clean,scope:["ui","package"].includes(action)?"packaged_application":"source_offline",passed:!process.exitCode,checks,actual_revit:false},null,2)+"\n");
 }

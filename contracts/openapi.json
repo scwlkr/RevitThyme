@@ -235,6 +235,7 @@
           "protocol": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "refresh_required": {
@@ -264,6 +265,7 @@
           "protocol": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "view_kind": {
@@ -429,6 +431,7 @@
           "input_revision": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "proposed": {
@@ -437,6 +440,7 @@
           "protocol": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "section": {
@@ -476,11 +480,13 @@
           "input_revision": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "protocol": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "snapshot_id": {
@@ -530,6 +536,7 @@
           "input_revision": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "message": {
@@ -544,6 +551,7 @@
           "protocol": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "side_effects": {
@@ -666,6 +674,7 @@
           "expires_in_seconds": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "mode": {
@@ -683,6 +692,7 @@
           "protocol": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "snapshot_id": {
@@ -694,6 +704,7 @@
           "triangle_count": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "view_kind": {
@@ -720,6 +731,7 @@
           "revision": {
             "type": "integer",
             "format": "int32",
+            "maximum": 4294967295,
             "minimum": 0
           },
           "session_id": {
@@ -747,6 +759,17 @@
           "ceiling"
         ]
       }
+    },
+    "securitySchemes": {
+      "applicationCredential": {
+        "type": "http",
+        "scheme": "bearer"
+      }
     }
-  }
+  },
+  "security": [
+    {
+      "applicationCredential": []
+    }
+  ]
 }

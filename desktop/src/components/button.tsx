@@ -4,6 +4,5 @@ export function Button({children,onPress,disabled=false,primary=false,style}:{ch
  return <Pressable accessibilityRole="button" accessibilityLabel={children} accessibilityState={{disabled}} disabled={disabled} onPress={onPress}
  className={"rounded-md px-4 py-3 border "+(primary?"bg-thyme border-thyme":"bg-surface border-line")}
  style={({pressed})=>[{opacity:disabled?.4:pressed?.7:1},style]}>
- <Text className={primary?"text-white font-semibold":"text-ink font-semibold"}>{children}</Text></Pressable>;
+ <Text className={primary?"text-on-thyme font-semibold":"text-ink font-semibold"}>{children}</Text></Pressable>;
 }
-

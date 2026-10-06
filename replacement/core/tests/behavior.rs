@@ -28,6 +28,7 @@ fn independent_tetrahedron_and_coplanar_edges() {
         0.,
     )
     .unwrap();
+    assert_eq!(face.segments.len(), 4);
     assert!(
         face.segments
             .iter()
@@ -43,6 +44,21 @@ fn opening_and_transformed_furniture_coordinates() {
         0.015625,
     )
     .unwrap();
+    for jamb in [8.0, 12.0] {
+        let mut intervals: Vec<_> = section
+            .segments
+            .iter()
+            .filter(|[a, b]| a[0] == jamb && b[0] == jamb)
+            .map(|[a, b]| [a[1].min(b[1]), a[1].max(b[1])])
+            .collect();
+        intervals.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let mut covered = 0.0_f64;
+        for [start, end] in intervals {
+            assert!(start <= covered);
+            covered = covered.max(end);
+        }
+        assert!(covered >= 7.0);
+    }
     for [a, b] in section.segments {
         if a[1].min(b[1]) <= 1. && a[1].max(b[1]) >= 1. {
             assert!(a[0].max(b[0]) <= 8. || a[0].min(b[0]) >= 12.);
@@ -53,7 +69,11 @@ fn opening_and_transformed_furniture_coordinates() {
         .map(|t| t.map(|[x, y, z]| [14. - y, 6. + x, z]))
         .collect::<Vec<_>>();
     let s = slice(&furniture, [11., 6., 0., 14., 8., 2.5], Axis::Y, 0.5).unwrap();
-    for p in s.segments.into_iter().flatten() {
+    let points: Vec<_> = s.segments.into_iter().flatten().collect();
+    for corner in [[11., 0.], [14., 0.], [11., 2.5], [14., 2.5]] {
+        assert!(points.contains(&corner));
+    }
+    for p in points {
         assert!((11.0..=14.).contains(&p[0]));
         assert!((0.0..=2.5).contains(&p[1]));
     }

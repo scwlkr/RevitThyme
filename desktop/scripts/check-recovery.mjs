@@ -20,4 +20,3 @@ try{
  mkdirSync(folder,{recursive:true});writeFileSync(path.join(folder,"recovery-evidence.json"),JSON.stringify({scope:"packaged_application",missing_child_rejected:true,reconnect_after_restore:true,actual_revit:false},null,2)+"\n");
  console.log("Missing packaged sidecar rejects safely; restoring the owned file and reconnecting recovers.");
 }finally {if(app)await app.close();if(existsSync(backup))renameSync(backup,sidecar);}
-

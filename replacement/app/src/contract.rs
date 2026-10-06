@@ -12,11 +12,13 @@ pub struct Target {
     pub session_id: String,
     pub document_id: String,
     pub view_id: String,
+    #[schema(maximum = 4294967295.0)]
     pub revision: u32,
 }
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct CaptureRequest {
+    #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub view_kind: ViewKind,
     pub partial_fixture: bool,
@@ -24,6 +26,7 @@ pub struct CaptureRequest {
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Snapshot {
+    #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub mode: Mode,
     pub snapshot_id: String,
@@ -34,9 +37,11 @@ pub struct Snapshot {
     pub original: Range,
     #[schema(min_items = 6, max_items = 6)]
     pub bounds_feet: [f64; 6],
+    #[schema(maximum = 4294967295.0)]
     pub triangle_count: u32,
     pub partial: bool,
     pub diagnostics: Vec<String>,
+    #[schema(maximum = 4294967295.0)]
     pub expires_in_seconds: u32,
     pub native_write_available: bool,
 }
@@ -48,9 +53,11 @@ pub enum Mode {
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct PreviewRequest {
+    #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub snapshot_id: String,
     pub target: Target,
+    #[schema(maximum = 4294967295.0)]
     pub input_revision: u32,
     pub axis: Axis,
     #[schema(minimum = 0, maximum = 1)]
@@ -61,8 +68,10 @@ pub struct PreviewRequest {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Preview {
+    #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub snapshot_id: String,
+    #[schema(maximum = 4294967295.0)]
     pub input_revision: u32,
     pub section: Section,
     pub proposed: Range,
@@ -84,10 +93,12 @@ pub struct Offsets {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct Proposal {
+    #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub mode: Mode,
     pub target: Target,
     pub snapshot_id: String,
+    #[schema(maximum = 4294967295.0)]
     pub input_revision: u32,
     pub before: Range,
     pub after: Range,
@@ -100,6 +111,7 @@ pub struct Proposal {
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
 pub struct ApiError {
+    #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub code: String,
     pub message: String,

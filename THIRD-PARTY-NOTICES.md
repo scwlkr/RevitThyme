@@ -9,3 +9,9 @@ Autodesk Revit is proprietary software, neither included nor licensed by this pr
 TimberFold is external. This release includes registration metadata and a new read-only inspector. It contains no TimberFold source, dependencies, models or output artifacts. TimberFold redistribution and dependency notices must be resolved in its own release before bundling it here.
 
 Rust and Python are development tools, not bundled runtimes. The extension uses the IronPython engine from the user's pyRevit installation.
+
+## Unreleased Rust replacement preview
+
+The M1 source/package is separate from the legacy extension. Its Rust sidecar links Cargo-lockfile dependencies; Electron and exported Expo/React/React Native Web/NativeWind assets are bundled. Direct dependency licenses include MIT (Axum, Tokio, Expo, React, React Native Web, NativeWind, Tailwind, Zod, Electron, Forge), MIT OR Apache-2.0 (Serde), and MIT OR Apache-2.0 (Utoipa). Preserve upstream dependency license files and Electron's LICENSE/LICENSES.chromium.html. The preview contains no Autodesk assemblies or TimberFold dependencies.
+
+This is a development preview, not a redistribution-clearance claim. A complete bundled dependency notice inventory, signing and installer recovery are required before distribution/release; see [M1 evidence boundaries](docs/RUST-VIEW-RANGE-M1.md).

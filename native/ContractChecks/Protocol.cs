@@ -17,6 +17,8 @@ public static class Protocol
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        RespectRequiredConstructorParameters = true,
+        RespectNullableAnnotations = true,
         Converters = { new JsonStringEnumConverter<Operation>(JsonNamingPolicy.CamelCase, false) }
     };
     public static byte[] Frame(NativeRequest request)
@@ -39,8 +41,7 @@ public static class Protocol
         if (request.Operation is Operation.Apply or Operation.Validate && request.Range is null) throw new InvalidDataException("Range required.");
         if (request.Range is {} range)
             foreach (var plane in new[] { range.Top, range.Cut, range.Bottom, range.Depth })
-                if (!double.IsFinite(plane.OffsetFeet) || !long.TryParse(plane.LevelId, out _)) throw new InvalidDataException("Invalid native values.");
+                if (plane is null || !double.IsFinite(plane.OffsetFeet) || !long.TryParse(plane.LevelId, out _)) throw new InvalidDataException("Invalid native values.");
         return request;
     }
 }
-

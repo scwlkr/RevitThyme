@@ -18,6 +18,6 @@ export function Section({preview,unit,onDrag}:{preview:Preview;unit:Unit;onDrag:
       onPointerUp={ev=>ev.currentTarget.releasePointerCapture(ev.pointerId)}/>}
      <text x={745} y={y+4} fill={"var(--"+k+")"} fontSize={13}>{labels[k]} · {preview.proposed[k].unlimited?"Unlimited":Number(preview.display_offsets[k].toPrecision(7))+" "+unit}</text></g>;
   })}
-  <text x={50} y={478} fill="rgb(var(--muted))" fontSize={12}>Project coordinates · Revit internal feet · opening is a void in the triangle mesh</text>
+  <text x={50} y={478} fill="rgb(var(--muted))" fontSize={12}>Section elevations in feet · gaps show openings</text>
  </svg>;
 }

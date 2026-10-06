@@ -29,6 +29,8 @@ Load the extension on a normal Revit start, then open **RevitThyme > Suite Statu
 
 ## Develop
 
+The unreleased [Rust replacement M1](docs/RUST-VIEW-RANGE-M1.md) is a working offline Visual View Range preview in packaged Expo Web/Electron. It uses synthetic architecture and offers before/after Apply review; native Revit Apply is unavailable. It installs no adapter and preserves the shipped pyRevit host.
+
 Clone the source repository for development; the install ZIP omits the developer CLI. Read [PROJECT.md](PROJECT.md), [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md) and [roadmap](docs/ROADMAP.md). Automation uses Windows Python 3.13 and Rust 1.99.0; the extension stays IronPython 2.7 compatible.
 
 ```powershell

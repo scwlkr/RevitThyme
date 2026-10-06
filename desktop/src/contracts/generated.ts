@@ -1,12 +1,12 @@
 // Generated from Rust Utoipa OpenAPI. Run project m1 contracts.
 import {z} from 'zod';
-export const ApiErrorSchema=z.object({"code":z.string(),"message":z.string(),"protocol":z.number().finite().int().min(0),"refresh_required":z.boolean()}).strict();
+export const ApiErrorSchema=z.object({"code":z.string(),"message":z.string(),"protocol":z.number().finite().int().min(0).max(4294967295),"refresh_required":z.boolean()}).strict();
 export type ApiError=z.infer<typeof ApiErrorSchema>;
 export const AxisSchema=z.enum(["x","y"]);
 export type Axis=z.infer<typeof AxisSchema>;
 export const ViewKindSchema=z.enum(["floor","engineering","ceiling"]);
 export type ViewKind=z.infer<typeof ViewKindSchema>;
-export const CaptureRequestSchema=z.object({"partial_fixture":z.boolean(),"protocol":z.number().finite().int().min(0),"view_kind":ViewKindSchema}).strict();
+export const CaptureRequestSchema=z.object({"partial_fixture":z.boolean(),"protocol":z.number().finite().int().min(0).max(4294967295),"view_kind":ViewKindSchema}).strict();
 export type CaptureRequest=z.infer<typeof CaptureRequestSchema>;
 export const UnitSchema=z.enum(["mm","m","ft"]);
 export type Unit=z.infer<typeof UnitSchema>;
@@ -24,13 +24,13 @@ export const RangeSchema=z.object({"bottom":PlaneSchema,"cut":PlaneSchema,"depth
 export type Range=z.infer<typeof RangeSchema>;
 export const SectionSchema=z.object({"bounds_feet":z.array(z.number().finite()).min(4).max(4),"position_feet":z.number().finite(),"segments":z.array(z.array(z.array(z.number().finite()).min(2).max(2)).min(2).max(2)).max(150000)}).strict();
 export type Section=z.infer<typeof SectionSchema>;
-export const PreviewSchema=z.object({"diagnostics":z.array(z.string()),"display_limits":z.array(z.number().finite()).min(2).max(2),"display_offsets":OffsetsSchema,"elapsed_ms":z.number().finite(),"elevations_feet":OffsetsSchema,"input_revision":z.number().finite().int().min(0),"proposed":RangeSchema,"protocol":z.number().finite().int().min(0),"section":SectionSchema,"snapshot_id":z.string()}).strict();
+export const PreviewSchema=z.object({"diagnostics":z.array(z.string()),"display_limits":z.array(z.number().finite()).min(2).max(2),"display_offsets":OffsetsSchema,"elapsed_ms":z.number().finite(),"elevations_feet":OffsetsSchema,"input_revision":z.number().finite().int().min(0).max(4294967295),"proposed":RangeSchema,"protocol":z.number().finite().int().min(0).max(4294967295),"section":SectionSchema,"snapshot_id":z.string()}).strict();
 export type Preview=z.infer<typeof PreviewSchema>;
-export const TargetSchema=z.object({"document_id":z.string(),"revision":z.number().finite().int().min(0),"session_id":z.string(),"view_id":z.string()}).strict();
+export const TargetSchema=z.object({"document_id":z.string(),"revision":z.number().finite().int().min(0).max(4294967295),"session_id":z.string(),"view_id":z.string()}).strict();
 export type Target=z.infer<typeof TargetSchema>;
-export const PreviewRequestSchema=z.object({"axis":AxisSchema,"edits":EditsSchema,"fraction":z.number().finite().min(0).max(1),"input_revision":z.number().finite().int().min(0),"protocol":z.number().finite().int().min(0),"snapshot_id":z.string(),"target":TargetSchema,"unit":UnitSchema}).strict();
+export const PreviewRequestSchema=z.object({"axis":AxisSchema,"edits":EditsSchema,"fraction":z.number().finite().min(0).max(1),"input_revision":z.number().finite().int().min(0).max(4294967295),"protocol":z.number().finite().int().min(0).max(4294967295),"snapshot_id":z.string(),"target":TargetSchema,"unit":UnitSchema}).strict();
 export type PreviewRequest=z.infer<typeof PreviewRequestSchema>;
-export const ProposalSchema=z.object({"after":RangeSchema,"before":RangeSchema,"changed_ids":z.array(z.string()),"identical":z.boolean(),"input_revision":z.number().finite().int().min(0),"message":z.string(),"mode":ModeSchema,"native_write_available":z.boolean(),"protocol":z.number().finite().int().min(0),"side_effects":z.array(z.string()),"snapshot_id":z.string(),"target":TargetSchema}).strict();
+export const ProposalSchema=z.object({"after":RangeSchema,"before":RangeSchema,"changed_ids":z.array(z.string()),"identical":z.boolean(),"input_revision":z.number().finite().int().min(0).max(4294967295),"message":z.string(),"mode":ModeSchema,"native_write_available":z.boolean(),"protocol":z.number().finite().int().min(0).max(4294967295),"side_effects":z.array(z.string()),"snapshot_id":z.string(),"target":TargetSchema}).strict();
 export type Proposal=z.infer<typeof ProposalSchema>;
-export const SnapshotSchema=z.object({"bounds_feet":z.array(z.number().finite()).min(6).max(6),"diagnostics":z.array(z.string()),"document_name":z.string(),"expires_in_seconds":z.number().finite().int().min(0),"mode":ModeSchema,"native_write_available":z.boolean(),"original":RangeSchema,"partial":z.boolean(),"protocol":z.number().finite().int().min(0),"snapshot_id":z.string(),"target":TargetSchema,"triangle_count":z.number().finite().int().min(0),"view_kind":ViewKindSchema,"view_name":z.string()}).strict();
+export const SnapshotSchema=z.object({"bounds_feet":z.array(z.number().finite()).min(6).max(6),"diagnostics":z.array(z.string()),"document_name":z.string(),"expires_in_seconds":z.number().finite().int().min(0).max(4294967295),"mode":ModeSchema,"native_write_available":z.boolean(),"original":RangeSchema,"partial":z.boolean(),"protocol":z.number().finite().int().min(0).max(4294967295),"snapshot_id":z.string(),"target":TargetSchema,"triangle_count":z.number().finite().int().min(0).max(4294967295),"view_kind":ViewKindSchema,"view_name":z.string()}).strict();
 export type Snapshot=z.infer<typeof SnapshotSchema>;

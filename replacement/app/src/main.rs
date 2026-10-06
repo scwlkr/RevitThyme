@@ -12,7 +12,7 @@ use contract::*;
 use revitthyme_core::{geometry::*, range::*};
 use std::sync::{Arc, Mutex};
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, BufReader};
-use utoipa::OpenApi;
+use utoipa::{Modify, OpenApi};
 
 #[derive(Clone)]
 struct AppState {
@@ -120,6 +120,8 @@ async fn propose(
 #[derive(OpenApi)]
 #[openapi(
     paths(capture, preview, propose),
+    modifiers(&ApplicationAuth),
+    security(("applicationCredential" = [])),
     components(schemas(
         Target,
         CaptureRequest,
@@ -141,6 +143,19 @@ async fn propose(
     ))
 )]
 struct Contract;
+
+struct ApplicationAuth;
+impl Modify for ApplicationAuth {
+    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+        use utoipa::openapi::security::{HttpAuthScheme, HttpBuilder, SecurityScheme};
+        if let Some(components) = openapi.components.as_mut() {
+            components.add_security_scheme(
+                "applicationCredential",
+                SecurityScheme::Http(HttpBuilder::new().scheme(HttpAuthScheme::Bearer).build()),
+            );
+        }
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -188,7 +203,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await?;
     println!(
         "{}",
-        serde_json::json!({"protocol":PROTOCOL,"port":listener.local_addr()?.port(),"session":session,"mode":"synthetic"})
+        serde_json::json!({"protocol":PROTOCOL,"version":env!("CARGO_PKG_VERSION"),"port":listener.local_addr()?.port(),"session":session,"mode":"synthetic"})
     );
     axum::serve(listener, routes)
         .with_graceful_shutdown(async move {

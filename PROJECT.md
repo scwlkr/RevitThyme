@@ -25,6 +25,8 @@ This future target supersedes the host comparison below and the earlier Rust-nat
 
 ## Existing foundation implementation plan
 
+Replacement M1 is implemented on WLK-109 as a synthetic offline Visual View Range feature: Rust/Axum, generated OpenAPI/Zod/TS and an Expo Web/Electron Forge package. See [feature and evidence boundaries](docs/RUST-VIEW-RANGE-M1.md). Native .NET capture/apply remains M2; approved Revit qualification remains M3. The installed 0.2.0 host, existing drafts, website/logo work and external TimberFold remain preserved.
+
 The accepted first shipping host is a custom pyRevit extension, using upstream pyRevit without a fork. Publish approved code and docs to the user personal GitHub account scwlkr; private models and settings stay excluded. License original RevitThyme code GPL-3.0-or-later. The existing bridge remains the development adapter. A focused C#/.NET Revit host is the intended independent-host pilot. Its runtime target, project structure and install method will be confirmed against the installed Revit SDK before implementation. The two adapters should be compared through the same operations before choosing the production host.
 
 This plan does not create a fork of Autodesk Revit or pyRevit. A pyRevit fork would be a separate decision if a concrete platform limitation requires it.

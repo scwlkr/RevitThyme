@@ -1,5 +1,7 @@
 # Architecture
 
+The historical architecture below describes the shipped 0.2.0 host. Replacement M1 now uses the [Rust/Axum and Expo/Electron feature boundary](RUST-VIEW-RANGE-M1.md), following the [replacement spec](specs/RUST-WSTACK-REPLACEMENT.md). The minimal .NET 10 native adapter remains M2; M1 has only execution-frame contract checks and synthetic geometry.
+
 ## Modules and responsibilities
 
 The host owns execution in Revit. A tool owns its workflow. A small operation interface is the seam between callers and tool implementations; a host adapter supplies Revit-specific execution behind that interface.

@@ -5,7 +5,7 @@ import type {PlaneKey} from "./use-editor";
 export const labels={top:"Top",cut:"Cut Plane",bottom:"Bottom",depth:"View Depth"};
 export function RangeRow({name,plane,unit,value,limits,disabled,onEdit,onInvalid}:{name:PlaneKey;plane:Plane;unit:Unit;value:number;limits:number[];disabled:boolean;onEdit:(value:number,unlimited?:boolean)=>void;onInvalid:(value:boolean)=>void}) {
  const [text,setText]=useState(String(value));
- useEffect(()=>{setText(String(Number(value.toPrecision(12))));onInvalid(false);},[value,unit,disabled]);
+ useEffect(()=>{setText(String(Number(value.toPrecision(12))));onInvalid(false);},[value,unit]);
  function numeric(s:string){
    setText(s);
    const valid=/^[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?$/.test(s) && Number.isFinite(Number(s));

@@ -9,6 +9,8 @@ assert.ok(existsSync(path.join(folder,"app.asar")));
 assert.deepEqual(listPackage(path.join(folder,"app.asar")).map(file=>file.replaceAll("\\","/")).sort(),["/build","/build/main.cjs","/build/preload.cjs","/package.json"]);
 assert.equal(JSON.parse(extractFile(path.join(folder,"app.asar"),"package.json").toString()).main,"build/main.cjs");
 const manifest=JSON.parse(readFileSync(path.join(folder,"package-manifest.json")));
+assert.equal(manifest.protocol,1);
+assert.deepEqual(manifest.components,{rust_app:"0.1.0",desktop:"0.1.0",electron:"44.5.1",expo:"57.0.27"});
 assert.equal(hash(path.join(folder,"revitthyme-app.exe")),manifest.sidecar_sha256);
 for(const [file,expected]of Object.entries(manifest.assets))assert.equal(hash(path.join(folder,"dist",file)),expected);
 assert.equal(manifest.native_adapter_included,false);

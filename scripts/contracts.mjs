@@ -9,9 +9,13 @@ const document=JSON.parse(r.stdout);
 const schemas=document.components.schemas;
 const resolved=new Map();
 function schema(s) {
+  const supported=new Set(["$ref","type","enum","properties","required","additionalProperties","items","minItems","maxItems","minimum","maximum","format","description","title"]);
+  for(const keyword of Object.keys(s))if(!supported.has(keyword))throw Error("Unsupported OpenAPI keyword: "+keyword);
+  if(s.format && !["int32","double"].includes(s.format))throw Error("Unsupported OpenAPI format: "+s.format);
   if(s.$ref) return s.$ref.split("/").at(-1)+"Schema";
   if(s.enum) return "z.enum("+JSON.stringify(s.enum)+")";
   if(s.type==="object") {
+    if(s.additionalProperties!==false)throw Error("Open object contract is unsupported.");
     const props=Object.entries(s.properties??{}).map(([n,v])=>JSON.stringify(n)+":"+schema(v)+((s.required??[]).includes(n)?"":".optional()"));
     return "z.object({"+props.join(",")+"}).strict()";
   }
@@ -44,4 +48,3 @@ for(const [relative,content]of [["contracts/openapi.json",JSON.stringify(documen
  else { mkdirSync(path.dirname(destination),{recursive:true});writeFileSync(destination,content); }
 }
 console.log("Rust/OpenAPI/Zod generation is aligned.");
-

@@ -27,5 +27,15 @@ Reject(() => Protocol.Read(trailing,target),"Trailing bytes rejected");
 var json=System.Text.Json.JsonSerializer.Serialize(request,Protocol.Json).Replace("\"operation\":\"validate\"","\"operation\":\"executeCode\"");
 var body=Encoding.UTF8.GetBytes(json);var frame=new byte[body.Length+4];BinaryPrimitives.WriteInt32LittleEndian(frame,body.Length);body.CopyTo(frame,4);
 Reject(()=>Protocol.Read(frame,target),"Arbitrary method rejected");
+foreach (var field in new[] { "operation", "target", "range" })
+{
+    var malformed = System.Text.Json.Nodes.JsonNode.Parse(System.Text.Json.JsonSerializer.Serialize(request, Protocol.Json))!.AsObject();
+    if (field == "range") malformed["range"]!["top"] = null;
+    else malformed.Remove(field);
+    var payload = Encoding.UTF8.GetBytes(malformed.ToJsonString());
+    var malformedFrame = new byte[payload.Length + 4];
+    BinaryPrimitives.WriteInt32LittleEndian(malformedFrame, payload.Length);
+    payload.CopyTo(malformedFrame, 4);
+    Reject(() => Protocol.Read(malformedFrame, target), "Incomplete or null native frame rejected: " + field);
+}
 Console.WriteLine($"Adapter contract: {passed} passed. No Revit API executed.");
-

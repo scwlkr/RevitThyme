@@ -1,6 +1,6 @@
 import {useState,useEffect,useRef,useCallback} from "react";
 import {bridge} from "../../contracts/bridge";
-import type {Snapshot,PreviewRequest,Preview,Proposal,Unit,Axis,ViewKind,Edits,Mode,MutationResult,OutcomeRequest} from "../../contracts/generated";
+import type {Snapshot,PreviewRequest,Preview,Proposal,Unit,Axis,ViewKind,PlanDirection,UnderlayFixture,Edits,Mode,MutationResult,OutcomeRequest} from "../../contracts/generated";
 export const keys=["top","cut","bottom","depth"] as const;
 export type PlaneKey=typeof keys[number];
 function originals(s:Snapshot):Edits {
@@ -18,7 +18,10 @@ export function useEditor() {
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
  const [unit,setUnit]=useState<Unit>("mm");
- const [kind,setKind]=useState<ViewKind>("floor");
+ const [kind,changeKind]=useState<ViewKind>("floor");
+ const [direction,setDirection]=useState<PlanDirection>("down");
+ function setKind(next:ViewKind){changeKind(next);setDirection(next==="ceiling"?"up":"down");}
+ const [underlay,setUnderlay]=useState<UnderlayFixture>("none");
  const [partial,setPartial]=useState(false);
  const [cancelled,setCancelled]=useState(false);
  const [invalidInputs,setInvalidInputs]=useState<Set<PlaneKey>>(new Set());
@@ -43,11 +46,11 @@ export function useEditor() {
    try {
      if(reconnect)await bridge().reconnect();
      setMode(await bridge().mode());
-     const s=await bridge().capture({protocol:1,view_kind:kind,partial_fixture:partial});
+     const s=await bridge().capture({protocol: 2,view_kind:kind,plan_direction:direction,underlay_fixture:underlay,partial_fixture:partial});
      if(token!==epoch.current)return;
      setSnapshot(s);setCancelled(false);
      if(!pending)setMutation(undefined);
-     setRequest({protocol:1,snapshot_id:s.snapshot_id,target:s.target,input_revision:revision.current,axis:"y",fraction:0.015625,unit,edits:originals(s)});
+     setRequest({protocol: 2,snapshot_id:s.snapshot_id,target:s.target,input_revision:revision.current,axis:"y",fraction:s.mode==="native"?0.5:0.015625,unit,edits:originals(s)});
    }catch(e){if(token===epoch.current)setError(String(e));}
    finally {if(token===epoch.current)setBusy(false);}
  }
@@ -81,7 +84,7 @@ export function useEditor() {
  function changeUnit(next:Unit){setInvalidInputs(new Set());setInputReset(n=>n+1);update({unit:next});}
  async function applyConfirmed(){
    if(!proposal||!proposal.native_write_available||pending)return;
-   const query={protocol:1,request_id:crypto.randomUUID(),target:proposal.target};setOutcomeRequest(query);setBusy(true);setError("");
+   const query={protocol: 2,request_id:crypto.randomUUID(),target:proposal.target};setOutcomeRequest(query);setBusy(true);setError("");
    // Retain this ID even if the HTTP/IPC response is lost. No caller retries Apply.
    try{setMutation(await bridge().apply({...query,proposal_id:proposal.proposal_id,confirmed:true}));}
    catch{setMutation({...query,status:"outcome_unconfirmed",code:"lost_response",message:"Apply response unavailable. Inspect outcome and refresh; do not retry.",refresh_required:true,native_values:[],changed_ids:[],skipped_ids:[]});}
@@ -103,6 +106,6 @@ export function useEditor() {
  },[mutation,outcomeRequest]);
  return {snapshot,request,preview,proposal,error,busy,unit,kind,partial,cancelled,inputInvalid,inputReset,mode,mutation,pending,
    applyConfirmed,inspectOutcome,
-   setKind,setPartial,setInputInvalid,capture,reset,cancel,edit,review,changeUnit,update,
+   underlay,setUnderlay,direction,setDirection,setKind,setPartial,setInputInvalid,capture,reset,cancel,edit,review,changeUnit,update,
    ready:!!preview && preview.input_revision===request?.input_revision && !error && !inputInvalid && !pending && !mutation};
 }

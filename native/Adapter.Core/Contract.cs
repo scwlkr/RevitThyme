@@ -12,7 +12,11 @@ public record Range(Plane Top, Plane Cut, Plane Bottom, Plane Depth)
 }
 public record RawPlane(string LevelId, double OffsetFeet);
 public record RawRange(RawPlane Top, RawPlane Cut, RawPlane Bottom, RawPlane Depth);
+public enum PlanDirection { Down, Up }
+public record Underlay(bool Enabled, PlanDirection Direction, string BaseLevelId, string BaseLevelName,
+    double BaseElevationFeet, string TopLevelId, string TopLevelName, double TopElevationFeet, bool TopUnbounded);
 public record Capture(string SnapshotId, Target Target, string DocumentName, string ViewName, string ViewKind,
+    PlanDirection PlanDirection, Underlay Underlay,
     Range Original, double[] BoundsFeet, uint TriangleCount, bool Partial, string[] Diagnostics, uint ExpiresInSeconds);
 public record Facts(Capture Capture, RawRange Original, double[][][] Triangles, DateTime Created);
 public record Request(int Protocol, string RequestId, Operation Operation, Target? Target, string SnapshotId,
@@ -22,11 +26,12 @@ public record Reply(int Protocol, string RequestId, Status Status, string Code, 
     Capture? Capture, double[][][]? Triangles, RawRange? NativeValues, string[] ChangedIds, string[] SkippedIds)
 {
     public static Reply Result(Request r, Status status, string code, string message, bool refresh = false,
-        RawRange? values = null, string[]? changed = null) => new(1, r.RequestId, status, code, message, refresh,
+        RawRange? values = null, string[]? changed = null) => new(Wire.Protocol, r.RequestId, status, code, message, refresh,
             null, null, values, changed ?? [], []);
 }
 public static class Wire
 {
+    public const int Protocol = 2;
     public const int MaxBytes = 65_536;
     public static readonly JsonSerializerOptions Json = new()
     {
@@ -37,7 +42,7 @@ public static class Wire
     };
     public static void Validate(Request r)
     {
-        if (r.Protocol != 1 || !Guid.TryParse(r.RequestId, out var id) || id == Guid.Empty || !Enum.IsDefined(r.Operation))
+        if (r.Protocol != Wire.Protocol || !Guid.TryParse(r.RequestId, out var id) || id == Guid.Empty || !Enum.IsDefined(r.Operation))
             throw new InvalidDataException("Protocol or request identity.");
         if (r.Operation is Operation.Geometry or Operation.Validate or Operation.Apply && r.Target is null) throw new InvalidDataException("Target required.");
         if (r.Operation is Operation.Apply or Operation.Validate)

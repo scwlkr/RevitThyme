@@ -1,11 +1,12 @@
+pub use revitthyme_core::underlay::{Underlay, UnderlayBand};
 use revitthyme_core::{
     geometry::{Axis, Section},
-    range::{Edits, Range, Unit, ViewKind},
+    range::{Edits, PlanDirection, Range, Unit, ViewKind},
 };
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-pub const PROTOCOL: u32 = 1;
+pub const PROTOCOL: u32 = 2;
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Target {
@@ -23,7 +24,19 @@ pub struct CaptureRequest {
     #[schema(maximum = 4294967295.0)]
     pub protocol: u32,
     pub view_kind: ViewKind,
+    /// Used only by the offline fixture. Native capture always reads Revit's type.
+    pub plan_direction: PlanDirection,
+    pub underlay_fixture: UnderlayFixture,
     pub partial_fixture: bool,
+}
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, ToSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum UnderlayFixture {
+    None,
+    Up,
+    Down,
+    UnboundedUp,
+    UnboundedDown,
 }
 #[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
 #[serde(deny_unknown_fields)]
@@ -36,6 +49,9 @@ pub struct Snapshot {
     pub document_name: String,
     pub view_name: String,
     pub view_kind: ViewKind,
+    pub plan_direction: PlanDirection,
+    /// Independent from the main range; underlay visibility is not simulated.
+    pub underlay: Underlay,
     pub original: Range,
     #[schema(min_items = 6, max_items = 6)]
     pub bounds_feet: [f64; 6],
@@ -77,6 +93,8 @@ pub struct Preview {
     #[schema(maximum = 4294967295.0)]
     pub input_revision: u32,
     pub section: Section,
+    #[schema(max_items = 1)]
+    pub underlay_bands: Vec<UnderlayBand>,
     pub proposed: Range,
     pub display_offsets: Offsets,
     #[schema(min_items = 2, max_items = 2)]

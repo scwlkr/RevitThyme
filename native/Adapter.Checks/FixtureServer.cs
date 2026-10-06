@@ -36,6 +36,20 @@ internal static class FixtureServer
                 continue;
             }
             if (command == "pause") Volatile.Write(ref paused, true);
+            if (command.StartsWith("underlay "))
+            {
+                var choice = command[9..];
+                if (!new[] { "none", "up", "down", "unbounded_up", "unbounded_down" }.Contains(choice)) throw new InvalidDataException("Fixture underlay option.");
+                session.Invalidate(); model.Target = model.Target with { Revision = session.Revision };
+                model.UnderlayFixture = new(choice != "none", choice.EndsWith("up") ? PlanDirection.Up : PlanDirection.Down,
+                    "4294967302", "Underlay base", 2, choice.StartsWith("unbounded") ? "-1" : "4294967303", "Underlay top", 6, choice.StartsWith("unbounded"));
+            }
+            if (command is "orientation up" or "orientation down")
+            {
+                session.Invalidate(); model.Target = model.Target with { Revision = session.Revision };
+                model.Kind = "engineering"; model.Direction = command == "orientation up" ? PlanDirection.Up : PlanDirection.Down;
+                model.Original = model.Current = model.Original with { Depth = model.Original.Depth with { OffsetFeet = model.Direction == PlanDirection.Up ? 10 : -1 } };
+            }
             if (command == "resume") { Volatile.Write(ref paused, false); signal.Set(); }
             if (command == "invalidate") { session.Invalidate(); model.Target = model.Target with { Revision = session.Revision }; }
             if (command == "disconnect") server.SetCredential(credential);

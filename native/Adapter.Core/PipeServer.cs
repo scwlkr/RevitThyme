@@ -41,12 +41,12 @@ public sealed class PipeServer(string name, int processId, string startTicks, st
                 var hello = await Frames.Read<Hello>(pipe, helloTimeout.Token);
                 lock (bindingGate)
                 {
-                    if (hello.Protocol != 1 || hello.ProcessId != processId || hello.ProcessStartTicks != startTicks || hello.SessionId != sessionId
+                    if (hello.Protocol != Wire.Protocol || hello.ProcessId != processId || hello.ProcessStartTicks != startTicks || hello.SessionId != sessionId
                         || credential.Length != 64 || !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(credential), Encoding.UTF8.GetBytes(hello.Credential))
                         || !Guid.TryParse(hello.ConnectionId, out _) || !pipe.IsConnected) throw new InvalidDataException("Handshake rejected.");
                     connection = hello.ConnectionId; activeConnection = connection; session.Connect(connection);
                 }
-                await Frames.Write(pipe, new { protocol = 1, session_id = sessionId, process_id = processId, process_start_ticks = startTicks }, lifetime.Token);
+                await Frames.Write(pipe, new { protocol = Wire.Protocol, session_id = sessionId, process_id = processId, process_start_ticks = startTicks }, lifetime.Token);
                 while (!lifetime.IsCancellationRequested)
                 {
                     using var frameTimeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); frameTimeout.CancelAfter(30_000);

@@ -1,7 +1,7 @@
 use revitthyme_core::{
     fixture,
     geometry::{Axis, slice},
-    range::{Unit, ViewKind},
+    range::{PlanDirection, Unit, ViewKind},
 };
 
 #[test]
@@ -86,26 +86,84 @@ fn units_precision_level_relative_and_native_rule_prechecks() {
         }
     }
     for kind in [ViewKind::Floor, ViewKind::Engineering, ViewKind::Ceiling] {
-        let r = fixture::original(kind);
-        assert_eq!(r.edited(&r.edits(), kind).unwrap(), r);
+        let direction = if kind == ViewKind::Ceiling {
+            PlanDirection::Up
+        } else {
+            PlanDirection::Down
+        };
+        let r = fixture::original(kind, direction);
+        assert_eq!(r.edited(&r.edits(), direction).unwrap(), r);
         let mut edits = r.edits();
         edits.cut.unlimited = true;
-        assert!(r.edited(&edits, kind).is_err());
+        assert!(r.edited(&edits, direction).is_err());
         edits = r.edits();
         edits.cut.value = f64::NAN;
-        assert!(r.edited(&edits, kind).is_err());
+        assert!(r.edited(&edits, direction).is_err());
         edits = r.edits();
         edits.depth.value = 2.;
-        assert!(r.edited(&edits, kind).is_err());
+        assert!(r.edited(&edits, direction).is_err());
     }
-    let mut r = fixture::original(ViewKind::Floor);
+    let mut r = fixture::original(ViewKind::Floor, PlanDirection::Down);
     r.top.base_feet = 10.;
     r.top.offset_feet = -2.;
-    assert!(r.edited(&r.edits(), ViewKind::Floor).is_ok());
+    assert!(r.edited(&r.edits(), PlanDirection::Down).is_ok());
     let mut edits = r.edits();
     edits.top.unlimited = true;
     edits.depth.unlimited = true;
-    assert!(r.edited(&edits, ViewKind::Floor).is_ok());
+    assert!(r.edited(&edits, PlanDirection::Down).is_ok());
+}
+#[test]
+fn structural_look_up_accepts_depth_above_the_primary_range() {
+    let mut r = fixture::original(ViewKind::Engineering, PlanDirection::Up);
+    r.depth.offset_feet = 10.;
+    assert_eq!(r.edited(&r.edits(), PlanDirection::Up).unwrap(), r);
+    assert!(r.edited(&r.edits(), PlanDirection::Down).is_err());
+    let mut edits = r.edits();
+    edits.depth.value = 7.;
+    assert!(r.edited(&edits, PlanDirection::Up).is_err());
+    edits.depth.unlimited = true;
+    assert!(r.edited(&edits, PlanDirection::Up).unwrap().depth.unlimited);
+    // A native ceiling range may reference the upper level for Top and Depth.
+    r.top.base_feet = 10.;
+    r.top.offset_feet = 0.;
+    r.depth.base_feet = 10.;
+    r.depth.offset_feet = 0.;
+    r.cut.offset_feet = 7.5;
+    r.bottom.offset_feet = 7.5;
+    assert_eq!(r.edited(&r.edits(), PlanDirection::Up).unwrap(), r);
+}
+#[test]
+fn underlay_band_clips_level_bounds_without_changing_view_direction() {
+    use revitthyme_core::underlay::Underlay;
+    let mut u = Underlay {
+        enabled: true,
+        direction: PlanDirection::Up,
+        base_level_id: "12".into(),
+        base_level_name: "Lower".into(),
+        base_elevation_feet: 2.,
+        top_level_id: "13".into(),
+        top_level_name: "Upper".into(),
+        top_elevation_feet: 6.,
+        top_unbounded: false,
+    };
+    for direction in [PlanDirection::Up, PlanDirection::Down] {
+        u.direction = direction;
+        let bands = u.band(-0.5, 10.5).unwrap();
+        assert_eq!(
+            (bands[0].bottom_feet, bands[0].top_feet, bands[0].direction),
+            (2., 6., direction)
+        );
+        let bands = u.band(3., 5.).unwrap();
+        assert_eq!((bands[0].bottom_feet, bands[0].top_feet), (3., 5.));
+    }
+    u.top_unbounded = true;
+    assert_eq!(u.band(-0.5, 10.5).unwrap()[0].top_feet, 10.5);
+    u.enabled = false;
+    assert!(u.band(-0.5, 10.5).unwrap().is_empty());
+    u.enabled = true;
+    u.top_unbounded = false;
+    u.top_elevation_feet = 1.;
+    assert!(u.band(-0.5, 10.5).is_err());
 }
 #[test]
 fn malformed_geometry_and_budgets_are_rejected() {

@@ -6,6 +6,9 @@ internal sealed class FakeModel : IModel
     public Target Target = new(Environment.ProcessId, System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime().Ticks.ToString(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "view-unique-64", 1);
     public RawRange Original = new(new("4294967301", 8), new("4294967301", 4.000000000000123), new("4294967301", 0), new("4294967301", -1));
     public RawRange Current;
+    public PlanDirection Direction = PlanDirection.Down;
+    public string Kind = "floor";
+    public Underlay? UnderlayFixture;
     public string Fail = "";
     public string Restriction = "";
     public readonly List<string> Trace = [];
@@ -27,14 +30,16 @@ internal sealed class FakeModel : IModel
         var range = new Range(Describe(Current.Top, true), Describe(Current.Cut, false), Describe(Current.Bottom, true), Describe(Current.Depth, true));
         double[][] triangle = [[0, 0, 0], [10, 0, 0], [0, 10, 10]];
         var triangles = Enumerable.Range(0, 260).Select(_ => triangle).ToArray();
-        return new(new(Guid.NewGuid().ToString(), Target, "Adapter orchestration fixture (no Revit)", "Floor Plan", "floor", range,
+        return new(new(Guid.NewGuid().ToString(), Target, "Adapter orchestration fixture (no Revit)", "Plan", Kind,
+            Direction, UnderlayFixture ?? new(true, Direction == PlanDirection.Up ? PlanDirection.Down : PlanDirection.Up, "4294967301", "Fixture base", 0, "4294967302", "Fixture top", 10, false), range,
             [0, 0, -1, 10, 10, 10], 260, false, ["Offline .NET orchestration fixture; actual Revit API not executed."], 600), Current, triangles, DateTime.UtcNow - CaptureAge);
     }
     public RawRange Validate(Facts facts, Range proposed)
     {
         Stage("validate"); if (Restriction.Length > 0 || facts.Capture.Target != Target) throw new InvalidDataException("Unsupported state.");
         var p = proposed.Planes;
-        if (p[1].Unlimited || p[0].OffsetFeet < p[1].OffsetFeet || p[2].OffsetFeet > p[1].OffsetFeet || p[3].OffsetFeet > p[2].OffsetFeet)
+        if (p[1].Unlimited || p[0].OffsetFeet < p[1].OffsetFeet || p[2].OffsetFeet > p[1].OffsetFeet
+            || (Direction == PlanDirection.Up ? p[3].OffsetFeet < p[0].OffsetFeet : p[3].OffsetFeet > p[2].OffsetFeet))
             throw new InvalidDataException("Native-invalid fixture range.");
         RawPlane Value(RevitThyme.Native.Plane plane) => new(plane.Unlimited ? "-1" : plane.LevelId, plane.OffsetFeet);
         return new(Value(p[0]), Value(p[1]), Value(p[2]), Value(p[3]));

@@ -26,7 +26,7 @@ async function launchOwned():Promise<void> {
     owned.stderr.on("data",()=>{}); // Never forward private native diagnostics or credentials to renderer/logs.
     const lines=createInterface({input:owned.stdout});
     lines.once("line",(line)=>{
-      try { const data=JSON.parse(line);if(data.protocol!==1 || data.version!=="0.1.0" || data.session!==session || data.mode!==(native?"native":"synthetic") || !Number.isInteger(data.port) || data.port<1 || data.port>65535)throw Error();
+      try { const data=JSON.parse(line);if(data.protocol!==2 || data.version!=="0.1.1" || data.session!==session || data.mode!==(native?"native":"synthetic") || !Number.isInteger(data.port) || data.port<1 || data.port>65535)throw Error();
         endpoint="http://127.0.0.1:"+data.port;clearTimeout(timer);resolve();
       } catch {clearTimeout(timer);reject(Error("Incompatible Rust component. Restore a compatible bundle."));}
     });

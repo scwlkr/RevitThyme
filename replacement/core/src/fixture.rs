@@ -1,6 +1,6 @@
 use crate::{
     geometry::Triangle,
-    range::{Plane, Range, ViewKind},
+    range::{PlanDirection, Plane, Range, ViewKind},
 };
 
 pub fn box_mesh(min: [f64; 3], max: [f64; 3]) -> Vec<Triangle> {
@@ -54,7 +54,7 @@ pub fn house() -> Vec<Triangle> {
     );
     triangles
 }
-pub fn original(kind: ViewKind) -> Range {
+pub fn original(kind: ViewKind, direction: PlanDirection) -> Range {
     let plane = |offset, unlimited_allowed| Plane {
         level_id: "4294967301".into(),
         level_name: "Level 1".into(),
@@ -66,7 +66,14 @@ pub fn original(kind: ViewKind) -> Range {
     Range {
         top: plane(8., true),
         cut: plane(4.000000000123, false),
-        bottom: plane(0., true),
-        depth: plane(if kind == ViewKind::Ceiling { 10. } else { -1. }, true),
+        bottom: plane(0., kind != ViewKind::Ceiling),
+        depth: plane(
+            if direction == PlanDirection::Up {
+                10.
+            } else {
+                -1.
+            },
+            true,
+        ),
     }
 }

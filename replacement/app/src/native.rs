@@ -1,7 +1,7 @@
 use crate::{contract::*, state::error};
 use revitthyme_core::{
     geometry::Triangle,
-    range::{Range, ViewKind},
+    range::{PlanDirection, Range, ViewKind},
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -37,6 +37,8 @@ pub struct Capture {
     document_name: String,
     view_name: String,
     view_kind: ViewKind,
+    plan_direction: PlanDirection,
+    underlay: Underlay,
     original: Range,
     bounds_feet: [f64; 6],
     triangle_count: u32,
@@ -47,13 +49,15 @@ pub struct Capture {
 impl Capture {
     pub fn snapshot(self) -> Snapshot {
         Snapshot {
-            protocol: 1,
+            protocol: 2,
             mode: Mode::Native,
             snapshot_id: self.snapshot_id,
             target: self.target,
             document_name: self.document_name,
             view_name: self.view_name,
             view_kind: self.view_kind,
+            plan_direction: self.plan_direction,
+            underlay: self.underlay,
             original: self.original,
             bounds_feet: self.bounds_feet,
             triangle_count: self.triangle_count,
@@ -90,7 +94,7 @@ impl Reply {
                 )
             })?;
         Ok(MutationResult {
-            protocol: 1,
+            protocol: 2,
             request_id: self.request_id,
             target,
             status,
@@ -125,7 +129,7 @@ impl Client {
     ) -> Request {
         self.serial += 1;
         Request {
-            protocol: 1,
+            protocol: 2,
             request_id: format!("{}{:012x}", &self.binding.connection_id[..24], self.serial),
             operation,
             target,
@@ -149,11 +153,11 @@ impl Client {
             return Err("Wrong native server process".into());
         }
         self.pipe = Some(pipe);
-        let hello = serde_json::json!({"protocol":1,"process_id":self.binding.process_id,"process_start_ticks":self.binding.process_start_ticks,
+        let hello = serde_json::json!({"protocol":2,"process_id":self.binding.process_id,"process_start_ticks":self.binding.process_start_ticks,
             "session_id":self.binding.session_id,"credential":self.binding.credential,"connection_id":self.binding.connection_id});
         let ack = self.exchange(&hello).await?;
         if ack
-            != serde_json::json!({"protocol":1,"process_id":self.binding.process_id,"process_start_ticks":self.binding.process_start_ticks,"session_id":self.binding.session_id})
+            != serde_json::json!({"protocol":2,"process_id":self.binding.process_id,"process_start_ticks":self.binding.process_start_ticks,"session_id":self.binding.session_id})
         {
             return Err("Native handshake mismatch".into());
         }
@@ -182,7 +186,7 @@ impl Client {
         let result = tokio::time::timeout(Duration::from_secs(8), async {
             self.connect().await?;
             let reply: Reply = serde_json::from_value(self.exchange(request).await?)?;
-            if reply.protocol != 1
+            if reply.protocol != 2
                 || reply.request_id != request.request_id
                     && request.operation != "outcome"
                     && request.operation != "cancel"

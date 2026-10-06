@@ -18,3 +18,5 @@ Ribbon: Suite Status, Tool Settings and Inspect TimberFold. Settings selects an 
 ## Client execution constraint
 
 Issue Routes requests serially. The development bridge and suite share pyRevit execution infrastructure; overlapping requests produced crossed/error responses in the first-host investigation. The verified eight-case contract driver runs serially. Concurrent clients and a dedicated queued MCP adapter remain unverified/planned in this preview.
+
+The source-only [query client](QUERY-CLIENT.md) enforces serial dispatch for cooperating callers using the same state directory. It validates the returned operation, target and read-only envelope independently. A timeout does not establish that Revit stopped: a durable pending record blocks further queries until independent recovery evidence is recorded. Client request IDs are not sent to the server and do not provide server idempotence. Installed host behavior and callers that bypass this client remain unqualified.

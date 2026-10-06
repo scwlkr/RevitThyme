@@ -1,5 +1,7 @@
 # Local named query client
 
+From a source checkout, use `./project query-revit` (`project.cmd query-revit` on Windows) as the repository entry point. Pass `-- --help` for the underlying client help. The direct Python commands below expose the same implementation.
+
 The CPython standard-library client invokes only `revitthyme_status` and
 `timberfold_inspect` through the existing loopback Routes. It provides local
 request correlation, cooperating-process serialization and persistent quarantine

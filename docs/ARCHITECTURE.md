@@ -64,6 +64,8 @@ Draft states: `queued`, `running`, `cancel_requested`, `cancelled`, `succeeded`,
 
 ## Implementation order
 
+The source-only [named query client](QUERY-CLIENT.md) is a bounded CPython caller for current read-only Routes. It holds a shared process lock through response validation and records a pending request before dispatch. Timeout, invalid response or caller crash leaves a quarantine record; recovery records caller-supplied independent host evidence. Request IDs correlate client evidence only. This does not implement server jobs, cancellation, exactly-once execution or a general MCP adapter, and cannot serialize clients that bypass it.
+
 Use the existing bridge for the first read-only operations. Build a focused C# host pilot next, rather than duplicating all pyRevit functionality. Compare both implementations through the same operation interface. Add only the registration and execution structure required by working tools; defer a general plugin framework until another tool demonstrates the need.
 
 The native pilot's .NET target and SDK references will be checked against the installed Revit 2027 build. Python/TypeScript/other runtimes can be external workers or callers; choosing another language does not bypass Revit's execution constraints.

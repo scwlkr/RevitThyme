@@ -14,6 +14,10 @@ public sealed class Model(UIApplication app, Host host) : IModel
         if (doc.IsFamilyDocument) throw new Rejection("family_document", "View Range requires a project document.");
         if (doc.IsReadOnly) throw new Rejection("read_only", "Document is read-only.");
         if (doc.IsModifiable) throw new Rejection("modifiable", "Finish the active transaction or edit mode before capture/Apply.");
+        // IsModifiable is false between transactions inside a native edit scope.
+        // Constructing this probe does not start a scope or change the document.
+        using var readiness = new SketchEditScope(doc, "RevitThyme readiness");
+        if (!readiness.IsPermitted) throw new Rejection("active_edit", "Finish the active Revit edit mode before capture/Apply.");
         var view = doc.ActiveView as ViewPlan ?? throw new Rejection("unsupported_view", "Use a floor, engineering or ceiling plan.");
         if (view.IsTemplate || view.ViewType is not (ViewType.FloorPlan or ViewType.EngineeringPlan or ViewType.CeilingPlan))
             throw new Rejection("unsupported_view", "Use a non-template floor, engineering or ceiling plan.");

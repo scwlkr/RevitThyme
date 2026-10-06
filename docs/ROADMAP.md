@@ -2,6 +2,8 @@
 
 Each milestone ends with working behavior and evidence. A scaffold or successful compilation alone does not satisfy a live milestone.
 
+The table below records the existing foundation plan and evidence. The user's 2026-10-06 Rust/wstack replacement decision supersedes its future host comparison: use the [replacement milestones](specs/RUST-WSTACK-REPLACEMENT.md#migration-milestones) and [acceptance gates](specs/RUST-WSTACK-ACCEPTANCE.md) for that implementation. The specification does not change the installed product or complete any live milestone.
+
 | Milestone | State | Deliverable | Completion criterion |
 | --- | --- | --- | --- |
 | M0: Project foundation | Complete | Docs, TimberFold registration, local check and Git checkpoint | Project check passes; external source reference is valid; no host-installation claim |

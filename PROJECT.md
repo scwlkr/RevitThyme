@@ -17,7 +17,13 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 - Use wstack project instructions and a Rust CLI for repository automation; retain the Revit-specific host/worker languages. Track substantive work in the [RevitThyme Linear project](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9) under WLKR LABS. The setup follow-up authorizes needed dependencies and local CI, with no product migration.
 - Use `master` as the local default branch, matching the existing Git default. Land verified local work there; publishing/pushing remains an explicit separate request.
 
-## Working implementation plan
+## Replacement target agreed on 2026-10-06
+
+The user chose a full replacement of RevitThyme's owned Python/pyRevit runtime: Rust/Axum domain logic, the wstack Expo Web/Electron Forge UI, typed OpenAPI/TypeScript/Zod boundaries and a minimal .NET 10 Revit adapter. The initial native target is the observed Windows Revit 2027.2 build. See the [replacement specification](docs/specs/RUST-WSTACK-REPLACEMENT.md), [acceptance gates](docs/specs/RUST-WSTACK-ACCEPTANCE.md) and [implementation-session prompt](docs/specs/RUST-WSTACK-IMPLEMENTATION-PROMPT.md).
+
+This future target supersedes the host comparison below and the earlier Rust-native UI suggestion. No replacement is implemented or installed by the specification PR. Existing functionality, drafts and installation remain preserved during migration; external TimberFold remains independently owned. Implementation, installations, live Revit fixture work, merge and release require applicable separate authorization.
+
+## Existing foundation implementation plan
 
 The accepted first shipping host is a custom pyRevit extension, using upstream pyRevit without a fork. Publish approved code and docs to the user personal GitHub account scwlkr; private models and settings stay excluded. License original RevitThyme code GPL-3.0-or-later. The existing bridge remains the development adapter. A focused C#/.NET Revit host is the intended independent-host pilot. Its runtime target, project structure and install method will be confirmed against the installed Revit SDK before implementation. The two adapters should be compared through the same operations before choosing the production host.
 
@@ -49,14 +55,14 @@ The TimberFold docs record completed digital workflows, including Cedar Cottage,
 ## First work
 
 1. Validate installed v0.2.0 read-only operations and packaged ribbon. Preserve no-document, wrong-target and disconnected diagnostics. The public package has no TimberFold generation implementation.
-2. Define a small C# host pilot implementing the same read-only status operation. Verify the installed SDK/runtime and supported Revit build first.
-3. Continue the [roadmap](docs/ROADMAP.md) only after those checks produce inspectable evidence.
+2. For replacement work, follow the [specification milestones](docs/specs/RUST-WSTACK-REPLACEMENT.md#migration-milestones), beginning with a working Visual View Range feature. Confirm current SDK/runtime before native implementation.
+3. Keep the [foundation roadmap](docs/ROADMAP.md) as historical scope/evidence; replacement acceptance is defined in the new spec.
 
 ## Open decisions
 
 - Company display name and final ribbon layout; the first three branded button icons are implemented.
-- Production host choice after the pilot comparison.
-- Supported Revit and pyRevit versions beyond the current Revit 2027 target.
+- Exact replacement dependency versions, contract generation and packaging/update format; host direction is fixed by the replacement decision.
+- Supported Revit builds beyond the initial replacement target; legacy pyRevit compatibility remains separately tracked.
 - Portable TimberFold bundling and second-computer verification; per-user extension ZIP is the first installer format.
 - TimberFold redistribution license and third-party dependencies before bundling; RevitThyme original code is GPL-3.0-or-later.
 - Final approval UX for model-changing operations and long-running job cancellation.

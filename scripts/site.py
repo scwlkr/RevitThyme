@@ -115,7 +115,7 @@ def build():
             content += f'<h2 id="{anchor}">{html.escape(page["group"])}</h2>'
             group = page["group"]
         content += f'<a class="guide-row" href="/docs/{page["slug"]}/"><strong>{html.escape(page["title"])}</strong><span>{html.escape(page["summary"])}</span></a>'
-    content += '</div><p class="scope-note">v0.2.0: read-only tools. Preview, generation and MCP are planned.</p>'
+    content += '</div><p class="scope-note">v0.2.0: read-only tools. Fabrication preview, generation and MCP are planned.</p>'
     layout("Documentation — RevitThyme", "Installation, tools, architecture, troubleshooting and roadmap guides for RevitThyme.", docs_shell(content, "overview", headings), "/docs/", "docs")
     layout("Page not found — RevitThyme", "Page not found.", docs_shell('<h1>Page not found</h1><p><a href="/docs/">Browse documentation →</a></p>'), "/404/")
     shutil.copyfile(OUTPUT / "404/index.html", OUTPUT / "404.html")

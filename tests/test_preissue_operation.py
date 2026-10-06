@@ -59,7 +59,8 @@ class OperationBoundaryTests(unittest.TestCase):
             context.start()
         self.operation = load('fixture_preissue_operation', 'preissue_operation.py')
         pyrevit = types.ModuleType('pyrevit')
-        pyrevit.DB, pyrevit.versionmgr = object(), object()
+        pyrevit.DB = types.SimpleNamespace(ViewType=object())
+        pyrevit.versionmgr = object()
         pyrevit.routes = types.SimpleNamespace(API=Api)
         loader = types.ModuleType('pyrevit.loader')
         loader.sessioninfo = types.SimpleNamespace(get_session_uuid=lambda: 'fixture-session')
@@ -67,8 +68,11 @@ class OperationBoundaryTests(unittest.TestCase):
         diagnostics.Process = types.SimpleNamespace(GetCurrentProcess=lambda: types.SimpleNamespace(Id=42))
         userconfig = types.ModuleType('pyrevit.userconfig')
         userconfig.user_config = types.SimpleNamespace(routes_host='127.0.0.1')
+        system = types.ModuleType('System')
+        system.Enum = types.SimpleNamespace(GetNames=Mock(return_value=['FloorPlan', 'Section', 'ThreeD']))
         self.host_modules = {'pyrevit': pyrevit, 'pyrevit.loader': loader,
                              'System.Diagnostics': diagnostics, 'pyrevit.userconfig': userconfig,
+                             'System': system,
                              'revitthyme.preissue_operation': self.operation}
         with patch.dict(sys.modules, self.host_modules):
             self.dispatch = load('fixture_operations', 'operations.py')
@@ -119,6 +123,38 @@ class OperationBoundaryTests(unittest.TestCase):
         self.assertEqual('document_changed_during_check', result['status'])
         self.assertEqual('document_modified_flag_only', result['data']['readback']['scope'])
         self.assertFalse(result['data']['readback']['modified_flag_unchanged'])
+
+    def test_native_view_type_validation_rejects_typos_before_collection(self):
+        app = uiapp()
+        target = self.dispatch.identity(app)
+        standards = {'schema_version': 1, 'views': {'types': ['FloorPlna'], 'name_patterns': ['A-*']}}
+        with patch.dict(sys.modules, self.host_modules):
+            result = self.dispatch.execute('preissue_check', app, {'target': target, 'standards': standards})
+            self.assertEqual('invalid_standards', result['status'])
+            self.assertIn('FloorPlna', result['data']['diagnostics'][0])
+            self.snapshot.collect.assert_not_called()
+            standards['views']['types'] = ['FloorPlan']
+            result = self.dispatch.execute('preissue_check', app, {'target': target, 'standards': standards})
+        self.assertEqual('checked', result['status'])
+        self.snapshot.collect.assert_called_once_with(app.ActiveUIDocument.Document)
+        check = next(x for x in result['data']['checks'] if x['check_id'] == 'view.name')
+        self.assertEqual('checked', check['status'])
+        self.assertEqual(['empty_checked_scope'], check['diagnostics'])
+        self.host_modules['System'].Enum.GetNames.assert_called_with(self.host_modules['pyrevit'].DB.ViewType)
+
+    def test_unavailable_native_enum_returns_readiness_diagnostic_before_collection(self):
+        app = uiapp()
+        standards = {'schema_version': 1, 'views': {'types': ['FloorPlan'], 'require_template': True}}
+        get_names = self.host_modules['System'].Enum.GetNames
+        for unavailable in (RuntimeError('Fixture runtime boundary failure'), []):
+            with self.subTest(unavailable=unavailable), patch.dict(sys.modules, self.host_modules):
+                get_names.side_effect = unavailable if isinstance(unavailable, Exception) else None
+                get_names.return_value = unavailable
+                result = self.dispatch.execute('preissue_check', app,
+                                 {'target': self.dispatch.identity(app), 'standards': standards})
+                self.assertEqual('host_validation_unavailable', result['status'])
+                self.assertIn('not checked', result['data']['diagnostics'][0])
+                self.snapshot.collect.assert_not_called()
 
     def test_route_is_named_post_and_forwards_to_same_operation(self):
         modules = dict(self.host_modules)

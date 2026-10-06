@@ -28,6 +28,8 @@ limited to 2 MiB. The lock wait (`--lock-wait`, default 5 seconds) is bounded to
 0–60 seconds. JSON validation checks the operation, target, schema, declared
 read-only effects, empty changed IDs and operation-specific data.
 
+Validation requires complete HTTP framing: an early EOF before the declared body length leaves the request quarantined, even if the received bytes form valid JSON.
+
 ## Serialization and quarantine
 
 All cooperating callers for an endpoint must use the same state directory. The

@@ -18,6 +18,8 @@ flowchart LR
 
 Version 0.2.0 implements the pyRevit ribbon and shared read-only operations. Named loopback Routes execute through pyRevit ExternalEvent. A standalone MCP adapter, writes and jobs remain planned. See [implemented operations](OPERATIONS.md).
 
+The 0.3.0 source preview adds a modal [Visual View Range](VISUAL-VIEW-RANGE.md) ribbon workflow. Its host boundary extracts scalars once, and the WPF UI slices cached triangles and stages range offsets without Revit API calls. Explicit Apply returns to the ribbon API context for validation, transaction, read-back and grouped rollback. The existing Routes dispatcher remains read-only; no remote mutation endpoint is added.
+
 | Module | Responsibility | Initial approach |
 | --- | --- | --- |
 | Host adapter | Session/document identity, queued API execution, transactions and Revit diagnostics | Current pyRevit bridge; then a C# pilot |

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 - Unreleased
+
+- Add Visual View Range: a modal Documentation ribbon editor showing a tessellated slice of actual local model solids, movable X/Y section position, four level-relative range sliders, numeric offsets, mm/m/ft units, Unlimited settings and explicit Apply/Cancel.
+- Validate view/template restrictions, stale identity/range/levels and native range errors; apply one undoable range change with transaction rollback and read-back. No model save or geometry modification.
+- Add Windows source fixtures and standalone WPF fixture validation; include the editor/XAML/artwork in the allowlisted package. Actual Revit runtime qualification remains pending.
+
 ## 0.2.0 - 2026-10-05 - First pyRevit extension
 
 - Add a RevitThyme ribbon with Suite Status, Tool Settings and read-only TimberFold inspection.

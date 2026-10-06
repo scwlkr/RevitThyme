@@ -2,15 +2,18 @@
   "schema_version": 1,
   "id": "revitthyme",
   "name": "RevitThyme",
-  "version": "0.2.0",
-  "stage": "read_only_pyrevit_extension",
+  "version": "0.3.0",
+  "stage": "visual_view_range_source_preview",
   "initial_revit_target": 2027,
   "host": {
     "development_adapter": "pyrevit",
     "native_pilot": "csharp",
-    "implementation_status": "read_only_operations"
+    "implementation_status": "read_only_operations_and_visual_view_range"
   },
   "tools": [
-    { "id": "timberfold", "manifest": "tools/timberfold/tool.json" }
+    {
+      "id": "timberfold",
+      "manifest": "tools/timberfold/tool.json"
+    }
   ]
 }

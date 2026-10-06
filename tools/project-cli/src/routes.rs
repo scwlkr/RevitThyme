@@ -3,6 +3,16 @@ use crate::Route;
 #[rustfmt::skip]
 pub const ROUTES: &[Route] = &[
     Route {
+        name: "check-view-range-ui",
+        program: "powershell",
+        args: &["-NoProfile", "-NonInteractive", "-STA", "-File", "scripts/render-view-range-fixture.ps1"],
+    },
+    Route {
+        name: "check-view-range",
+        program: "python",
+        args: &["-X", "utf8", "scripts/check-view-range.py"],
+    },
+    Route {
         name: "repair-routes",
         program: "python",
         args: &["-X", "utf8", "scripts/repair-pyrevit-routes.py"],

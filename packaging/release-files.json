@@ -5,7 +5,7 @@
     "assets/branding/README.md", "assets/branding/revitthyme-logo.svg",
     "assets/branding/status.svg", "assets/branding/settings.svg", "assets/branding/timberfold.svg",
     "PROJECT.md", "AGENTS.md", "CONTRIBUTING.md", "SECURITY.md", "SETUP-TODO.md",
-    "docs/ARCHITECTURE.md", "docs/ROADMAP.md", "verification/release-0.2.0.md",
+    "docs/ARCHITECTURE.md", "docs/ROADMAP.md", "docs/PORTABLE-CHECKS.md", "verification/release-0.2.0.md",
     "tools/timberfold/README.md", "tools/timberfold/tool.json",
     "docs/DEPLOYMENT.md", "docs/OPERATIONS.md", "docs/RELEASE-NOTES-0.2.0.md", "scripts/install.ps1", "scripts/host-path.ps1",
     "extensions/RevitThyme.extension/extension.json",

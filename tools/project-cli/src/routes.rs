@@ -1,5 +1,7 @@
 use crate::Route;
 
+pub const PYTHON: &str = if cfg!(windows) { "python" } else { "python3" };
+
 #[rustfmt::skip]
 pub const ROUTES: &[Route] = &[
     Route { name: "prepare-view-range-release", program: "python", args: &["-X", "utf8", "scripts/prepare-view-range-release.py"] },
@@ -28,22 +30,22 @@ pub const ROUTES: &[Route] = &[
     },
     Route {
         name: "repair-routes",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/repair-pyrevit-routes.py"],
     },
     Route {
         name: "check-public-ci",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/check-public-ci.py"],
     },
     Route {
         name: "package",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/package-release.py"],
     },
     Route {
         name: "check-release",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/check-release.py"],
     },
     Route {
@@ -53,7 +55,7 @@ pub const ROUTES: &[Route] = &[
     },
     Route {
         name: "check-live",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/check-live.py"],
     },
     Route {
@@ -63,12 +65,17 @@ pub const ROUTES: &[Route] = &[
     },
     Route {
         name: "check-cli",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/check-cli-contract.py"],
     },
     Route {
+        name: "check-portable",
+        program: PYTHON,
+        args: &["-X", "utf8", "scripts/check-portable.py"],
+    },
+    Route {
         name: "ci",
-        program: "python",
+        program: PYTHON,
         args: &["-X", "utf8", "scripts/check-local-ci.py"],
     },
 ];

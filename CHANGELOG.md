@@ -59,6 +59,7 @@
 - Repair the owning wstack-setup skill's Windows launcher and permission handling; retain its patch and verify the prior regression now passes.
 - Add real CLI boundary checks and local CI with scope routing, aggregate results at a Git SHA, and Cargo cache reuse/invalidation checks.
 - Establish `master` as the local default for verified checkpoints.
+- Add a Mac/Linux portable check path with Python 3 routing, discovered fixture tests and exact revision reports. Share package integrity/icon checks with the Windows release gate; skipped Windows/Revit and mismatched Rust pin qualification remain explicit.
 
 This setup verifies offline repository automation. Revit host behavior remains planned.
 

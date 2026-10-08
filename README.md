@@ -47,6 +47,8 @@ Clone the source repository for development; the install ZIP omits the developer
 
 Full local CI uses external TimberFold configured in config/local.example.json or ignored config/local.json. Public package checks need no TimberFold checkout. Keep private models outside this repository.
 
+On macOS or Linux, use `./project check-portable --base <base-sha> --require-clean` for local fixture, CLI and package checks. The [portable validation guide](docs/PORTABLE-CHECKS.md) explains exact revision evidence and the Windows, IronPython and Revit gates that remain unrun. This source check does not install the extension.
+
 Use project.cmd check-live after installing to exercise Routes and identity failure cases. Live reports stay in ignored artifacts; publish only sanitized evidence. See [operations](docs/OPERATIONS.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and [changelog](CHANGELOG.md).
 
 ## License

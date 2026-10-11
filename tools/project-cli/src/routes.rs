@@ -27,6 +27,11 @@ pub const ROUTES: &[Route] = &[
         args: &["scripts/m1.mjs"],
     },
     Route {
+        name: "query-revit",
+        program: if cfg!(windows) { "python" } else { "python3" },
+        args: &["-X", "utf8", "scripts/query-revit.py"],
+    },
+    Route {
         name: "repair-routes",
         program: "python",
         args: &["-X", "utf8", "scripts/repair-pyrevit-routes.py"],

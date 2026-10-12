@@ -14,6 +14,7 @@ try{
  browser=await chromium.connectOverCDP(launched.cdp);const context=browser.contexts()[0];
  page=context.pages()[0]??await context.waitForEvent("page");page.setDefaultTimeout(15000);
  await page.getByText("Adapter orchestration fixture (no Revit)",{exact:false}).waitFor();
+ await page.getByText("Revit connected",{exact:true}).waitFor();
  check(await page.getByText("Revit connected",{exact:true}).isVisible(),"Packaged UI presents explicit native connection");
  const cut=page.getByLabel("Cut Plane offset");await cut.waitFor();
  check(await cut.inputValue()===`4' 0"`,"Native UI uses imperial feet/inches by default");
@@ -89,7 +90,7 @@ try{
  check(Math.abs((await f.command("observe")).cut-4.001)<1e-12,"Native fixture retains an offset finer than display precision");
  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
  await page.getByLabel("Display units").selectOption("ft");
- await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]').value===`4' 0"`);
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value===`4' 0"`);
  await cut.focus();await cut.blur();await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
  await page.getByLabel("Confirm displayed target and range").check();await apply.click();

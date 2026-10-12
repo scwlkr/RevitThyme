@@ -4,6 +4,7 @@ import {mkdirSync,writeFileSync} from "node:fs";
 import path from "node:path";
 import assert from "node:assert/strict";
 import {verifySectionLayout} from "./section-layout.mjs";
+import {lengthText} from "../src/lib/length.ts";
 const {values}=parseArgs({options:{cdp:{type:"string"},"source-sha":{type:"string"},"document-name":{type:"string"},"view-name":{type:"string"},case:{type:"string"},"idle-ms":{type:"string"},underlay:{type:"string"},"plan-direction":{type:"string",default:"down"},"apply-cut-feet":{type:"string"},"unlimited-plane":{type:"string"},"approved-writes":{type:"boolean",default:false},preview:{type:"boolean",default:false},"stale-review":{type:"boolean",default:false},"capture-rejection":{type:"string"},"display-unit":{type:"string",default:"ft"},"drag-slice":{type:"boolean",default:false},"reconnect-review":{type:"boolean",default:false},"review-only":{type:"boolean",default:false},"queued-action":{type:"string"}}});
 const url=new URL(values.cdp);
 assert.equal(url.hostname,"127.0.0.1");assert.equal(url.protocol,"http:");
@@ -130,7 +131,7 @@ try{
   await page.getByText(/^Native outcome: (applied_verified|unchanged_verified)$/).waitFor();
   check(true,"Confirmed actual native Apply reaches a verified terminal outcome");
   const body=await page.locator("body").innerText();
-  if(values["apply-cut-feet"]!=="current")check(body.includes("Verified native Cut: "+Number(values["apply-cut-feet"])+" ft"),"UI outcome contains exact requested native cut readback");
+  if(values["apply-cut-feet"]!=="current")check(body.includes("Verified native Cut: "+lengthText(Number(values["apply-cut-feet"]),values["display-unit"])),"UI outcome formats the requested native cut readback in selected units");
   await page.getByRole("button",{name:"Inspect Apply outcome",exact:true}).click();
   await page.getByText(/^Native outcome: (applied_verified|unchanged_verified)$/).waitFor();check(true,"Outcome inspection preserves terminal truth without resubmission");
   await page.getByText(/^Native outcome:/).locator("..").screenshot({path:path.join(folder,values.case+"-outcome.png")});

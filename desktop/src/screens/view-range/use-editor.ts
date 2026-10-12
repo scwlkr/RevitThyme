@@ -17,7 +17,7 @@ export function useEditor() {
  const pending=!!mutation && ["queued","executing","outcome_unconfirmed"].includes(mutation.status);
  const [error,setError]=useState("");
  const [busy,setBusy]=useState(false);
- const [unit,setUnit]=useState<Unit>("mm");
+ const [unit,setUnit]=useState<Unit>("ft");
  const [kind,changeKind]=useState<ViewKind>("floor");
  const [direction,setDirection]=useState<PlanDirection>("down");
  function setKind(next:ViewKind){changeKind(next);setDirection(next==="ceiling"?"up":"down");}

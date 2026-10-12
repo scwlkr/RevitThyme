@@ -1,12 +1,13 @@
 import {View} from "react-native";
 import {Label as Text} from "../../components/ui";
-import type {Underlay,UnderlayBand} from "../../contracts/generated";
+import type {Underlay,UnderlayBand,Unit} from "../../contracts/generated";
+import {lengthText} from "../../lib/length";
 
-export function UnderlayInfo({underlay:u}:{underlay:Underlay}){
+export function UnderlayInfo({underlay:u,unit}:{underlay:Underlay;unit:Unit}){
  const direction=u.direction==="up"?"Look Up":"Look Down";
  return <View className="gap-1">
   <Text>Underlay Orientation: {direction} {u.direction==="up"?"↑":"↓"} · {u.enabled?"Enabled":"None"}</Text>
-  {u.enabled&&<Text className="text-muted">{u.base_level_name} ({u.base_elevation_feet} ft) → {u.top_unbounded?"Unbounded":u.top_level_name+" ("+u.top_elevation_feet+" ft)"}</Text>}
+  {u.enabled&&<Text className="text-muted">{u.base_level_name} ({lengthText(u.base_elevation_feet,unit)}) → {u.top_unbounded?"Unbounded":u.top_level_name+" ("+lengthText(u.top_elevation_feet,unit)+")"}</Text>}
  </View>;
 }
 export function UnderlaySection({bands,z}:{bands:UnderlayBand[];z:(feet:number)=>number}){

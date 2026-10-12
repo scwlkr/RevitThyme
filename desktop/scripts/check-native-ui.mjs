@@ -16,6 +16,7 @@ try{
  await page.getByText("Adapter orchestration fixture (no Revit)",{exact:false}).waitFor();
  check(await page.getByText("Revit connected",{exact:true}).isVisible(),"Packaged UI presents explicit native connection");
  const cut=page.getByLabel("Cut Plane offset");await cut.waitFor();
+ check(await cut.inputValue()===`4' 0"`,"Native UI uses imperial feet/inches by default");
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  const apply=page.getByRole("button",{name:"Apply to Revit",exact:true});
  check(await apply.isDisabled(),"Native Apply stays disabled until target/range checkbox confirmed");
@@ -23,6 +24,8 @@ try{
  await page.getByText("Native outcome: unchanged_verified",{exact:true}).waitFor();
  check((await f.command("observe")).transactions===0,"Packaged identical Apply opens no fixture transaction");
  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+ await page.getByLabel("Display units").selectOption("mm");
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Display units"]').value==="mm");
  await cut.fill("1524");await cut.blur();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByLabel("Confirm displayed target and range").waitFor();
@@ -79,6 +82,20 @@ try{
   await page.getByRole("img",{name:"Model section"}).scrollIntoViewIfNeeded();
   await page.screenshot({path:path.join(root,"artifacts/wlk-117","native-underlay-"+choice+".png"),fullPage:true});
  }
+ await cut.fill("1219.5048");await cut.blur();await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ const transactionsBefore=(await f.command("observe")).transactions;
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByText("Native outcome: applied_verified",{exact:true}).waitFor();
+ check(Math.abs((await f.command("observe")).cut-4.001)<1e-12,"Native fixture retains an offset finer than display precision");
+ await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+ await page.getByLabel("Display units").selectOption("ft");
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]').value===`4' 0"`);
+ await cut.focus();await cut.blur();await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByText("Native outcome: unchanged_verified",{exact:true}).waitFor();
+ const untouched=await f.command("observe");
+ check(untouched.transactions===transactionsBefore+1&&Math.abs(untouched.cut-4.001)<1e-12,"Rounded imperial display and focus/blur do not alter exact capture or create an Undo item");
  mkdirSync(path.join(root,"artifacts/m2"),{recursive:true});await page.screenshot({path:path.join(root,"artifacts/m2/native-packaged.png"),fullPage:true});passed=true;
 }catch(error){if(page)console.error((await page.locator("body").innerText()).slice(0,2200));throw error;}
 finally{

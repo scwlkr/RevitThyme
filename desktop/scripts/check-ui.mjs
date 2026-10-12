@@ -17,8 +17,19 @@ try{
  page=await app.firstWindow();page.setDefaultTimeout(15000);page.on("pageerror",e=>errors.push(String(e)));
  await page.getByRole("button",{name:"Review Apply",exact:true}).waitFor({timeout:15000});
  await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]')?.getAttribute("aria-disabled"));
- check((await page.getByLabel("Cut Plane offset").inputValue()).startsWith("1219.2"),"Packaged Expo loads assets and Rust preview through preload");
+ check(await page.getByLabel("Display units").inputValue()==="ft"&&(await page.getByLabel("Cut Plane offset").inputValue())===`4' 0"`,"Packaged UI defaults to imperial feet/inches");
+ for(const [name,input,display,feet] of [["Cut Plane",`5' 3 1/8"`,`5' 3 1/8"`,505/96],["Cut Plane","5.26",`5' 3 1/8"`,505/96],["Cut Plane",`0' 11 15/16"`,`1' 0"`,1],["View Depth",`-1' 2 3/8"`,`-1' 2 3/8"`,-115/96]]){
+  await page.getByLabel(name+" offset").fill(input);await page.getByLabel(name+" offset").blur();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  const row=page.getByRole("row",{name:new RegExp(name+" · Level 1")});
+  check((await page.getByLabel(name+" offset").inputValue())===display&&Math.abs(Number((await row.locator("td").last().getAttribute("title")).split(" ")[0])-feet)<1e-12,"Architectural entry normalizes and reviews exact eighth-inch value: "+input);
+  await page.getByRole("button",{name:"Reset",exact:true}).click();
+ }
+ await page.getByLabel("Cut Plane offset").fill(`5' 1/0"`);
+ check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Invalid architectural fraction blocks review");
+ await page.getByRole("button",{name:"Reset",exact:true}).click();
  await compactDialogUi(app,page,folder,check);
+ await page.getByLabel("Display units").selectOption("mm");
  await page.getByLabel("View Depth offset").fill("0");
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('[data-testid="apply-review"] table')?.getBoundingClientRect().bottom<=document.querySelector('[aria-label="Review Apply"]').getBoundingClientRect().top);
@@ -35,7 +46,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value==="1524");
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · proposed change",{exact:true}).waitFor();
- check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 5 ft"),"Numeric offset passes Rust conversion and before/after proposal");
+ check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 1524 mm"),"Numeric offset passes Rust conversion and before/after proposal");
  check(await page.getByRole("button",{name:"Native Apply unavailable"}).isDisabled(),"Offline preview cannot write Revit");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
@@ -55,9 +66,9 @@ try{
  await page.getByLabel("Cut Plane offset").fill("1524");
  await page.waitForTimeout(800);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 5 ft"),"Typing during delayed unit conversion uses the displayed units");
+ check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes(`→ 5' 0"`),"Typing during delayed unit conversion uses the displayed units");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
- await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[aria-label="Cut Plane offset"]')?.value)-4)<1e-9);
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value===`4' 0"`);
  await page.getByLabel("Cut Plane offset").fill("NaN");
  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Nonfinite input disables review");
  await page.getByLabel("Cut Plane offset").fill("5");
@@ -75,7 +86,7 @@ try{
  await page.getByLabel("Bottom offset").fill("0");
  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"One valid row cannot clear another invalid row");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
- await page.waitForFunction(()=>document.querySelector('[aria-label="Top offset"]')?.value==="8");
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Top offset"]')?.value===`8' 0"`);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
  check(true,"Reset restores invalid text buffers and exact values");
@@ -98,7 +109,7 @@ try{
  await page.waitForTimeout(800);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · proposed change",{exact:true}).waitFor();
- check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 6 ft") && await page.getByLabel("Cut Plane offset").inputValue()==="6","Delayed old response cannot overwrite newer input");
+ check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes(`→ 6' 0"`) && await page.getByLabel("Cut Plane offset").inputValue()===`6' 0"`,"Delayed old response cannot overwrite newer input");
  await page.getByLabel("Cut Plane offset").fill("5");
  await page.waitForTimeout(100);
  await page.getByLabel("Cut Plane offset").fill("bad");
@@ -112,12 +123,16 @@ try{
  await cutSlider.focus();await page.keyboard.press("ArrowLeft");
  await page.waitForFunction(before=>document.querySelector('[aria-label="Cut Plane slider"]')?.value!==before,sliderBefore);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- check(!(await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 6 ft"),"Keyboard operates plane slider");
+ check(!(await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes(`→ 6' 0"`),"Keyboard operates plane slider");
+ const stepped=Number((await page.getByRole("row",{name:/Cut Plane · Level 1/}).locator("td").last().getAttribute("title")).split(" ")[0]);
+ check(Math.abs(stepped*96-Math.round(stepped*96))<1e-9,"Imperial keyboard slider uses eighth-inch offsets");
  const line=page.getByLabel("Cut Plane plane drag");const box=await line.boundingBox();
  const dragBefore=await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent();
  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2,box.y+box.height/2-20,{steps:4});await page.mouse.up();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  check(await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()!==dragBefore,"Pointer drag changes reviewed plane elevation");
+ const dragged=Number((await page.getByRole("row",{name:/Cut Plane · Level 1/}).locator("td").last().getAttribute("title")).split(" ")[0]);
+ check(Math.abs(dragged*96-Math.round(dragged*96))<1e-9,"Imperial plane dragging uses eighth-inch offsets");
  const sectionBefore=await page.getByRole("img",{name:"Model section"}).innerHTML();
  await page.getByLabel("Slice axis").selectOption("x");
  await page.getByLabel("Slice position").fill("0.4");

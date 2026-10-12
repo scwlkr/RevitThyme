@@ -27,8 +27,8 @@ export function ViewRangeScreen(){
    <Button disabled={e.busy} onPress={()=>void e.capture(true)}>Reconnect</Button>
    <View className="flex-1"/>
    {e.request&&e.request.unit!==e.unit&&<Text accessibilityLiveRegion="polite" className="text-muted">Converting display units…</Text>}
-   <Text>Units</Text><Select aria-label="Display units" value={e.unit} onChange={ev=>e.changeUnit(ev.target.value as Unit)}>
-    <option value="mm">mm</option><option value="m">m</option><option value="ft">decimal ft</option>
+   <Text>Units</Text><Select aria-label="Display units" disabled={e.busy||!e.request} value={e.unit} onChange={ev=>e.changeUnit(ev.target.value as Unit)}>
+    <option value="ft">Feet &amp; inches</option><option value="mm">mm</option><option value="m">m</option>
    </Select>
   </View>
  </>;
@@ -41,12 +41,12 @@ export function ViewRangeScreen(){
  </>;
  return <DialogLayout toolbar={toolbar} footer={footer} revealKey={e.proposal?.proposal_id}>
   {!!e.error&&<Notice><Text>{e.error}</Text></Notice>}
-  {e.inputInvalid&&<Notice><Text>Enter a finite numeric offset. Review Apply is disabled until every input is valid.</Text></Notice>}
+  {e.inputInvalid&&<Notice><Text>Enter a valid offset. Review Apply is disabled until every input is valid.</Text></Notice>}
   {e.snapshot?.partial&&<Notice><Text>Partial capture</Text>{e.snapshot.diagnostics.filter(d=>/partial|limit|omit|trunc/i.test(d)).map((d,i)=><Text key={i}>{d}</Text>)}</Notice>}
-  {e.mutation&&<NativeOutcome result={e.mutation} busy={e.busy} onInspect={()=>void e.inspectOutcome()} onCancel={()=>void e.inspectOutcome(true)}/>}
+  {e.mutation&&<NativeOutcome result={e.mutation} unit={e.unit} busy={e.busy} onInspect={()=>void e.inspectOutcome()} onCancel={()=>void e.inspectOutcome(true)}/>}
   <View className="flex-row flex-wrap gap-2">
    <GroupBox title="Section" style={{flexBasis:440,flexGrow:2,flexShrink:1,minWidth:320}}>
-    {e.snapshot&&<View><Text>Main plan: Looking {e.snapshot.plan_direction} {e.snapshot.plan_direction==="up"?"↑":"↓"}</Text><UnderlayInfo underlay={e.snapshot.underlay}/></View>}
+    {e.snapshot&&<View><Text>Main plan: Looking {e.snapshot.plan_direction} {e.snapshot.plan_direction==="up"?"↑":"↓"}</Text><UnderlayInfo underlay={e.snapshot.underlay} unit={e.unit}/></View>}
     <View style={{height:Math.max(220,Math.min(350,height-290)),minWidth:0}}>
      {e.preview?<Section preview={e.preview} unit={e.unit} direction={e.snapshot!.plan_direction} onDrag={(k,value)=>e.edit(k,value,undefined,"ft")}/>:<Text className="text-muted">{e.busy?"Capturing…":e.error?"Correct the range or refresh the capture.":"Preparing section…"}</Text>}
     </View>
@@ -60,7 +60,7 @@ export function ViewRangeScreen(){
     <GroupBox title="View Range">
      <Table aria-label="Level-relative planes">
       <colgroup><col style={{width:"24%"}}/><col style={{width:"26%"}}/><col style={{width:"30%"}}/><col style={{width:"20%"}}/></colgroup>
-      <thead><TableRow><TableHead>Plane</TableHead><TableHead>Level</TableHead><TableHead>Offset ({e.unit})</TableHead><TableHead title="Unlimited">Unlimited</TableHead></TableRow></thead>
+      <thead><TableRow><TableHead>Plane</TableHead><TableHead>Level</TableHead><TableHead>{e.unit==="ft"?"Offset":"Offset ("+e.unit+")"}</TableHead><TableHead title="Unlimited">Unlimited</TableHead></TableRow></thead>
       <tbody>{e.preview&&keys.map(k=><RangeRow key={k+"-"+e.inputReset} name={k} plane={{...e.preview!.proposed[k],unlimited:e.request!.edits[k].unlimited}} unit={e.unit} value={e.preview!.display_offsets[k]} limits={e.preview!.display_limits} disabled={e.busy} onEdit={(v,u)=>e.edit(k,v,u)} onInvalid={invalid=>e.setInputInvalid(k,invalid)}/>)}</tbody>
      </Table>
     </GroupBox>
@@ -71,6 +71,6 @@ export function ViewRangeScreen(){
     </Details>}
    </View>
   </View>
-  {e.proposal&&<ApplyReview key={e.proposal.proposal_id} proposal={e.proposal} context={context} busy={e.busy} onApply={()=>void e.applyConfirmed()}/>}
+  {e.proposal&&<ApplyReview key={e.proposal.proposal_id} proposal={e.proposal} unit={e.unit} context={context} busy={e.busy} onApply={()=>void e.applyConfirmed()}/>}
  </DialogLayout>;
 }

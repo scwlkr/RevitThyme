@@ -30,6 +30,8 @@ Follow [UI-GUIDELINES.md](UI-GUIDELINES.md). Compose these controls for new tool
 
 The components own presentation, semantics and control interaction. Tool state, numeric parsing, Revit validation, bridge calls and confirmation authority belong to the feature. Rounded display text must not replace untouched internal values.
 
+Reusable length formatting/parsing is in desktop/src/lib/length.ts. Visual View Range defaults to feet/inches at nearest 1/8 inch. Reuse this helper for length fields and labels; keep raw captured feet as the model source. Metric choices remain available.
+
 ## Theme and platform boundary
 
 Neutral light/dark colors, focus, control density and desktop table/form styles live in [global.css](../desktop/src/global.css). NativeWind reads the semantic color variables through [tailwind.config.cjs](../desktop/tailwind.config.cjs). Update these shared defaults once when refining the suite's appearance.

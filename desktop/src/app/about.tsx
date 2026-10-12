@@ -6,6 +6,7 @@ export default function About(){
   footer={<Link href="/" className="text-thyme text-[13px] underline">Back to Visual View Range</Link>}>
   <GroupBox title="Editing">
    <Label>Drag a plane or enter its level-relative offset. Use the slice axis and position to explore the section. The section elevation axis is in feet; plane values use the selected display units.</Label>
+   <Label>Feet and inches are the default, rounded to the nearest 1/8 inch. Enter 5' 3 1/8", 3 1/8", or decimal feet. Display rounding and focusing a field do not change untouched captured values.</Label>
    <Label>Review Apply compares the original and proposed range. Native Apply requires target/range confirmation and creates one Revit Undo item for a change. It never saves or synchronizes.</Label>
    <Label>Reset, Cancel and Escape discard preview edits. After Apply, use Revit Undo to restore the model.</Label>
   </GroupBox>

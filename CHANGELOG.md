@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - Imperial View Range units - 2026-10-12
+
+- Default Visual View Range to feet/inches with reduced fractional inches rounded to 1/8 inch. Accept architectural entry, negative offsets and decimal feet; use eighth-inch imperial slider/plane-drag increments and consistent section/review/outcome labels. Retain metric options and exact untouched Revit values behind rounded display.
+
 ## Unreleased - Native Revit 27.3 cutover candidate - 2026-10-12
 
 - Target the installed Revit 27.3.0.28 in native preview adapter 0.2.6; retain the previous 27.2 bundle separately. Add native startup/runtime evidence and a guarded CLI cutover with immutable package checks, registration/config backups, reversible pyRevit disable and exact native test MCP selection. Preserve running documents and source files; broader native suite operations remain separate implementation work.

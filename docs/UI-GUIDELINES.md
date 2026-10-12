@@ -17,6 +17,7 @@ The owner supplied Revit's Object Styles, Manage Links and Transfer Project Stan
 - Use short labels. Put explanations in tooltips, a Help link or expandable details. Show necessary warnings and actionable errors when their conditions apply, rather than filling the normal view with repeated explanatory text.
 - Place conventional actions consistently, usually at the lower right. Use familiar labels such as OK, Cancel and Apply when they accurately describe the behavior. Keep enabled/disabled states and visible keyboard focus clear.
 - Maintain readable text, keyboard navigation, accessible labels and adequate control targets while tightening spacing.
+- Visual View Range defaults to feet/inches, with reduced fractions at nearest 1/8 inch. Use the same length formatter for fields, section labels, review and outcomes. Preserve exact untouched model values behind rounded display; imperial offset edits, sliders and plane drags use 1/8-inch increments.
 
 ## Applying this to Visual View Range
 

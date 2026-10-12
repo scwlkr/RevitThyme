@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - Isolated native test MCP - 2026-10-12
+
+- Add a separate opt-in native lab adapter and Rust stdio MCP server for Visual View Range. Share the existing native model and Rust feature logic; pin the process/session and exact disposable document, reject wrong/reopened targets and keep credentials in Windows Credential Manager. The first prepared run is read-only. Add CLI preparation, guarded installation/startup and offline Windows MCP/transaction/target tests. Revit 27.3.0.28 SDK compilation is separate from pending installation and actual-Revit qualification. Preserve the working Revit session, legacy suite and external TimberFold.
+
 ## Unreleased - Local ribbon cleanup - 2026-10-06
 
 - Place native Visual View Range under RevitThyme > View Tools, sharing the existing suite tab and creating it when pyRevit is absent. Keep the preview support restriction visible in the tooltip and guide. Adapter 0.2.5 retains protocol 2 and existing model operations; preserve the original 0.3.0-preview.1 candidate separately. This cleanup change remains local and unmerged.

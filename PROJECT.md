@@ -49,6 +49,8 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 
 ## Current state and evidence
 
+WLK-229 implements a separate native test adapter and Rust stdio MCP connection, sharing the existing native Visual View Range code. The accepted test design has no pyRevit dependency, a unique process/session pipe and an exact fixture/document guard in Revit API callbacks. The first prepared run is read-only. SDK compilation and Windows MCP/guard tests are offline evidence; installation, fixture creation and actual simultaneous-instance qualification require the exact steps in [the native lab guide](docs/NATIVE-REVIT-LAB.md). The installed executable and SDK are now 27.3.0.28; historical 27.2 results remain historical. Preserve the working session and installed tools.
+
 | Item | State |
 | --- | --- |
 | Project docs and local tool registry | Created in this foundation |
@@ -58,7 +60,7 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 | TimberFold implementation | External checkout; read-only inspection integrated, generation not integrated |
 | RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
 | Native C# host | Minimal .NET 10 replacement preview implemented; bounded actual Visual View Range evidence in verification/rust-view-range-m3.md; full suite parity unimplemented |
-| RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; dedicated MCP server planned |
+| RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; native test-only MCP source implemented on WLK-229, actual-Revit lab installation pending |
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
 | Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 

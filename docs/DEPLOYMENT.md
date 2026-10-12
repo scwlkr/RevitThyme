@@ -1,5 +1,7 @@
 # Install and release
 
+The [native test lab](NATIVE-REVIT-LAB.md) has its own locally prepared bundle, add-in manifest and `revitthyme_test` MCP entry. Preparation installs nothing. Follow its exact approval steps before installation, launching a new Revit process or creating/saving its fixture. Keep this test-only build separate from the existing release candidates and working tools.
+
 Visual View Range 0.3.0-preview.1 is prepared separately from the v0.2.0 pyRevit release. Read the [native usage/installation/recovery guide](VISUAL-VIEW-RANGE.md) and [release notes](VIEW-RANGE-RELEASE-NOTES.md). After full exact-clean CI, run `project prepare-view-range-release --ci-report <report>` to create a local unpublished binary ZIP, tracked-source ZIP and checksums. The driver requires matching HEAD/package/CI revisions and verifies every binary ZIP entry. It never registers, replaces or removes an add-in, publishes a release or includes private qualification evidence.
 
 The bounded native qualification covers one current Windows/Revit 27.2.0.39 host. The pyRevit-disabled trial qualifies this feature, while the legacy suite stays installed. Multiple instances and another machine remain unqualified. Dependency notice clearance, signing and installer recovery remain distribution gates. The pyRevit installer below applies only to the existing v0.2.0 suite; do not use it for the native adapter.

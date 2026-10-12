@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using RevitThyme.Native;
 
 namespace RevitThyme.RevitAdapter;
-public sealed class Host : IExternalApplication, IExternalEventHandler
+public sealed class Host : IExternalApplication, IExternalEventHandler, IHostContext
 {
     internal static Host? Instance;
     internal Session Session { get; } = new();
@@ -27,6 +27,13 @@ public sealed class Host : IExternalApplication, IExternalEventHandler
         return id;
     }
     private string PipeName => $"RevitThyme-{ProcessId}-{SessionId}";
+    int IHostContext.ProcessId => ProcessId;
+    string IHostContext.StartTicks => StartTicks;
+    string IHostContext.SessionId => SessionId;
+    uint IHostContext.Revision => Session.Revision;
+    string IHostContext.DocumentId(Document document) => DocumentId(document);
+    void IHostContext.AssertDocument(Document document) { }
+    void IHostContext.AssertWrite() { }
     public Result OnStartup(UIControlledApplication app)
     {
         var version = FileVersionInfo.GetVersionInfo(Process.GetCurrentProcess().MainModule!.FileName).FileVersion;

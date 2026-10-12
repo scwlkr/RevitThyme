@@ -4,6 +4,8 @@
 
 A Revit tool suite with a pyRevit extension and a native Visual View Range preview.
 
+A separate [native test MCP connection](docs/NATIVE-REVIT-LAB.md) is implemented for an isolated Revit session. It shares the native Visual View Range code, pins one process and one disposable model, and needs no pyRevit bridge. Offline Windows checks pass; installation and actual-Revit qualification are pending. The first prepared run allows reads and proposals only.
+
 **Visual View Range 0.3.0-preview.1** is an unpublished candidate with native capture, interactive sections and reviewed Apply/Undo. Bounded checks 1–10 passed on the current Revit 2027.2 host, including startup/use with pyRevit disabled. Unresolved Above/Below references require named levels. See the [user guide](docs/VISUAL-VIEW-RANGE.md), [release notes](docs/VIEW-RANGE-RELEASE-NOTES.md) and [separate qualification evidence](verification/rust-view-range-m3-remaining.md). The existing tools remain installed; broader suite replacement and second-computer distribution are separate work.
 
 **Version 0.2.0** provides a RevitThyme ribbon, shared read-only operations, a versioned ZIP and per-user installer. This is an independent extension built on pyRevit; no upstream implementation or Revit binaries are bundled.

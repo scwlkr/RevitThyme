@@ -1,5 +1,8 @@
 mod api;
 mod contract;
+mod lab;
+mod lab_credential;
+mod mcp;
 mod native;
 mod native_service;
 mod state;
@@ -11,6 +14,9 @@ use utoipa::OpenApi;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    if std::env::args().nth(1).as_deref() == Some("--lab-mcp") {
+        return lab::run().await;
+    }
     if std::env::args().nth(1).as_deref() == Some("--openapi") {
         println!("{}", Contract::openapi().to_pretty_json()?);
         return Ok(());

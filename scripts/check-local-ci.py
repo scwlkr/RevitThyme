@@ -81,6 +81,7 @@ def main():
         run("Release package and installer", [str(ROOT / "project.cmd"), "check-release"])
         run("M1 Rust and typed feature contracts", [str(ROOT / "project.cmd"), "check-m1"], timeout=180)
         run("M2 native Windows build/pipe/orchestration", [str(ROOT / "project.cmd"), "check-m2"], timeout=180)
+        run("Isolated native lab MCP/fixture guards", [str(ROOT / "project.cmd"), "check-revit-lab"], timeout=300)
         run("M1 Windows application package", [str(ROOT / "project.cmd"), "package-m1"], timeout=300)
         run("M1 actual packaged interaction", [str(ROOT / "project.cmd"), "check-m1-ui"], timeout=180)
         run("M2 packaged native orchestration", [str(ROOT / "project.cmd"), "m2", "ui"], timeout=180)

@@ -2,7 +2,7 @@
 
 WLK-229 adds a local test MCP connection using the native RevitThyme adapter. It has no Python or pyRevit dependency. The first prepared run allows capture, preview and proposals. Apply is hidden and blocked until a separately approved write-enabled run is configured.
 
-This is implemented source with offline Windows checks. It is not installed or qualified in actual Revit yet. The installed SDK and Revit executable are **27.3.0.28**. Earlier Visual View Range results on 27.2.0.39 do not qualify this build.
+This is implemented source with offline Windows checks. The user approved the separate test installation on 2026-10-12; actual-Revit qualification is in progress. The installed SDK and Revit executable are **27.3.0.28**. Earlier Visual View Range results on 27.2.0.39 do not qualify this build.
 
 ## How the connection stays separate
 
@@ -36,9 +36,9 @@ The preparation contains:
 | `mcp.toml` | New `revitthyme_test` MCP setting to review |
 | `bundle/` | Native lab adapter, shared native core and Rust MCP executable |
 
-## Exact steps that need approval
+## Installation and first-run steps
 
-The repository's `AGENTS.md` requires approval before installing registration/code or creating/changing a disposable Revit fixture. After reviewing one prepared run, approve these steps for that exact folder:
+The user approved installation and the first disposable fixture on 2026-10-12, and removed the blanket exact-step approval requirement from `AGENTS.md`. These steps describe the bounded setup. Keep the working instance and models preserved; never qualify against a live job.
 
 1. Back up the user's Codex `config.toml` into that ignored run folder. Add the `revitthyme_test` entry from `mcp.toml`, leaving existing MCP entries in place. Refuse an existing entry instead of silently replacing it.
 2. Install only the new per-user `RevitThyme.Lab.addin` manifest under `C:\Users\scwlk\AppData\Roaming\Autodesk\Revit\Addins\2027`. It references the reviewed immutable local bundle. Verify the physical destination and copied manifest; preserve all existing add-ins.
@@ -46,7 +46,7 @@ The repository's `AGENTS.md` requires approval before installing registration/co
 4. In that new, empty process, create an imperial project with two named levels, one floor plan and a simple solid. Save it once as that run's new `RevitThyme-Test.rvt`, refusing overwrite. Close only that new document and reopen it to activate the floor plan. These startup steps require the explicit fixture creation/save/close/reopen approval.
 5. Verify the native binding, MCP initialization, tool list, capture, preview and proposal against the test model. Record actual Revit results separately. The first run opens no test transactions after fixture setup, and provides no save, sync, close, delete or arbitrary-code MCP tools.
 
-After those steps are approved, installation and startup are:
+Installation and startup use an explicit prepared folder and the approved-operation flag:
 
 ```powershell
 .\project.cmd revit-lab install <absolute-prepared-run-folder> --approved
@@ -55,6 +55,8 @@ After those steps are approved, installation and startup are:
 ```
 
 Adding a new MCP entry can require Codex to reconnect/reload the server configuration. Until that happens, the same stdio executable can be checked directly. The server exits if its exact binding or credential is unavailable. Check the run's `binding.error.json` after a startup failure; keep any partial fixture for review.
+
+To rotate a stopped test session, prepare a new run and install it with `--approved --replace-run <exact-previous-run-folder>`. The installer refuses a running prior test process, requires its exact saved MCP entry and manifest, retains both backups and changes only that test connection. The old binding never points to a new process. Startup waits for document opening to finish, requests the floor plan on a later idle cycle, and publishes the binding only after that plan becomes active.
 
 ## Current limits
 

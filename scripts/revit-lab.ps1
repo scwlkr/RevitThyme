@@ -1,6 +1,7 @@
 param(
     [Parameter(Mandatory)][ValidateSet('install','start','status')][string]$Action,
     [Parameter(Mandatory)][string]$RunFolder,
+    [string]$PreviousRunFolder,
     [switch]$Approved
 )
 $ErrorActionPreference = 'Stop'
@@ -36,11 +37,30 @@ if ($Action -eq 'install') {
     $null = Assert-NativeHostPath $addin
     $null = Assert-NativeHostPath $codexConfig
     $existing = [IO.File]::ReadAllText($codexConfig)
-    if ($existing -match '(?m)^\[mcp_servers\.revitthyme_test(\]|\.)') { throw 'Test MCP entry already exists. Review it; never silently replace a connection.' }
+    $nextConfig = $existing
+    $priorManifest = $null
+    if ($PreviousRunFolder) {
+        $previous = [IO.Path]::GetFullPath($PreviousRunFolder)
+        $previousId = [Guid]::Empty
+        if ($previous -eq $folder -or (Split-Path $previous -Parent) -ne $labRoot -or -not [Guid]::TryParse((Split-Path $previous -Leaf), [ref]$previousId)) { throw 'Replacement requires the exact previous lab run folder.' }
+        $null = Assert-NativeHostPath $previous
+        $oldLaunch = Join-Path $previous 'launch.json'
+        if (Test-Path -LiteralPath $oldLaunch) {
+            $old = Get-Content -LiteralPath $oldLaunch -Raw | ConvertFrom-Json
+            $running = Get-Process -Id $old.pid -ErrorAction SilentlyContinue
+            if ($running -and $running.StartTime.ToUniversalTime().Ticks.ToString() -eq $old.start_ticks) { throw 'Previous test Revit process is still running. Do not replace its connection.' }
+        }
+        $oldSnippet = [IO.File]::ReadAllText((Join-Path $previous 'mcp.toml'))
+        $priorManifest = [IO.File]::ReadAllText((Join-Path $previous 'RevitThyme.Lab.addin'))
+        if (-not (Test-Path -LiteralPath $addin) -or [IO.File]::ReadAllText($addin) -ne $priorManifest -or [regex]::Matches($existing,[regex]::Escape($oldSnippet)).Count -ne 1) { throw 'Existing lab registration/MCP entry does not match the exact previous run. Refusing replacement.' }
+        $nextConfig = $existing.Replace($oldSnippet, '')
+        Copy-Item -LiteralPath $addin -Destination (Join-Path $folder 'RevitThyme.Lab.addin.before-install')
+    }
+    if ($nextConfig -match '(?m)^\[mcp_servers\.revitthyme_test(\]|\.)') { throw 'Test MCP entry already exists. Review it; never silently replace a connection.' }
     $source = Join-Path $folder 'RevitThyme.Lab.addin'
     [xml]$manifest = [IO.File]::ReadAllText($source)
     if ($manifest.RevitAddIns.AddIn.Assembly -ne (Join-Path $folder 'bundle\RevitThyme.LabAdapter.dll') -or $manifest.RevitAddIns.AddIn.FullClassName -ne 'RevitThyme.Lab.Host' -or $manifest.RevitAddIns.AddIn.AddInId -ne '45F4DB43-1E27-4C0F-A629-0DCC5B43FB18') { throw 'Prepared registration changed.' }
-    if (Test-Path -LiteralPath $addin) { throw 'Lab registration already exists. Review and back it up before replacement.' }
+    if ((Test-Path -LiteralPath $addin) -and -not $PreviousRunFolder) { throw 'Lab registration already exists. Review and back it up before replacement.' }
     $backup = Join-Path $folder 'config.toml.before-install'
     Copy-Item -LiteralPath $codexConfig -Destination $backup -ErrorAction Stop
     $snippet = [IO.File]::ReadAllText((Join-Path $folder 'mcp.toml'))
@@ -52,13 +72,14 @@ if ($Action -eq 'install') {
     try {
         Copy-Item -LiteralPath $source -Destination $addin -ErrorAction Stop
         if ([IO.File]::ReadAllText($codexConfig) -ne $existing) { throw 'Codex configuration changed during installation. Retry only after review.' }
-        [IO.File]::WriteAllText($codexConfig, $existing.TrimEnd()+"`n`n"+$snippet, [Text.UTF8Encoding]::new($false))
+        [IO.File]::WriteAllText($codexConfig, $nextConfig.TrimEnd()+"`n`n"+$snippet, [Text.UTF8Encoding]::new($false))
         $wroteConfig = $true
         $null = Assert-NativeHostPath $addin
         if ((Get-FileHash -LiteralPath $addin).Hash -ne (Get-FileHash -LiteralPath $source).Hash) { throw 'Native registration readback mismatch.' }
     } catch {
         if ($wroteConfig) { [IO.File]::WriteAllText($codexConfig, $existing, [Text.UTF8Encoding]::new($false)) }
-        if (Test-Path -LiteralPath $addin) { Remove-Item -LiteralPath $addin }
+        if ($priorManifest) { [IO.File]::WriteAllText($addin, $priorManifest, [Text.UTF8Encoding]::new($false)) }
+        elseif (Test-Path -LiteralPath $addin) { Remove-Item -LiteralPath $addin }
         throw
     }
     @{status='installed';registration=$addin;mcp_config=$codexConfig;backup=$backup;run=$folder} | ConvertTo-Json
@@ -69,7 +90,7 @@ if ($Action -eq 'install') {
     $receipt = Join-Path $folder 'launch.json'
     if (Test-Path -LiteralPath $receipt) { throw 'Run already launched. Inspect status before any retry.' }
     # Only this child inherits the lab flag. Never restart, close or kill the working instance.
-    $process = Start-Process -FilePath $revit -PassThru -WindowStyle Hidden -Environment @{REVITTHYME_LAB_CONFIG=$configPath}
+    $process = Start-Process -FilePath $revit -PassThru -WindowStyle Hidden -Environment @{REVITTHYME_LAB_CONFIG=$configPath} -RedirectStandardOutput (Join-Path $folder 'launch.stdout.log') -RedirectStandardError (Join-Path $folder 'launch.stderr.log')
     @{status='launched';pid=$process.Id;start_ticks=$process.StartTime.ToUniversalTime().Ticks.ToString();run=$folder;fixture_creation='pending';actual_revit_verified=$false} | ConvertTo-Json | Set-Content -LiteralPath $receipt -Encoding utf8
     Get-Content -LiteralPath $receipt -Raw
 }

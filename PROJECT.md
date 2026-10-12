@@ -49,7 +49,9 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 
 ## Current state and evidence
 
-WLK-229 implements a separate native test adapter and Rust stdio MCP connection, sharing the existing native Visual View Range code. The accepted test design has no pyRevit dependency, a unique process/session pipe and an exact fixture/document guard in Revit API callbacks. The first prepared run is read-only. SDK compilation and Windows MCP/guard tests are offline evidence; installation, fixture creation and actual simultaneous-instance qualification require the exact steps in [the native lab guide](docs/NATIVE-REVIT-LAB.md). The installed executable and SDK are now 27.3.0.28; historical 27.2 results remain historical. Preserve the working session and installed tools.
+On 2026-10-12 the user approved installing the native test connection and creating/saving/reopening its new disposable fixture. The user also removed the blanket exact-step installation/fixture approval sentence from `AGENTS.md`. This does not authorize changes to working models, legacy retirement, publication or distribution. Test-run repair/rotation preserves prior fixtures and replaces only the identified test connection with backups.
+
+WLK-229 implements a separate native test adapter and Rust stdio MCP connection, sharing the existing native Visual View Range code. The accepted test design has no pyRevit dependency, a unique process/session pipe and an exact fixture/document guard in Revit API callbacks. The first prepared run is read-only. SDK compilation and Windows MCP/guard tests are offline evidence; approved installation and actual simultaneous-instance qualification follow [the native lab guide](docs/NATIVE-REVIT-LAB.md). The installed executable and SDK are now 27.3.0.28; historical 27.2 results remain historical. Preserve the working session and installed tools.
 
 | Item | State |
 | --- | --- |

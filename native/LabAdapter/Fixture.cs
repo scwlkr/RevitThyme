@@ -5,7 +5,7 @@ namespace RevitThyme.Lab;
 internal static class Fixture
 {
     // Only the separately approved startup setting calls this. Never overwrite or open a source model.
-    public static void Create(UIApplication app, string path)
+    public static UIDocument Create(UIApplication app, string path)
     {
         LabConfig.PlainPath(path);
         if (File.Exists(path) || app.Application.Documents.Size != 0)
@@ -34,8 +34,7 @@ internal static class Fixture
             if (transaction.Commit() != TransactionStatus.Committed) throw new InvalidDataException("Fixture transaction did not commit.");
             doc.SaveAs(path, new SaveAsOptions { OverwriteExistingFile = false });
             doc.Close(false); // Close only our new saved fixture so it can be activated through the UI API.
-            var opened = app.OpenAndActivateDocument(path);
-            opened.ActiveView = new FilteredElementCollector(opened.Document).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().Single(v => v.Name == "RevitThyme Lab Plan");
+            return app.OpenAndActivateDocument(path);
         }
         catch
         {

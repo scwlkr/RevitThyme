@@ -2,6 +2,8 @@
 
 ## Unreleased - Isolated native test MCP - 2026-10-12
 
+- Correct actual-Revit startup timing: wait for document opening, request the test plan asynchronously on a later idle cycle, and publish the connection after activation. Retain failed fixtures, support exact prior-run connection rotation with backups, and redirect the test process output so the launcher can exit. Remove the blanket installation/fixture approval sentence from AGENTS.md at the user's request; preserve the live-job qualification prohibition.
+
 - Add a separate opt-in native lab adapter and Rust stdio MCP server for Visual View Range. Share the existing native model and Rust feature logic; pin the process/session and exact disposable document, reject wrong/reopened targets and keep credentials in Windows Credential Manager. The first prepared run is read-only. Add CLI preparation, guarded installation/startup and offline Windows MCP/transaction/target tests. Revit 27.3.0.28 SDK compilation is separate from pending installation and actual-Revit qualification. Preserve the working Revit session, legacy suite and external TimberFold.
 
 ## Unreleased - Local ribbon cleanup - 2026-10-06

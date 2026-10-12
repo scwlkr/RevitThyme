@@ -18,7 +18,7 @@ public sealed class Host : IExternalApplication, IExternalEventHandler, IHostCon
     private ExternalEvent? externalEvent;
     private PipeServer? pipe;
     private string? credentialTarget;
-    private bool initialized, stopping;
+    private bool opened, viewRequested, initialized, stopping;
     public int ProcessId { get; } = Environment.ProcessId;
     public string StartTicks { get; } = Process.GetCurrentProcess().StartTime.ToUniversalTime().Ticks.ToString();
     public string SessionId { get; } = Guid.NewGuid().ToString();
@@ -53,13 +53,26 @@ public sealed class Host : IExternalApplication, IExternalEventHandler, IHostCon
         if (stopping) return;
         if (!initialized)
         {
-            initialized = true;
             try
             {
                 var app = (UIApplication)sender!;
-                if (config!.CreateFixture) Fixture.Create(app, config.FixturePath);
-                else app.OpenAndActivateDocument(config.FixturePath);
+                var settings = config!;
+                if (!opened)
+                {
+                    var document = settings.CreateFixture ? Fixture.Create(app, settings.FixturePath) : app.OpenAndActivateDocument(settings.FixturePath);
+                    AssertDocument(document.Document);
+                    opened = true; return;
+                }
                 AssertDocument(app.ActiveUIDocument.Document);
+                if (!viewRequested)
+                {
+                    var view = new FilteredElementCollector(app.ActiveUIDocument.Document).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().Single(v => v.Name == "RevitThyme Lab Plan");
+                    // OpenAndActivateDocument temporarily forbids view changes. Wait an idle cycle,
+                    // request the asynchronous change, then publish only after Revit activates it.
+                    app.ActiveUIDocument.RequestViewChange(view); viewRequested = true; return;
+                }
+                if (app.ActiveUIDocument.ActiveView.Name != "RevitThyme Lab Plan") return;
+                initialized = true;
                 string name = $"RevitThymeLab-{ProcessId}-{SessionId}";
                 credentialTarget = name;
                 string secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();
@@ -68,9 +81,9 @@ public sealed class Host : IExternalApplication, IExternalEventHandler, IHostCon
                 pipe.SetCredential(secret); _ = pipe.Run();
                 // Non-secret discovery is immutable for this run. MCP verifies the OS pipe PID.
                 var binding = new { protocol = 2, process_id = ProcessId, process_start_ticks = StartTicks,
-                    session_id = SessionId, pipe = name, credential_target = name, fixture_path = config.FixturePath,
-                    allow_writes = config.AllowWrites, revit_version = config.RevitVersion };
-                using var output = new FileStream(config.BindingPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+                    session_id = SessionId, pipe = name, credential_target = name, fixture_path = settings.FixturePath,
+                    allow_writes = settings.AllowWrites, revit_version = settings.RevitVersion };
+                using var output = new FileStream(settings.BindingPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
                 JsonSerializer.Serialize(output, binding, Wire.Json);
             }
             catch (Exception ex)

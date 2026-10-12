@@ -49,9 +49,10 @@ try{
  }else if(["install","start","status"].includes(action)){
   const folder=process.argv[3];if(!folder)throw Error("Explicit prepared run folder required.");
   const approved=process.argv[4]==="--approved";
-  if(process.argv.length!==(approved?5:4))throw Error("Unexpected arguments.");
+  const previous=action==="install"&&approved&&process.argv[5]==="--replace-run"?process.argv[6]:null;
+  if(process.argv.length!==(previous?7:approved?5:4))throw Error("Unexpected arguments.");
   if(action!=="status"&&!approved)throw Error("Installation and fixture startup require exact-step user approval; then pass --approved.");
-  run("pwsh",["-NoProfile","-NonInteractive","-File","scripts/revit-lab.ps1","-Action",action,"-RunFolder",folder,...(approved?["-Approved"]:[])]);
+  run("pwsh",["-NoProfile","-NonInteractive","-File","scripts/revit-lab.ps1","-Action",action,"-RunFolder",folder,...(approved?["-Approved"]:[]),...(previous?["-PreviousRunFolder",previous]:[])]);
  }else if(action==="help")console.log("project revit-lab check | prepare | status <run-folder> | verify <run-folder> | install <run-folder> --approved | start <run-folder> --approved\nPrepare builds local artifacts only. Install/start need prior exact-step approval. First live run is read-only.");
  else throw Error("Unknown Revit lab command.");
 }catch(e){console.error(e.message);process.exitCode=1;}

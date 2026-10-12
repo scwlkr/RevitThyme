@@ -2,7 +2,7 @@
 
 WLK-229 adds a local test MCP connection using the native RevitThyme adapter. It has no Python or pyRevit dependency. The first prepared run allows capture, preview and proposals. Apply is hidden and blocked until a separately approved write-enabled run is configured.
 
-This is implemented source with offline Windows checks. The user approved the separate test installation on 2026-10-12; actual-Revit qualification is in progress. The installed SDK and Revit executable are **27.3.0.28**. Earlier Visual View Range results on 27.2.0.39 do not qualify this build.
+The user approved the separate test installation on 2026-10-12. Eleven read-only checks passed inside **Revit 27.3.0.28** with the working instance still running. See the [verification record](../verification/native-revit-lab.md). Earlier Visual View Range results on 27.2.0.39 do not qualify this build or its model-writing behavior.
 
 ## How the connection stays separate
 
@@ -64,6 +64,6 @@ This first connection tests Visual View Range. Other suite features need named o
 
 Two Revit processes separate API requests and documents. They still share this Windows desktop. Foreground mouse/keyboard UI tests can interrupt the user; schedule those tests when the user is idle, or use a separate Windows session or machine for full UI separation. Native API tests do not require bringing the test window to the front.
 
-Do not use this source check as actual-Revit evidence. Live fixture creation, 2027.3 behavior and simultaneous working/test isolation remain acceptance gates. Normal shutdown removes the lab credential; a crash can leave it until Windows logoff. Uninstalling or changing the saved MCP entry/manifest requires a reviewed bounded change and its retained backup.
+Source/Windows offline checks and actual-Revit checks retain separate reports. Actual 2027.3 fixture creation, read-only capture/preview/proposal and distinct working/test process identities are verified. Model-writing qualification, foreground UI use and live wrong-file/reopen negative trials remain separate work. Normal shutdown removes the lab credential; a crash can leave it until Windows logoff. Uninstalling or changing the saved MCP entry/manifest requires a reviewed bounded change and its retained backup.
 
 MCP follows the official [stdio transport](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports) and [tools interface](https://modelcontextprotocol.io/specification/2025-11-25/server/tools). Stdout contains JSON-RPC messages only. The test adapter uses Autodesk ExternalEvent for queued API requests.

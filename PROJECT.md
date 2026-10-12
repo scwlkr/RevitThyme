@@ -62,7 +62,7 @@ WLK-229 implements a separate native test adapter and Rust stdio MCP connection,
 | TimberFold implementation | External checkout; read-only inspection integrated, generation not integrated |
 | RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
 | Native C# host | Minimal .NET 10 replacement preview implemented; bounded actual Visual View Range evidence in verification/rust-view-range-m3.md; full suite parity unimplemented |
-| RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; native test-only MCP source implemented on WLK-229, actual-Revit lab installation pending |
+| RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; WLK-229 native test MCP installed with 11 actual-Revit 27.3 read-only checks passed, broader suite MCP parity remains separate |
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
 | Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 

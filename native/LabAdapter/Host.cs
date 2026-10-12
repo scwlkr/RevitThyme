@@ -73,6 +73,15 @@ public sealed class Host : IExternalApplication, IExternalEventHandler, IHostCon
                 }
                 if (app.ActiveUIDocument.ActiveView.Name != "RevitThyme Lab Plan") return;
                 initialized = true;
+                var preview = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(a => a.GetName().Name == "RevitThyme.RevitAdapter");
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(a => (a.GetName().Name ?? "").Contains("pyRevit", StringComparison.OrdinalIgnoreCase)).Select(a => a.GetName().Name).ToArray();
+                File.WriteAllText(Path.ChangeExtension(settings.BindingPath, ".runtime.json"), JsonSerializer.Serialize(new {
+                    process_id = ProcessId, process_start_ticks = StartTicks, revit_version = settings.RevitVersion,
+                    pyrevit_assemblies = assemblies, preview_assembly = preview?.Location,
+                    preview_version = preview?.GetName().Version?.ToString(),
+                    preview_active = preview?.GetType("RevitThyme.RevitAdapter.Host")?.GetField("Instance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?.GetValue(null) is not null,
+                    document_path = app.ActiveUIDocument.Document.PathName, document_modified = app.ActiveUIDocument.Document.IsModified
+                }, Wire.Json));
                 string name = $"RevitThymeLab-{ProcessId}-{SessionId}";
                 credentialTarget = name;
                 string secret = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)).ToLowerInvariant();

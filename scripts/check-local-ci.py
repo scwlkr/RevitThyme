@@ -82,6 +82,7 @@ def main():
         run("M1 Rust and typed feature contracts", [str(ROOT / "project.cmd"), "check-m1"], timeout=180)
         run("M2 native Windows build/pipe/orchestration", [str(ROOT / "project.cmd"), "check-m2"], timeout=180)
         run("Isolated native lab MCP/fixture guards", [str(ROOT / "project.cmd"), "check-revit-lab"], timeout=300)
+        run("Native MCP cutover config preservation", [str(ROOT / "project.cmd"), "native-cutover", "check"])
         run("M1 Windows application package", [str(ROOT / "project.cmd"), "package-m1"], timeout=300)
         run("M1 actual packaged interaction", [str(ROOT / "project.cmd"), "check-m1-ui"], timeout=180)
         run("M2 packaged native orchestration", [str(ROOT / "project.cmd"), "m2", "ui"], timeout=180)

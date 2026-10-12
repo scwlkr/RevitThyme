@@ -2,6 +2,7 @@ use crate::Route;
 
 #[rustfmt::skip]
 pub const ROUTES: &[Route] = &[
+    Route { name: "native-cutover", program: "pwsh", args: &["-NoProfile", "-NonInteractive", "-File", "scripts/native-cutover.ps1"] },
     Route { name: "revit-lab", program: "node", args: &["scripts/revit-lab.mjs"] },
     Route { name: "check-revit-lab", program: "node", args: &["scripts/revit-lab.mjs", "check"] },
     Route { name: "prepare-view-range-release", program: "python", args: &["-X", "utf8", "scripts/prepare-view-range-release.py"] },

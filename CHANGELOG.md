@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased - Native Revit 27.3 cutover candidate - 2026-10-12
+
+- Target the installed Revit 27.3.0.28 in native preview adapter 0.2.6; retain the previous 27.2 bundle separately. Add native startup/runtime evidence and a guarded CLI cutover with immutable package checks, registration/config backups, reversible pyRevit disable and exact native test MCP selection. Preserve running documents and source files; broader native suite operations remain separate implementation work.
+
 ## Unreleased - Compact dialogs and owned UI components - 2026-10-12
 
 - Restyle the Visual View Range desktop candidate as a compact Autodesk-style utility dialog: neutral light/dark surfaces, aligned plane/level/offset rows, section beside controls, concise labels and fixed bottom actions. Move detailed help and diagnostics into Help/disclosures, retain conditional warnings and reveal the Apply comparison when requested. Display offsets without floating-point noise while preserving untouched native values.

@@ -37,7 +37,7 @@ public sealed class Host : IExternalApplication, IExternalEventHandler, IHostCon
     public Result OnStartup(UIControlledApplication app)
     {
         var version = FileVersionInfo.GetVersionInfo(Process.GetCurrentProcess().MainModule!.FileName).FileVersion;
-        if (version != "27.2.0.39") return Result.Failed;
+        if (version != "27.3.0.28") return Result.Failed;
         Instance = this; externalEvent = ExternalEvent.Create(this);
         pipe = new(PipeName, ProcessId, StartTicks, SessionId, Session, Schedule);
         _ = pipe.Run();
@@ -49,7 +49,7 @@ public sealed class Host : IExternalApplication, IExternalEventHandler, IHostCon
         catch (Autodesk.Revit.Exceptions.ArgumentException) { }
         var panel = app.CreateRibbonPanel("RevitThyme", "View Tools");
         var button = (PushButton)panel.AddItem(new PushButtonData("RevitThyme.ViewRange", "Visual\nView Range", Assembly.GetExecutingAssembly().Location, typeof(Launch).FullName!));
-        button.ToolTip = "Visual View Range preview: capture a supported plan, review changes, then Apply. Revit 2027.2; unresolved Above/Below references require named levels.";
+        button.ToolTip = "Visual View Range preview: capture a supported plan, review changes, then Apply. Revit 2027.3; unresolved Above/Below references require named levels.";
         return Result.Succeeded;
     }
     public Result OnShutdown(UIControlledApplication app)

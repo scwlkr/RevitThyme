@@ -9,6 +9,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 ## Accepted direction
 
 - Product name: **RevitThyme**.
+- On 2026-10-12 the user requested native Visual View Range verification and reversible pyRevit disconnection for future Revit work. WLK-233 updates the candidate to installed Revit 27.3.0.28 and owns the loader/MCP cutover. Preserve old bundles, Python sources, TimberFold and rollback records; do not use legacy Routes/Jev as a fallback. General working-model MCP operations and the pyRevit-based TimberFold ribbon still need native implementations. The working session has unsaved changes and must remain open unless a specific save/close decision is supplied. See [native cutover](docs/NATIVE-CUTOVER.md).
 - Visual identity: an agricultural, eco and plant feel, using the supplied teal building/thyme wordmark, green leaves and warm timber accents. Ship distinct light/dark ribbon icons with editable vector sources. Tool dialogs follow the compact Autodesk-style [UI guidance](docs/UI-GUIDELINES.md) accepted on 2026-10-12: restrained styling, aligned controls, minimal helper text and space devoted to working content. WLK-232 implements this in the desktop candidate using [owned, reusable dialog components](docs/UI-COMPONENTS.md). The installed preview and its actual-Revit qualification remain separate.
 - Prepare a separate project with general documentation and TimberFold as its starting tool.
 - Keep the host's responsibilities separate from each tool's implementation.

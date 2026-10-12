@@ -44,8 +44,8 @@ try{
   writeFileSync(path.join(folder,"plan.json"),JSON.stringify({sha,source_dirty:spawnSync("git",["status","--porcelain"],{cwd:root,encoding:"utf8"}).stdout.trim()!=="",actual_revit:false,folder,config,hashes,registration:path.join(process.env.USERPROFILE,"AppData/Roaming/Autodesk/Revit/Addins/2027/RevitThyme.Lab.addin"),mcp_config:path.join(process.env.USERPROFILE,".codex/config.toml")},null,2)+"\n");
   console.log("Prepared only; no installation, Revit launch or model creation: "+folder);
  }else if(action==="verify"){
-  if(process.argv.length!==4)throw Error("Verify requires the exact prepared run folder.");
-  run("node",["scripts/verify-revit-lab.mjs",process.argv[3]]);
+  if(![4,5].includes(process.argv.length))throw Error("Verify requires the exact prepared run folder and optional baseline/applied/undo observation.");
+  run("node",["scripts/verify-revit-lab.mjs",process.argv[3],...(process.argv[4]?[process.argv[4]]:[])]);
  }else if(["install","start","status"].includes(action)){
   const folder=process.argv[3];if(!folder)throw Error("Explicit prepared run folder required.");
   const approved=process.argv[4]==="--approved";

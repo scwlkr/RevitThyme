@@ -45,7 +45,7 @@ Use `master` commit `518d673511c8392daf212b559a672c9dd8000154` as the historical
 | [Draft #4](https://github.com/scwlkr/RevitThyme/pull/4), `f3d1b23be2290d86c25e2f069716e0997297012f` | Visual View Range source behavior reference; has offline/source/package evidence, no actual Revit qualification |
 | WLK-101 / WLK-102 | Sheet-set creation and bulk view templates remain future feature requests, not completed tools |
 
-TimberFold remains independently maintained at `C:\Revit\TimberFold`; recorded reference is `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`. RevitThyme may inspect its readiness through a defined adapter. Do not copy, port, bundle, delete or run its generation code as part of this replacement. Preserve its original geometry, frozen baselines and installations. Its Python runtime is outside the owned-runtime retirement boundary; integrating or porting it requires separate scope and license review.
+TimberFold remains independently maintained at `C:\Revit\Projects\TimberFold`; recorded reference is `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`. RevitThyme may inspect its readiness through a defined adapter. Do not copy, port, bundle, delete or run its generation code as part of this replacement. Preserve its original geometry, frozen baselines and installations. Its Python runtime is outside the owned-runtime retirement boundary; integrating or porting it requires separate scope and license review.
 
 ## Components and dataflow
 

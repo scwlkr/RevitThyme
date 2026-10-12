@@ -4,7 +4,7 @@
 
 Tool ID: `timberfold`. Category: **Fabrication**. Integration state: **read-only inspection**. [tool.json](tool.json) records the external source and implementation states. Version 0.2.0 exposes inspection through the RevitThyme ribbon and named Routes. Generation remains in the existing independent installation.
 
-The local source root is resolved from config/local.json, falling back to config/local.example.json. The foundation example points to **C:\Revit\TimberFold** through the portable sibling path `../TimberFold`.
+The local source root is resolved from config/local.json, falling back to config/local.example.json. The foundation example points to **C:\Revit\Projects\TimberFold** through the portable workspace path `../Projects/TimberFold`.
 
 Source inspected on 2026-10-05: commit `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`, declared version **1.1.0**, clean working tree on its setup branch. This snapshot is recorded in registration; installed inspection reports that it has not independently verified the selected folder's Git revision.
 

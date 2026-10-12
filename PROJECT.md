@@ -12,7 +12,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 - Visual identity: an agricultural, eco and plant feel, using the supplied teal building/thyme wordmark, green leaves and warm timber accents. Ship distinct light/dark ribbon icons with editable vector sources. Tool dialogs follow the compact Autodesk-style [UI guidance](docs/UI-GUIDELINES.md) accepted on 2026-10-12: restrained styling, aligned controls, minimal helper text and space devoted to working content. WLK-232 implements this in the desktop candidate using [owned, reusable dialog components](docs/UI-COMPONENTS.md). The installed preview and its actual-Revit qualification remain separate.
 - Prepare a separate project with general documentation and TimberFold as its starting tool.
 - Keep the host's responsibilities separate from each tool's implementation.
-- Preserve TimberFold at **C:\Revit\TimberFold**, including its repository, working installation, baselines and generated artifacts.
+- Preserve TimberFold at **C:\Revit\Projects\TimberFold**, including its repository, working installation, baselines and generated artifacts.
 - Support future use through a Revit interface and MCP, with a release that can be installed on a second computer.
 - Use wstack project instructions and a Rust CLI for repository automation; retain the Revit-specific host/worker languages. Track substantive work in the [RevitThyme Linear project](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9) under WLKR LABS. The setup follow-up authorizes needed dependencies and local CI, with no product migration.
 - Use `master` as the local default branch, matching the existing Git default. Land verified local work there; publishing/pushing remains an explicit separate request.
@@ -68,7 +68,7 @@ WLK-229 implements a separate native test adapter and Rust stdio MCP connection,
 
 The first-host cold-start smoke test passed on 2026-10-05: the user confirmed icons and Suite Status, native ribbon read-back found images on all three buttons, and eight installed read-only Routes checks passed. Earlier repairs and images had landed in Codex's MSIX AppData cache instead of native Revit's folders. They were reapplied to verified native paths; the installer and developer repair now refuse redirected destinations. The loaded Routes repair was read back in Revit. Repeated Reload stability and another-machine behavior remain unverified; use normal Revit startup on this host. This local maintenance patch does not establish a general pyRevit fork or wider version support.
 
-TimberFold source was inspected on 2026-10-05 at commit `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`, on its active setup branch with a clean working tree. It is maintained independently and is not bundled. Its metadata declares version **1.1.0**. Its active runtime is `C:\Revit\TimberFold`; `C:\Revit\Laser-Model` is a preserved legacy copy.
+TimberFold source was inspected on 2026-10-05 at commit `45d49b4969d7cd67bb1bde821e20add0adf0a9b9`, on its active setup branch with a clean working tree. It is maintained independently and is not bundled. Its metadata declares version **1.1.0**. Its active runtime is `C:\Revit\Projects\TimberFold`; `C:\Revit\Projects\Legacy\Laser-Model` is a preserved legacy copy.
 
 The TimberFold docs record completed digital workflows, including Cedar Cottage, and remaining physical-fit work. Those are source-project records, not new live validation by RevitThyme. Consult the tool's current PROJECT.md and verification artifacts before relying on them.
 

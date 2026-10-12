@@ -3,6 +3,7 @@
 ## Unreleased - Native Revit 27.3 cutover candidate - 2026-10-12
 
 - Target the installed Revit 27.3.0.28 in native preview adapter 0.2.6; retain the previous 27.2 bundle separately. Add native startup/runtime evidence and a guarded CLI cutover with immutable package checks, registration/config backups, reversible pyRevit disable and exact native test MCP selection. Preserve running documents and source files; broader native suite operations remain separate implementation work.
+- Locally qualify source 225bdf2 on a disposable Revit 27.3 process with no pyRevit assemblies loaded: native ribbon capture, preview without mutation, reviewed Cut 4 ft to 5 ft Apply, independent readback and one Undo restoring the baseline with the saved fixture hash unchanged. Disable the pyRevit startup registration and legacy Python/Jev MCP entries reversibly; existing working windows remain open until the user chooses a normal restart. See [verification](verification/native-cutover.md).
 
 ## Unreleased - Compact dialogs and owned UI components - 2026-10-12
 

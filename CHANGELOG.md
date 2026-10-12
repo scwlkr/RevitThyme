@@ -3,6 +3,7 @@
 ## Unreleased - Imperial View Range units - 2026-10-12
 
 - Default Visual View Range to feet/inches with reduced fractional inches rounded to 1/8 inch. Accept architectural entry, negative offsets and decimal feet; use eighth-inch imperial slider/plane-drag increments and consistent section/review/outcome labels. Retain metric options and exact untouched Revit values behind rounded display.
+- Install and locally verify candidate 19d0806: clean full CI, packaged UI/native-fixture checks and actual Revit 27.3 imperial preview/review/reset. Independent native readback confirms unchanged range, captured geometry and saved fixture hash; working Revit remains open on its loaded bundle until normal restart. See [verification and limits](verification/imperial-units.md).
 
 ## Unreleased - Native Revit 27.3 cutover candidate - 2026-10-12
 

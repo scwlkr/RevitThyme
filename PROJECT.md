@@ -9,7 +9,7 @@ Project root: **C:\Revit\RevitThyme**. Product ID: `revitthyme`. Foundation crea
 ## Accepted direction
 
 - Product name: **RevitThyme**.
-- Visual direction: an agricultural, eco and plant feel, using the supplied teal building/thyme wordmark, green leaves and warm timber accents. Ship distinct light/dark ribbon icons with editable vector sources.
+- Visual identity: an agricultural, eco and plant feel, using the supplied teal building/thyme wordmark, green leaves and warm timber accents. Ship distinct light/dark ribbon icons with editable vector sources. Tool dialogs follow the compact Autodesk-style [UI guidance](docs/UI-GUIDELINES.md) accepted on 2026-10-12: restrained styling, aligned controls, minimal helper text and space devoted to working content. The current Visual View Range UI still needs a separate implementation revision.
 - Prepare a separate project with general documentation and TimberFold as its starting tool.
 - Keep the host's responsibilities separate from each tool's implementation.
 - Preserve TimberFold at **C:\Revit\TimberFold**, including its repository, working installation, baselines and generated artifacts.

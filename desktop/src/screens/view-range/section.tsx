@@ -17,11 +17,11 @@ export function Section({preview,unit,direction,onDrag}:{preview:Preview;unit:Un
  const rough=(top-bottom)/5||1,power=10**Math.floor(Math.log10(rough));
  const step=([1,2,5,10].find(v=>v*power>=rough)??10)*power;
  const ticks=Array.from({length:6},(_,i)=>Math.ceil(bottom/step)*step+i*step).filter(v=>v<=top);
- return <svg aria-label="Model section" role="img" viewBox="0 0 920 460" style={{width:"100%",height:"100%"}}>
+ return <svg aria-label="Model section" role="img" viewBox="0 0 840 460" style={{width:"100%",height:"100%"}}>
   <rect x="64" y="40" width="500" height="380" fill="none" stroke="rgb(var(--line))"/>
   <UnderlaySection bands={preview.underlay_bands} z={z}/>
   {ticks.map(v=><g key={v}><line x1={64} x2={564} y1={z(v)} y2={z(v)} stroke="rgb(var(--line))" strokeDasharray="2 6"/><text x={4} y={z(v)+5} fill="rgb(var(--muted))" fontSize={14}>{Number(v.toPrecision(4))} ft</text></g>)}
-  {preview.section.segments.map(([a,b],i)=><line key={i} x1={x(a[0])} y1={z(a[1])} x2={x(b[0])} y2={z(b[1])} stroke="rgb(var(--timber))" strokeWidth={2}/>)}
+  {preview.section.segments.map(([a,b],i)=><line key={i} x1={x(a[0])} y1={z(a[1])} x2={x(b[0])} y2={z(b[1])} stroke="var(--geometry)" strokeWidth={2}/>)}
   {positions.map(({key:k,y,raw,labelY})=>{
     const plane=preview.proposed[k],color="var(--"+k+")";
     const value=plane.unlimited?"Unlimited":Number(preview.display_offsets[k].toPrecision(7))+" "+unit;

@@ -1,12 +1,12 @@
-import {View,Text} from "react-native";
+import {View} from "react-native";
+import {Label as Text} from "../../components/ui";
 import type {Underlay,UnderlayBand} from "../../contracts/generated";
 
 export function UnderlayInfo({underlay:u}:{underlay:Underlay}){
  const direction=u.direction==="up"?"Look Up":"Look Down";
  return <View className="gap-1">
-  <Text className="text-ink text-sm">Underlay Orientation: {direction} {u.direction==="up"?"↑":"↓"} · {u.enabled?"Enabled":"None"}</Text>
-  {u.enabled&&<Text className="text-muted text-sm">Underlay range: {u.base_level_name} ({u.base_elevation_feet} ft) → {u.top_unbounded?"Unbounded":u.top_level_name+" ("+u.top_elevation_feet+" ft)"}</Text>}
-  <Text className="text-muted text-xs">The shaded band shows underlay levels and viewing direction. Revit controls halftone and final plan visibility.</Text>
+  <Text>Underlay Orientation: {direction} {u.direction==="up"?"↑":"↓"} · {u.enabled?"Enabled":"None"}</Text>
+  {u.enabled&&<Text className="text-muted">{u.base_level_name} ({u.base_elevation_feet} ft) → {u.top_unbounded?"Unbounded":u.top_level_name+" ("+u.top_elevation_feet+" ft)"}</Text>}
  </View>;
 }
 export function UnderlaySection({bands,z}:{bands:UnderlayBand[];z:(feet:number)=>number}){

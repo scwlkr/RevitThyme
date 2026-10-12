@@ -1,3 +1,18 @@
-import {View,Text} from "react-native";
 import {Link} from "expo-router";
-export default function About(){return <View className="bg-background flex-1 p-8 gap-5"><Text className="text-thyme text-3xl font-semibold">About this preview</Text><Text className="text-ink">Explore model sections, adjust level-relative range offsets and review the exact Revit plan before applying. Dragging and slicing update the preview only. Native Apply changes one plan range and creates one Undo item; it never saves or syncs.</Text><Text className="text-muted">Preview support covers floor, ceiling and engineering plans on Revit 2027.2 build 27.2.0.39. Unresolved Above/Below references require choosing a named level in native View Range. Partial captures and visibility exclusions are disclosed in the preview. This portable bundle installs no add-in automatically. Existing RevitThyme tools remain available separately.</Text><Link href="/" className="text-thyme">Back to Visual View Range</Link></View>;}
+import {DialogLayout,GroupBox,Label} from "../components/ui";
+
+export default function About(){
+ return <DialogLayout toolbar={<Label style={{fontWeight:"600"}}>Visual View Range Help</Label>}
+  footer={<Link href="/" className="text-thyme text-[13px] underline">Back to Visual View Range</Link>}>
+  <GroupBox title="Editing">
+   <Label>Drag a plane or enter its level-relative offset. Use the slice axis and position to explore the section. The section elevation axis is in feet; plane values use the selected display units.</Label>
+   <Label>Review Apply compares the original and proposed range. Native Apply requires target/range confirmation and creates one Revit Undo item for a change. It never saves or synchronizes.</Label>
+   <Label>Reset, Cancel and Escape discard preview edits. After Apply, use Revit Undo to restore the model.</Label>
+  </GroupBox>
+  <GroupBox title="Capture and visibility">
+   <Label>Floor, ceiling and engineering plans are supported within the separately qualified preview scope. Main plan direction and underlay orientation are independent. The shaded band represents underlay levels and direction; Revit controls halftone and final projected visibility.</Label>
+   <Label>The section approximates captured model geometry. Links, annotations, crop, plan regions, phases, design options and final projected visibility may differ. Partial captures show a warning; expand Capture details for diagnostics.</Label>
+   <Label>Revit validates the range. Unresolved Above/Below references require a named level in native View Range. Recapture after a target, model, range or connection change.</Label>
+  </GroupBox>
+ </DialogLayout>;
+}

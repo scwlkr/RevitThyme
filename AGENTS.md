@@ -6,7 +6,7 @@ For replacement work, the user's accepted [Rust/wstack specification](docs/specs
 
 Read PROJECT.md and README.md before work. For host, MCP or operation changes, read docs/ARCHITECTURE.md. For implementation milestones, read docs/ROADMAP.md. For packaging or another-machine installation, read docs/DEPLOYMENT.md.
 
-For dialog or tool UI work, follow [docs/UI-GUIDELINES.md](docs/UI-GUIDELINES.md): compact Autodesk-style utility dialogs, restrained styling, minimal helper text and aligned controls. Give working content the space; put detailed help behind Help/tooltips/details.
+For dialog or tool UI work, follow [docs/UI-GUIDELINES.md](docs/UI-GUIDELINES.md): compact Autodesk-style utility dialogs, restrained styling, minimal helper text and aligned controls. Compose the [owned UI components](docs/UI-COMPONENTS.md) instead of rebuilding controls per tool. Give working content the space; put detailed help behind Help/tooltips/details.
 
 - Work in C:\Revit\RevitThyme. RevitThyme is a Revit suite/host project; distinguish its implemented capabilities from plans.
 - TimberFold is an external tool at C:\Revit\TimberFold. Before integration or changes there, read its PROJECT.md, README.md and AGENTS.md. Follow that repository's instructions and record its source revision. Preserve its working installation, frozen baselines and source building geometry.

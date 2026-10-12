@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased - Compact dialogs and owned UI components - 2026-10-12
+
+- Restyle the Visual View Range desktop candidate as a compact Autodesk-style utility dialog: neutral light/dark surfaces, aligned plane/level/offset rows, section beside controls, concise labels and fixed bottom actions. Move detailed help and diagnostics into Help/disclosures, retain conditional warnings and reveal the Apply comparison when requested. Display offsets without floating-point noise while preserving untouched native values.
+- Establish an owned shadcn-style component library for dialog layout, group boxes, buttons, forms, tables, notices and disclosures. Visual View Range, Apply review and Help compose the shared components; future tools follow the component guide. Retain React Native/NativeWind containers and explicit desktop form/table adapters.
+- Verify the packaged Windows UI at normal and 125% scaling, editing/review/recovery and offline native-fixture confirmation/transaction behavior. This UI candidate is local; its new source/package evidence does not extend the installed preview's actual-Revit qualification.
+
 ## Unreleased - Isolated native test MCP - 2026-10-12
 
 - Install the separately approved native test connection and qualify 11 read-only checks inside Revit 27.3.0.28 while the working instance remains running. Verify exact test process/document/plan, native geometry and feet/mm readback, shared preview/proposal and wrong-target/stale rejection. Preserve the first failed fixture and keep Apply disabled; live model-writing and foreground UI checks remain separate.

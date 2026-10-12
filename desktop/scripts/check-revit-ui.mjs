@@ -18,7 +18,7 @@ try{
  page.on("pageerror",error=>errors.push(String(error)));
  if(values["queued-action"]){
   assert.ok(["cancel","close"].includes(values["queued-action"]));
-  await page.getByText(values["document-name"]+" / "+values["view-name"],{exact:false}).waitFor();
+  await page.getByTestId("captured-view").filter({hasText:values["document-name"]+" / "+values["view-name"]}).waitFor();
   await page.getByLabel("Confirm displayed target and range").check();
   await page.getByRole("button",{name:"Apply to Revit",exact:true}).click();submitted=true;
   await page.getByText("Native outcome: queued",{exact:true}).waitFor();
@@ -32,7 +32,7 @@ try{
   }else {displayed=await page.locator("body").innerText();await page.close();check(true,"Actual desktop window closes with Apply queued");}
   passed=true;
  }else if(values["stale-review"]){
-  await page.getByText(values["document-name"]+" / "+values["view-name"],{exact:false}).waitFor();
+  await page.getByTestId("captured-view").filter({hasText:values["document-name"]+" / "+values["view-name"]}).waitFor();
   await page.getByLabel("Confirm displayed target and range").check();
   await page.getByRole("button",{name:"Apply to Revit",exact:true}).click();submitted=true;
   await page.getByText("Native outcome: rejected",{exact:true}).waitFor();
@@ -49,7 +49,7 @@ try{
  }else{
  const captureStart=performance.now();
  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
- await page.getByText(values["document-name"]+" / "+values["view-name"],{exact:false}).waitFor();
+ await page.getByTestId("captured-view").filter({hasText:values["document-name"]+" / "+values["view-name"]}).waitFor();
  check(await page.evaluate(async()=>await window.revitthyme.mode())==="native","Packaged UI is connected to actual native Revit mode");
  assert.ok(["ft","mm","m"].includes(values["display-unit"]));
  await page.getByLabel("Display units").selectOption(values["display-unit"]);
@@ -114,10 +114,10 @@ try{
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByLabel("Confirm displayed target and range").waitFor();
  check(await page.getByRole("button",{name:"Apply to Revit",exact:true}).isDisabled(),"Fresh native review succeeds and requires explicit target/range confirmation");
- await page.getByText(/^Apply preview ·/).locator("..").screenshot({path:path.join(folder,values.case+"-review.png")});
+ await page.getByTestId("apply-review").screenshot({path:path.join(folder,values.case+"-review.png")});
  if(values["reconnect-review"]){
   await page.getByRole("button",{name:"Reconnect",exact:true}).click();
-  await page.getByText(values["document-name"]+" / "+values["view-name"],{exact:false}).waitFor();
+  await page.getByTestId("captured-view").filter({hasText:values["document-name"]+" / "+values["view-name"]}).waitFor();
   await cut.waitFor();check(await page.getByLabel("Confirm displayed target and range").count()===0,"Reconnect removes old review and confirmation");
   check(await page.getByRole("button",{name:"Apply to Revit",exact:true}).count()===0,"Old review cannot Apply after reconnect");
   await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]').disabled);

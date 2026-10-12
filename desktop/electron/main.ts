@@ -27,7 +27,8 @@ app.whenReady().then(async()=>{
    const hashes=type==="text/html"?[...bytes.toString().matchAll(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/g)].map(m=>"'sha256-"+createHash("sha256").update(m[1]).digest("base64")+"'").join(" "):"";
    return new Response(bytes,{headers:{"Content-Type":type,"Content-Security-Policy":"default-src 'none'; script-src 'self' "+hashes+"; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'none'; base-uri 'none'; frame-src 'none'; object-src 'none'"}});
  });
- window=new BrowserWindow({width:1280,height:920,minWidth:900,minHeight:680,show:false,webPreferences:{preload:path.join(__dirname,"preload.cjs"),contextIsolation:true,sandbox:true,nodeIntegration:false}});
+ window=new BrowserWindow({title:"Visual View Range",width:1120,height:700,minWidth:900,minHeight:680,show:false,webPreferences:{preload:path.join(__dirname,"preload.cjs"),contextIsolation:true,sandbox:true,nodeIntegration:false}});
+ window.webContents.on("page-title-updated",event=>event.preventDefault());
  window.removeMenu();
  window.webContents.setWindowOpenHandler(()=>({action:"deny"}));
  window.webContents.on("will-navigate",(e,url)=>{const u=new URL(url);if(u.protocol!=="app:" || u.hostname!=="bundle")e.preventDefault();});

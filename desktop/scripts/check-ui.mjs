@@ -5,6 +5,7 @@ import path from "node:path";
 import {spawnSync} from "node:child_process";
 import {verifySectionLayout} from "./section-layout.mjs";
 import {orientationUi} from "./orientation-ui.mjs";
+import {compactDialogUi} from "./compact-dialog-ui.mjs";
 const root=path.resolve(import.meta.dirname,"../.."),folder=path.join(root,"artifacts/m1");
 mkdirSync(folder,{recursive:true});
 const executablePath=path.join(root,"desktop/out/RevitThyme-win32-x64/RevitThyme.exe");
@@ -17,8 +18,11 @@ try{
  await page.getByRole("button",{name:"Review Apply",exact:true}).waitFor({timeout:15000});
  await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]')?.getAttribute("aria-disabled"));
  check((await page.getByLabel("Cut Plane offset").inputValue()).startsWith("1219.2"),"Packaged Expo loads assets and Rust preview through preload");
+ await compactDialogUi(app,page,folder,check);
  await page.getByLabel("View Depth offset").fill("0");
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await page.waitForFunction(()=>document.querySelector('[data-testid="apply-review"] table')?.getBoundingClientRect().bottom<=document.querySelector('[aria-label="Review Apply"]').getBoundingClientRect().top);
+ check(true,"Review Apply reveals the original/proposed table without manual scrolling");
  await verifySectionLayout(page);
  check(true,"Coincident Bottom and View Depth labels do not overlap");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
@@ -31,7 +35,7 @@ try{
  await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value==="1524");
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · proposed change",{exact:true}).waitFor();
- check((await page.getByText(/Cut Plane · Level 1/).textContent()).includes("→ 5 ft"),"Numeric offset passes Rust conversion and before/after proposal");
+ check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 5 ft"),"Numeric offset passes Rust conversion and before/after proposal");
  check(await page.getByRole("button",{name:"Native Apply unavailable"}).isDisabled(),"Offline preview cannot write Revit");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
@@ -51,9 +55,9 @@ try{
  await page.getByLabel("Cut Plane offset").fill("1524");
  await page.waitForTimeout(800);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- check((await page.getByText(/Cut Plane · Level 1/).textContent()).includes("→ 5 ft"),"Typing during delayed unit conversion uses the displayed units");
+ check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 5 ft"),"Typing during delayed unit conversion uses the displayed units");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
- await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value.startsWith("4.000"));
+ await page.waitForFunction(()=>Math.abs(Number(document.querySelector('[aria-label="Cut Plane offset"]')?.value)-4)<1e-9);
  await page.getByLabel("Cut Plane offset").fill("NaN");
  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Nonfinite input disables review");
  await page.getByLabel("Cut Plane offset").fill("5");
@@ -94,7 +98,7 @@ try{
  await page.waitForTimeout(800);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
  await page.getByText("Apply preview · proposed change",{exact:true}).waitFor();
- check((await page.getByText(/Cut Plane · Level 1/).textContent()).includes("→ 6 ft") && await page.getByLabel("Cut Plane offset").inputValue()==="6","Delayed old response cannot overwrite newer input");
+ check((await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 6 ft") && await page.getByLabel("Cut Plane offset").inputValue()==="6","Delayed old response cannot overwrite newer input");
  await page.getByLabel("Cut Plane offset").fill("5");
  await page.waitForTimeout(100);
  await page.getByLabel("Cut Plane offset").fill("bad");
@@ -108,12 +112,12 @@ try{
  await cutSlider.focus();await page.keyboard.press("ArrowLeft");
  await page.waitForFunction(before=>document.querySelector('[aria-label="Cut Plane slider"]')?.value!==before,sliderBefore);
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- check(!(await page.getByText(/Cut Plane · Level 1/).textContent()).includes("→ 6 ft"),"Keyboard operates plane slider");
+ check(!(await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()).includes("→ 6 ft"),"Keyboard operates plane slider");
  const line=page.getByLabel("Cut Plane plane drag");const box=await line.boundingBox();
- const dragBefore=await page.getByText(/Cut Plane · Level 1/).textContent();
+ const dragBefore=await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent();
  await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2,box.y+box.height/2-20,{steps:4});await page.mouse.up();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- check(await page.getByText(/Cut Plane · Level 1/).textContent()!==dragBefore,"Pointer drag changes reviewed plane elevation");
+ check(await page.getByRole("row",{name:/Cut Plane · Level 1/}).textContent()!==dragBefore,"Pointer drag changes reviewed plane elevation");
  const sectionBefore=await page.getByRole("img",{name:"Model section"}).innerHTML();
  await page.getByLabel("Slice axis").selectOption("x");
  await page.getByLabel("Slice position").fill("0.4");
@@ -121,7 +125,7 @@ try{
  check(await page.getByRole("img",{name:"Model section"}).innerHTML()!==sectionBefore,"Slice locator and axis change the computed section geometry");
  await page.getByLabel("Top Unlimited").check();
  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
- check((await page.getByText(/Top · Level 1/).textContent()).includes("→ Unlimited"),"Unlimited is preserved and reviewed");
+ check((await page.getByRole("row",{name:/Top · Level 1/}).textContent()).includes("→ Unlimited"),"Unlimited is preserved and reviewed");
  await page.getByRole("button",{name:"Reset",exact:true}).click();
  for(const kind of ["ceiling","engineering"]){
    await page.getByLabel("Fixture view").selectOption(kind);

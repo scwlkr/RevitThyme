@@ -1,6 +1,12 @@
 # Setup handoff
 
-The setup follow-up authorizes needed dependencies, Windows repairs and local CI. Product version remains 0.1.0 at the foundation milestone. Track implementation in [RevitThyme / WLKR LABS](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9); this setup is [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). This file records setup evidence, not a product backlog.
+## Current setup - WLK-240
+
+The 2026-10-13 refresh uses [w.md](w.md), current [features](FEATURES.md)/[terms](GLOSSARY.md) and `project.cmd check-wstack`. CI uses the project-owned read-only setup check instead of invoking the retired separate wstack-setup skill, which could restore obsolete instructions. The global wstack 0.2 worker's Unix timer is unavailable on Windows; the refresh applies its small local fallback and preserves owner notes/commands. See [current verification](verification/wstack-setup.md). No product migration or Revit/model operation is part of setup.
+
+## Historical foundation setup - 2026-10-05
+
+The original setup follow-up authorized needed dependencies, Windows repairs and local CI while product version was 0.1.0. Track implementation in [RevitThyme / WLKR LABS](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9); the original setup was [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). The notes below preserve that evidence, not current architecture or a product backlog.
 
 ## Tooling and evidence
 

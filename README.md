@@ -34,7 +34,9 @@ Load the extension on a normal Revit start, then open **RevitThyme > Suite Statu
 
 ## Develop
 
-The [native MCP milestone](docs/NATIVE-MCP.md) adds read-only context, typed element inspection and six project-health checks to the dedicated Rust/.NET test connection. Windows transport/offline evidence is separate from pending actual-Revit inspection qualification. Existing installed bundles remain unchanged.
+Read [w.md](w.md) for project workflow, CLI verification and the [feature](FEATURES.md)/[glossary](GLOSSARY.md) pointers. Run `project.cmd check-wstack` to verify setup without changing project documents.
+
+The [native MCP milestone](docs/NATIVE-MCP.md) adds read-only context, typed element inspection and six project-health checks to the dedicated Rust/.NET test connection. Windows transport/offline evidence and actual-Revit inspection qualification are recorded separately. Existing installed bundles remain preserved.
 
 The [native adapter](docs/RUST-VIEW-RANGE-M2.md) provides capture/Apply and ribbon-launched connection in the Rust/Expo/Electron feature. Standalone executable launch retains the offline fixture. [M3](verification/rust-view-range-m3-remaining.md) records bounded actual Revit qualification separately from Windows source/package checks. The portable bundle does not install an add-in automatically.
 

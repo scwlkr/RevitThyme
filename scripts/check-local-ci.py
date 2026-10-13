@@ -90,11 +90,8 @@ def main():
         run("Rust lint and build", ["cargo", "clippy", "--offline", "--locked", "--all-targets",
                                     "--manifest-path", str(MANIFEST), "--", "-D", "warnings"])
         run("Real CLI contract", [sys.executable, "-X", "utf8", str(ROOT / "scripts/check-cli-contract.py")])
-        skill = Path.home() / ".agents/skills/wstack-setup"
-        run("Setup readiness", [sys.executable, "-X", "utf8", str(skill / "scripts/setup.py"), "check", str(ROOT)], cwd=skill)
-        result = run("Setup idempotence", [sys.executable, "-X", "utf8", str(skill / "scripts/setup.py"), "apply", str(ROOT)], cwd=skill)
-        applied = json.loads(result.stdout) if result.returncode == 0 else {}
-        require("Repeat apply changes no files", applied.get("changed") == [], applied)
+        run("Wstack project notes and real CLI", [str(ROOT / "project.cmd"), "check-wstack",
+                                                "--report", str(ROOT / "artifacts/local-ci/wstack.json")], timeout=120)
 
         for paths, expected in ((["docs/ROADMAP.md"], "docs"), (["README.md"], "full"),
                                 (["tools/project-cli/src/main.rs"], "full"),

@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - Wstack 0.2 setup refresh - 2026-10-13
+
+- Move general project workflow/verification notes to `w.md` and retain a short AGENTS.md pointer with the existing Revit-specific rules and authorization. Add current feature/glossary pointers without replacing the CLI or product architecture.
+- Add project-owned `check-wstack` verification for notes/pointers and actual CLI help/doctor. Replace local CI's retired separate setup-skill dependency; preserve the remaining checks. Record the global worker's Windows timer failure and local fallback separately from native product qualification.
+
 ## Unreleased - Native MCP inspection milestone - 2026-10-13
 
 - Add `revit_context`, `revit_elements` and `revit_project_health` to the native test MCP. Read exact identity without geometry, inspect category pages/64-bit IDs and evaluate six review checks in shared Rust logic. Enforce target/revision guards in native callbacks, exact inputs and bounded results. Incomplete scans retain lower-bound counts; no automatic fixes or production-model enablement.

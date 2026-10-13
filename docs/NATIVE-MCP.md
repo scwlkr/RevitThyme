@@ -4,7 +4,7 @@ WLK-238 builds on WLK-229's native session. Rust owns MCP, input validation and 
 
 The lab compiles the same native queue/protocol source into `RevitThyme.LabCore.dll`. Its distinct CLR identity prevents an older installed preview's `Adapter.Core.dll` from supplying incompatible types to the new lab. Existing bundles remain intact; no working host DLL is replaced.
 
-This milestone is **source and Windows offline verified**. The new inspection tools have not been installed or qualified inside Revit. Existing immutable bundles retain their own earlier evidence. Preparation does not change registrations, MCP settings or models.
+This milestone is **installed and qualified in an isolated Revit 27.3.0.28 session**: ten inspection checks pass, alongside eleven View Range read-only checks. The fixture is intentionally small; native door/room/family mapping and larger-model performance remain unqualified. See [source and actual-Revit evidence](../verification/native-mcp.md). Existing immutable bundles retain their own earlier evidence.
 
 ## Implemented tools
 
@@ -56,7 +56,7 @@ Connection rotation accepts an exact stopped prior run from another checkout. It
 
 `project revit-lab prepare` creates an immutable read-only bundle and exact paths. Follow [native lab installation](NATIVE-REVIT-LAB.md) for a new isolated session. On 2026-10-13 the user authorized this installation/fixture plan and requested proceeding with development, installations and disposable qualification without additional approval. Preserve the working session and its models. Record actual-Revit inspection evidence separately; compilation and earlier View Range qualification do not qualify these tools.
 
-After approved setup, `project revit-lab inspect <absolute-prepared-run-folder>` checks the immutable bundle, context, known fixture levels/plan, exact/missing ID lookup, health, wrong-document rejection and unchanged fixture hash/modified state. It retains raw observations. The empty fixture cannot qualify native door/family/room mapping or large-model performance; those require a later approved populated sample.
+After setup, `project revit-lab inspect <absolute-prepared-run-folder>` checks the immutable bundle, context, known fixture levels/plan, valid repeated names across view kinds, exact/missing ID lookup, health, wrong-document rejection and unchanged fixture hash/modified state. It retains raw observations. The empty fixture cannot qualify native door/family/room mapping or large-model performance; those need a populated isolated sample. Plan-level projection currently follows `Element.LevelId`; `ViewPlan.GenLevel` associations are not mapped yet.
 
 ## Designs studied
 
@@ -72,7 +72,7 @@ No upstream implementation is copied or vendored. New code follows RevitThyme's 
 
 ## Next bounded milestones
 
-1. Qualify these tools in an approved isolated process, including native category/ID enumeration and independent health comparisons. Production enablement stays separate.
+1. Qualify populated doors/rooms/families and larger native pages in an isolated process, including missing-mark grouping, level associations and independent health comparisons. Production enablement stays separate.
 2. Add visible activity/history, connection status and explicit target selection to the owned utility UI. Expose recipes/skills only for implemented operations.
 3. Implement named sheet/view placement and export jobs with reviewed scope, owned artifacts, progress, cancellation and retained outcomes.
 4. Implement parametric family recipes and standards fixes with preview, changed/skipped IDs, transactions/readback and isolated native qualification.

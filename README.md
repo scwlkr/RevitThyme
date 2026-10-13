@@ -17,7 +17,7 @@ The visual identity combines thyme leaves, earthy greens and timber colors. Each
 | Suite Status: host versions and document identity | Broader native suite migration |
 | Native Visual View Range preview: capture, review, Apply and Undo | Second-computer native qualification |
 | TimberFold inspection: candidate walls/roofs and source-file diagnostics | Preview-bound fabrication generation |
-| Native fixture-bound MCP; context, paged elements and project-health source milestone | New inspection installation/native qualification; production enablement and asynchronous jobs |
+| Native fixture-bound MCP; context, paged elements and project health qualified in an isolated Revit session | Populated category/level mapping, production enablement and asynchronous jobs |
 | Allowlisted ZIP, hashes, backup/upgrade/uninstall tooling | Bundled TimberFold worker and second-computer pilot |
 
 TimberFold generation continues through its separate working installation. Inspection counts do not prove fabrication support.

@@ -1,7 +1,7 @@
-// Read-only actual-Revit qualification after separately approved lab installation/startup.
+// Read-only actual-Revit qualification in the authorized isolated lab session.
 import {spawn} from "node:child_process";
 import {createInterface} from "node:readline";
-import {readFileSync,writeFileSync} from "node:fs";
+import {readFileSync,writeFileSync,existsSync} from "node:fs";
 import {createHash,randomUUID} from "node:crypto";
 import path from "node:path";
 import assert from "node:assert/strict";
@@ -12,8 +12,18 @@ const plan=JSON.parse(readFileSync(path.join(folder,"plan.json"))),binding=JSON.
 assert.equal(plan.folder,folder);assert.equal(binding.fixture_path,plan.config.fixture_path);assert.equal(binding.allow_writes,false);
 const hash=file=>createHash("sha256").update(readFileSync(file)).digest("hex");
 for(const [file,expected] of Object.entries(plan.hashes))assert.equal(hash(path.join(folder,"bundle",file)),expected);
+const upgradePath=path.join(folder,"mcp-upgrade.json"),upgrade=existsSync(upgradePath)?JSON.parse(readFileSync(upgradePath)):null;
+let executable=path.join(folder,"bundle/revitthyme-test.exe"),bindingPath=path.join(folder,"binding.json");
+if(upgrade){
+ assert.match(upgrade.source_sha,/^[a-f0-9]{40}$/);assert.equal(upgrade.native_sha,plan.sha);
+ assert.equal(upgrade.binary,path.join(folder,"mcp-upgrades",upgrade.source_sha,"bundle/revitthyme-test.exe"));
+ assert.equal(upgrade.binding_path,path.join(folder,"mcp-upgrades",upgrade.source_sha,"binding.json"));
+ assert.equal(hash(upgrade.binary),upgrade.binary_sha256);assert.equal(hash(upgrade.binding_path),upgrade.binding_sha256);
+ assert.deepEqual(JSON.parse(readFileSync(upgrade.binding_path)),binding);
+ executable=upgrade.binary;bindingPath=upgrade.binding_path;
+}
 const fixtureHash=hash(binding.fixture_path),observations=[],checks=[];
-const child=spawn(path.join(folder,"bundle/revitthyme-test.exe"),["--lab-mcp",path.join(folder,"binding.json")],{cwd:root,stdio:["pipe","pipe","pipe"],windowsHide:true});
+const child=spawn(executable,["--lab-mcp",bindingPath],{cwd:root,stdio:["pipe","pipe","pipe"],windowsHide:true});
 const ended=new Promise(resolve=>child.once("exit",resolve));
 const waiting=[];let serial=0,errors="",passed=false;
 child.stderr.on("data",v=>errors+=v);
@@ -42,6 +52,8 @@ try{
  check(levels.scan_complete&&!levels.has_more&&levels.items.length===2,"Both independently specified fixture levels are enumerated");
  const views=(await call("revit_elements",query("views",{name_contains:"RevitThyme Lab Plan"}))).structuredContent;
  check(views.items.length===1&&views.items[0].view_template_id==="-1"&&views.items[0].template_eligible,"Known fixture plan is template-eligible and has no template");
+ const defaultViews=(await call("revit_elements",query("views",{name_contains:"Level 1"}))).structuredContent;
+ check(defaultViews.items.length===3&&new Set(defaultViews.items.map(v=>v.view_kind)).size===3,"Default floor/ceiling/structural plans legitimately share a name across view kinds");
  const exact=(await call("revit_elements",query("levels",{ids:[levels.items[0].element_id,"9223372036854775807"]}))).structuredContent;
  check(exact.items.length===1&&exact.items[0].unique_id===levels.items[0].unique_id&&exact.missing_ids.includes("9223372036854775807"),"Native ID lookup round-trips and reports an absent 64-bit ID");
  const healthResult=await call("revit_project_health",{target:context.target,limit:10});assert.ok(!healthResult.isError);
@@ -55,7 +67,7 @@ try{
 }finally{
  child.stdin.end();await ended;
  const file=path.join(folder,"live-inspection.json");
- writeFileSync(file,JSON.stringify({sha:plan.sha,actual_revit:true,scope:"native_inspection_read_only",passed,binding,fixture_hash:fixtureHash,checks,observations,
+ writeFileSync(file,JSON.stringify({sha:upgrade?.source_sha??plan.sha,native_sha:plan.sha,executable,executable_hash:hash(executable),actual_revit:true,scope:"native_inspection_read_only",passed,binding,fixture_hash:fixtureHash,checks,observations,
   limits:["Empty fixture does not qualify native door/family/room mapping or larger models","No model transactions or production-model qualification requested"]},null,2)+"\n");
  console.log("Evidence: "+file);
 }

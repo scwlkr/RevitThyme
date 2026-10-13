@@ -19,7 +19,9 @@ def revise(text, action, folder):
             raise ValueError("Expected configured server: " + name)
         values = {"enabled": False} if action == "disable" else {
             "command": str(folder / "bundle/revitthyme-test.exe"),
-            "args": ["--lab-mcp", str(folder / "binding.json")], "enabled": True}
+            "args": ["--lab-mcp", str(folder / "binding.json")]}
+        if action == "bind":
+            values["enabled"] = True
         pattern = r"(?ms)^\[mcp_servers\." + re.escape(name) + r"\]\r?\n.*?(?=^\[|\Z)"
         matches = list(re.finditer(pattern, text))
         if len(matches) != 1:
@@ -43,7 +45,7 @@ def rotate(text, previous, folder):
     server = tomllib.loads(text).get("mcp_servers", {}).get("revitthyme_test", {})
     if server.get("command") != str(previous / "bundle/revitthyme-test.exe") or server.get("args") != ["--lab-mcp", str(previous / "binding.json")]:
         raise ValueError("Existing native MCP target does not match the exact previous run")
-    return revise(text, "bind", folder)
+    return revise(text, "rotate", folder)
 
 
 def prepare_rotation(previous, folder):
@@ -74,6 +76,8 @@ def check():
     assert result["mcp_servers"]["revitthyme_test"]["enabled"]
     assert result["mcp_servers"]["other"]["env"]["PRIVATE"] == "preserve exactly"
     assert result["mcp_servers"]["revit"]["enabled"] is False
+    disabled_native = configured.replace("enabled = true", "enabled = false")
+    assert not tomllib.loads(rotate(disabled_native, previous, Path("C:/new")))["mcp_servers"]["revitthyme_test"]["enabled"]
     try:
         rotate(configured, Path("C:/wrong previous"), Path("C:/new"))
     except ValueError:
@@ -95,13 +99,19 @@ if __name__ == "__main__":
     elif len(sys.argv) == 4 and sys.argv[1] == "prepare-rotation":
         prepare_rotation(Path(sys.argv[2]).resolve(), Path(sys.argv[3]).resolve())
     else:
-        action, folder_text = sys.argv[1:]
+        previous = None
+        if len(sys.argv) == 4 and sys.argv[1] == "upgrade":
+            previous = Path(sys.argv[2]).resolve()
+            action, folder_text = "bind", sys.argv[3]
+        else:
+            action, folder_text = sys.argv[1:]
         if action not in ("disable", "bind"):
             raise ValueError("Expected disable or bind")
         folder = Path(folder_text).resolve()
         target = Path.home() / ".codex/config.toml"
         original = target.read_bytes()
-        revised = revise(original.decode("utf-8-sig"), action, folder).encode("utf-8")
+        revised = (rotate(original.decode("utf-8-sig"), previous, folder) if previous else
+                   revise(original.decode("utf-8-sig"), action, folder)).encode("utf-8")
         backup = folder / ("config.toml.before-" + action)
         if backup.exists():
             raise ValueError("Backup exists; inspect prior operation instead of overwriting")

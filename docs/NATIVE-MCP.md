@@ -36,7 +36,7 @@ Categories: doors, rooms, views, sheets, levels, walls, floors, ceilings, lighti
 
 ## Health semantics and limits
 
-Health takes `target` and `limit` (1–50 sample findings per check). Checks cover missing templates on eligible graphical views, duplicate view names, duplicate sheet numbers, missing door marks, unplaced rooms and Revit warnings. Counts describe affected rows, not duplicate groups. Duplicate keys ignore case and edge whitespace; they are review findings, not a claim that Revit permitted invalid native names/numbers. Templates and drawing sheets are excluded from duplicate view-name checks. Repeated sheet titles are valid.
+Health takes `target` and `limit` (1–50 sample findings per check). Checks cover missing templates on eligible graphical views, duplicate view names, duplicate sheet numbers, missing door marks, unplaced rooms and Revit warnings. Counts describe affected rows, not duplicate groups. Duplicate keys ignore case and edge whitespace; they are review findings, not a claim that Revit permitted invalid native names/numbers. View names are compared within each Revit view kind, excluding templates and drawing sheets. Default floor, ceiling and structural plans can legitimately share a name. Repeated sheet titles are valid.
 
 Unplaced rooms have no location. Placed but unenclosed/zero-area rooms are distinct. All phases are included. The report does not infer which firm template a view needs and performs no fixes.
 
@@ -47,6 +47,8 @@ Health examines at most 2,000 rows, 100 pages and approximately 2 MiB of page da
 Old terminal read receipts may be evicted to keep inspection usable. Apply outcomes survive read traffic. The existing ten-minute retention horizon remains; never infer a successful write from an unknown outcome. Queue/credential/handshake failures and stale targets remain structured errors with no automatic target selection or mutation retry.
 
 Connection rotation accepts an exact stopped prior run from another checkout. It verifies the prior plan/manifest and configured executable/binding, parses TOML, and preserves unrelated sections and settings such as `enabled`. It prepares a private candidate file before replacing the saved configuration. This avoids leaving an orphan setting after removing a raw snippet. Physical-path checks, backups and the prior-process guard still apply.
+
+`project revit-lab upgrade-mcp <absolute-active-run-folder>` supports one external read-only client update in a running lab. It requires a committed source revision, unchanged native adapter/wire sources, exact process start time and unchanged immutable bundle/registration. It retains a new executable and byte-identical binding under `mcp-upgrades/<sha>`, backs up configuration and rotates only the exact prior MCP target. Native registration, process and fixture remain intact. `mcp-upgrade.json` records separate native/client revisions and hashes; inspect an existing receipt before another rotation.
 
 ## Verification and installation
 

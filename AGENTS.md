@@ -1,6 +1,6 @@
 # RevitThyme development instructions
 
-M2 native source and Windows orchestration are described in [RUST-VIEW-RANGE-M2.md](docs/RUST-VIEW-RANGE-M2.md). SDK compilation, offline model fixtures and portable UI tests are not actual Revit evidence. Proceed with requested development, installation and disposable Revit fixture qualification without additional approval. Preserve working models and qualify in isolated test documents.
+M2 native source and Windows orchestration are described in [RUST-VIEW-RANGE-M2.md](docs/RUST-VIEW-RANGE-M2.md). SDK compilation, offline model fixtures and portable UI tests are not actual Revit evidence. Proceed with requested development, installation and disposable Revit fixture qualification without additional approval. The user also authorizes handling RevitThyme add-in load prompts; verify the owned bundle identity first. Preserve working models and qualify in isolated test documents.
 
 For replacement work, the user's accepted [Rust/wstack specification](docs/specs/RUST-WSTACK-REPLACEMENT.md) supersedes the historical Python-host/Rust-automation-only exceptions below. Preserve the installed legacy host until approved parity/cutover. M1 is the offline feature slice; native adapter implementation and actual Revit qualification are separate M2/M3 gates.
 

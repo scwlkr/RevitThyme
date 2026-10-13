@@ -43,6 +43,9 @@ try{
   const sha=spawnSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).stdout.trim();
   writeFileSync(path.join(folder,"plan.json"),JSON.stringify({sha,source_dirty:spawnSync("git",["status","--porcelain"],{cwd:root,encoding:"utf8"}).stdout.trim()!=="",actual_revit:false,folder,config,hashes,registration:path.join(process.env.USERPROFILE,"AppData/Roaming/Autodesk/Revit/Addins/2027/RevitThyme.Lab.addin"),mcp_config:path.join(process.env.USERPROFILE,".codex/config.toml")},null,2)+"\n");
   console.log("Prepared only; no installation, Revit launch or model creation: "+folder);
+ }else if(action==="upgrade-mcp"){
+  if(process.argv.length!==4)throw Error("MCP upgrade requires the exact active run folder.");
+  run("node",["scripts/upgrade-native-mcp.mjs",process.argv[3]]);
  }else if(action==="inspect"){
   if(process.argv.length!==4)throw Error("Inspect requires the exact prepared run folder.");
   run("node",["scripts/verify-native-inspection.mjs",process.argv[3]]);
@@ -54,9 +57,9 @@ try{
   const approved=process.argv[4]==="--approved";
   const previous=action==="install"&&approved&&process.argv[5]==="--replace-run"?process.argv[6]:null;
   if(process.argv.length!==(previous?7:approved?5:4))throw Error("Unexpected arguments.");
-  if(action!=="status"&&!approved)throw Error("Installation and fixture startup require exact-step user approval; then pass --approved.");
+  if(action!=="status"&&!approved)throw Error("Pass --approved to acknowledge the recorded installation and disposable-fixture authorization.");
   run("pwsh",["-NoProfile","-NonInteractive","-File","scripts/revit-lab.ps1","-Action",action,"-RunFolder",folder,...(approved?["-Approved"]:[]),...(previous?["-PreviousRunFolder",previous]:[])]);
- }else if(action==="help")console.log("project revit-lab check | prepare | status <run-folder> | verify <run-folder> | inspect <run-folder> | install <run-folder> --approved | start <run-folder> --approved\nPrepare builds local artifacts only. Install/start need prior exact-step approval. First live run is read-only.");
+ }else if(action==="help")console.log("project revit-lab check | prepare | status <run-folder> | verify <run-folder> | inspect <run-folder> | upgrade-mcp <run-folder> | install <run-folder> --approved | start <run-folder> --approved\nPrepare builds local artifacts only. --approved acknowledges the recorded installation/disposable-fixture authorization. First live run is read-only.");
  else throw Error("Unknown Revit lab command.");
 }catch(e){console.error(e.message);process.exitCode=1;}
 finally{

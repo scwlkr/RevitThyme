@@ -76,13 +76,13 @@ fn check(code: &'static str, rows: Vec<&ElementRow>, complete: bool, limit: usiz
 }
 fn duplicates<'a>(
     rows: &'a [ElementRow],
-    key: impl Fn(&'a ElementRow) -> Option<&'a str>,
+    key: impl Fn(&'a ElementRow) -> Option<(&'a str, &'a str)>,
 ) -> Vec<&'a ElementRow> {
-    let mut groups: BTreeMap<String, Vec<&ElementRow>> = BTreeMap::new();
+    let mut groups: BTreeMap<(String, String), Vec<&ElementRow>> = BTreeMap::new();
     for row in rows {
-        if let Some(value) = key(row).filter(|s| !s.trim().is_empty()) {
+        if let Some((scope, value)) = key(row).filter(|(_, s)| !s.trim().is_empty()) {
             groups
-                .entry(value.trim().to_lowercase())
+                .entry((scope.to_string(), value.trim().to_lowercase()))
                 .or_default()
                 .push(row);
         }
@@ -118,7 +118,7 @@ pub fn evaluate(
                 "duplicate_view_names",
                 duplicates(rows, |r| {
                     (!r.is_template && r.view_kind.as_deref() != Some("DrawingSheet"))
-                        .then_some(r.name.as_str())
+                        .then_some((r.view_kind.as_deref().unwrap_or("Unknown"), r.name.as_str()))
                 }),
                 complete,
                 limit,
@@ -126,7 +126,7 @@ pub fn evaluate(
         ],
         Category::Sheets => vec![check(
             "duplicate_sheet_numbers",
-            duplicates(rows, |r| r.sheet_number.as_deref()),
+            duplicates(rows, |r| r.sheet_number.as_deref().map(|value| ("", value))),
             complete,
             limit,
         )],

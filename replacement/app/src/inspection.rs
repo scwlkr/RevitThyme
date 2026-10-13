@@ -129,6 +129,6 @@ pub async fn health(client: &mut Client, request: HealthRequest) -> Result<Value
     }
     Ok(
         json!({"target":request.target,"complete":checks.iter().all(|c| c.complete),"checks":checks,"coverage":coverage,
-        "rules":"Review findings; no automatic fixes. Duplicate keys ignore case and edge whitespace. Counts are affected rows. Unplaced rooms have no location; unenclosed rooms are separate. All phases included; links and family documents excluded. Warnings use ordinal IDs with related element IDs. Templates are excluded from duplicate view-name checks. No firm template policy is assumed."}),
+        "rules":"Review findings; no automatic fixes. Duplicate keys ignore case and edge whitespace; view names are compared within each Revit view kind. Counts are affected rows. Unplaced rooms have no location; unenclosed rooms are separate. All phases included; links and family documents excluded. Warnings use ordinal IDs with related element IDs. Templates and drawing sheets are excluded from duplicate view-name checks. No firm template policy is assumed."}),
     )
 }

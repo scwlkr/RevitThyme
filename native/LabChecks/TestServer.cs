@@ -1,3 +1,4 @@
+extern alias legacy;
 using RevitThyme.Lab;
 using RevitThyme.Native;
 using RevitThyme.AdapterChecks;
@@ -57,7 +58,9 @@ internal static class TestServer
         File.WriteAllText(binding, JsonSerializer.Serialize(new { protocol = 2, process_id = target.ProcessId,
             process_start_ticks = target.ProcessStartTicks, session_id = target.SessionId, pipe = name,
             credential_target = name, fixture_path = fixture, allow_writes = true, revit_version = "27.3.0.28" }, Wire.Json));
-        Console.WriteLine(JsonSerializer.Serialize(new { binding }));
+        var legacyCore = typeof(legacy::RevitThyme.Native.Session).Assembly;
+        Console.WriteLine(JsonSerializer.Serialize(new { binding, core_assembly = typeof(Session).Assembly.GetName().Name,
+            legacy_core = legacyCore.GetName().Name, distinct_core_types = typeof(Session) != legacyCore.GetType(typeof(Session).FullName!) }));
         try
         {
             string? command;

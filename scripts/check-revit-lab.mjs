@@ -17,7 +17,9 @@ function processLines(exe,args){
  return {child,next,command:async value=>{child.stdin.write(value+"\n");return next();},close:async()=>{const exit=new Promise(resolve=>child.once("exit",resolve));child.stdin.end();await exit;}};
 }
 const f=processLines("dotnet",["native/LabChecks/bin/Release/net10.0-windows/LabChecks.dll","--serve",folder]);
-const {binding}=await f.next();
+const {binding,core_assembly,legacy_core,distinct_core_types}=await f.next();
+assert.equal(core_assembly,"RevitThyme.LabCore","Lab core must load independently of an older preview core");
+assert.equal(legacy_core,"Adapter.Core");assert.ok(distinct_core_types,"Lab and preview cores must coexist as distinct CLR types");
 const app=path.join(root,"replacement/target/debug/revitthyme-app.exe");
 let m;let serial=0;
 const rpc=async(method,params={})=>m.command(JSON.stringify({jsonrpc:"2.0",id:++serial,method,params}));

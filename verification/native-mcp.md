@@ -14,6 +14,7 @@ The implementation and limits are in [NATIVE-MCP.md](../docs/NATIVE-MCP.md). It 
 - The first expanded transport check failed on the unimplemented tool catalog before implementation. The retained fail/pass reports live under `artifacts/revit-lab/offline`; reports include raw context/health observations. No credentials are recorded.
 - `project check-project` passes the structural diagnostic; TimberFold is only inspected as an existing external reference. No TimberFold integration/generation change is made.
 - Configuration rotation tests preserve unrelated TOML settings and the enabled native entry while rejecting an unrelated previous target. The installer now accepts an exact stopped prior run from another checkout and uses the parsed candidate; no registration or configuration has been written during verification.
+- The native lab packages a distinct `RevitThyme.LabCore` assembly compiled from the same core source. The Windows offline driver checks its actual loaded identity, preventing CLR binding to an older installed preview core. Actual coexistence in Revit remains a qualification gate.
 
 Final aggregate CI is retained in `artifacts/native-mcp/ci.json` with its exact SHA/base, commands, cleanliness and result. The main checkout's unrelated untracked logo is preserved; use a temporary clean local checkout for `--require-clean`. Read the aggregate result before treating CI as passed. CI source/package/UI checks remain separate from actual Revit proof.
 

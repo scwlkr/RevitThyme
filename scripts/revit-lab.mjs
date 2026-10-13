@@ -28,7 +28,7 @@ try{
   mkdirSync(bundle,{recursive:true});
   const files=[
    ["native/LabAdapter/bin/Release/net10.0-windows/RevitThyme.LabAdapter.dll","RevitThyme.LabAdapter.dll"],
-   ["native/LabAdapter/bin/Release/net10.0-windows/Adapter.Core.dll","Adapter.Core.dll"],
+   ["native/LabAdapter/bin/Release/net10.0-windows/RevitThyme.LabCore.dll","RevitThyme.LabCore.dll"],
    ["replacement/target/release/revitthyme-app.exe","revitthyme-test.exe"]
   ];
   const hashes={};for(const [source,target] of files){const dest=path.join(bundle,target);copyFileSync(path.join(root,source),dest);hashes[target]=createHash("sha256").update(readFileSync(dest)).digest("hex");}

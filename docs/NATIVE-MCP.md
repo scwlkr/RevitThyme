@@ -2,6 +2,8 @@
 
 WLK-238 builds on WLK-229's native session. Rust owns MCP, input validation and health rules. The minimal .NET adapter reads Revit through the existing serialized ExternalEvent queue. There is no Python/Routes fallback or arbitrary-code tool.
 
+The lab compiles the same native queue/protocol source into `RevitThyme.LabCore.dll`. Its distinct CLR identity prevents an older installed preview's `Adapter.Core.dll` from supplying incompatible types to the new lab. Existing bundles remain intact; no working host DLL is replaced.
+
 This milestone is **source and Windows offline verified**. The new inspection tools have not been installed or qualified inside Revit. Existing immutable bundles retain their own earlier evidence. Preparation does not change registrations, MCP settings or models.
 
 ## Implemented tools

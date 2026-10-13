@@ -43,10 +43,10 @@ The user approved installation and the first disposable fixture on 2026-10-12, a
 1. Back up the user's Codex `config.toml` into that ignored run folder. Add the `revitthyme_test` entry from `mcp.toml`, leaving existing MCP entries in place. Refuse an existing entry instead of silently replacing it.
 2. Install only the new per-user `RevitThyme.Lab.addin` manifest under `C:\Users\scwlk\AppData\Roaming\Autodesk\Revit\Addins\2027`. It references the reviewed immutable local bundle. Verify the physical destination and copied manifest; preserve all existing add-ins.
 3. Start one new `C:\Program Files\Autodesk\Revit 2027\Revit.exe` process with that run's configuration. Keep the working process and its open model running. Record the new process identity. An unsigned-add-in prompt must be handled by the user; automation does not approve it.
-4. In that new, empty process, create an imperial project with two named levels, one floor plan and a simple solid. Save it once as that run's new `RevitThyme-Test.rvt`, refusing overwrite. Close only that new document and reopen it to activate the floor plan. These startup steps require the explicit fixture creation/save/close/reopen approval.
+4. In that new, empty process, create an imperial project with two named levels, one floor plan and a simple solid. Save it once as that run's new `RevitThyme-Test.rvt`, refusing overwrite. Close only that new document and reopen it to activate the floor plan. These disposable startup steps are authorized; the user requested proceeding without additional approval on 2026-10-13.
 5. Verify the native binding, MCP initialization, tool list, capture, preview and proposal against the test model. Record actual Revit results separately. The first run opens no test transactions after fixture setup, and provides no save, sync, close, delete or arbitrary-code MCP tools.
 
-Installation and startup use an explicit prepared folder and the approved-operation flag:
+Installation and startup use an explicit prepared folder and the `--approved` flag to record the user's standing authorization. It does not require asking again for this work:
 
 ```powershell
 .\project.cmd revit-lab install <absolute-prepared-run-folder> --approved

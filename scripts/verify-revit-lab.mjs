@@ -38,7 +38,9 @@ try{
  check(hello.result?.serverInfo.name==="revitthyme-test","MCP initialize on exact prepared native connection");
  child.stdin.write(JSON.stringify({jsonrpc:"2.0",method:"notifications/initialized"})+"\n");
  const tools=(await rpc("tools/list")).result.tools;
- check(tools.length===5&&!tools.some(t=>t.name==="view_range_apply"),"Read-only MCP tool list excludes Apply");
+ const expected=["lab_capture","view_range_preview","view_range_propose","view_range_outcome","view_range_cancel"];
+ if(tools.some(t=>t.name==="revit_context"))expected.push("revit_context","revit_elements","revit_project_health");
+ check(tools.length===expected.length&&expected.every(name=>tools.some(t=>t.name===name)),"Read-only MCP tool list matches the implemented bundle and excludes Apply");
  let captured=await call("lab_capture");check(!captured.isError,"Actual Revit API capture succeeded");
  const s=captured.structuredContent.snapshot;snapshot=s;
  check(s.target.process_id===binding.process_id&&s.target.process_start_ticks===binding.process_start_ticks&&s.target.session_id===binding.session_id&&s.document_name==="RevitThyme-Test"&&s.view_name==="RevitThyme Lab Plan","Capture returns the exact test process, document and plan");

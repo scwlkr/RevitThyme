@@ -7,18 +7,32 @@ using Range = RevitThyme.Native.Range;
 
 internal static class TestServer
 {
-    private sealed class Guarded(string path, Session session) : IModel
+    private sealed class Guarded(string path, Session session) : IModel, IReadModel
     {
         public readonly FakeModel Model = new();
         private readonly FixtureGuard guard = new(path, true);
         public string Actual = path;
         public string Id = "first-document";
+        public string InspectionMode = "";
         private void Check() => guard.Check(Actual, Id, false);
         public Target CurrentTarget() { Check(); return Model.CurrentTarget(); }
         public Facts Capture() { Check(); Model.Target = Model.Target with { Revision = session.Revision }; return Model.Capture(); }
         public RawRange Validate(Facts f, Range r) { Check(); return Model.Validate(f, r); }
         public RawRange Read(Facts f) { Check(); return Model.Read(f); }
         public IChange Begin(Facts f) { Check(); guard.Write(); return Model.Begin(f); }
+        public ModelContext Context()
+        {
+            Check(); Model.Target = Model.Target with { Revision = session.Revision };
+            InspectionFixture.Stage(Model, "context");
+            return new(Model.Target, "Offline inspection fixture", "3D inspection view", "ThreeD", false, false, false, "27.3.0.28", "ft");
+        }
+        public ElementPage Elements(Target target, ReadQuery query)
+        {
+            Check(); Model.Target = Model.Target with { Revision = session.Revision };
+            if (target != Model.Target) throw new Rejection("stale_target", "Inspection target changed.");
+            InspectionFixture.Stage(Model, "elements");
+            return InspectionFixture.Page(target, query, InspectionMode);
+        }
     }
     public static async Task Run(string root)
     {
@@ -52,6 +66,7 @@ internal static class TestServer
                 if (command == "wrong_fixture") { model.Actual = Path.Combine(root, "Working.rvt"); session.Invalidate(); }
                 if (command == "restore") { model.Actual = fixture; session.Invalidate(); }
                 if (command == "reopen") { model.Id = "reopened-document"; session.Invalidate(); }
+                if (command.StartsWith("inspection_", StringComparison.Ordinal)) model.InspectionMode = command[11..];
                 if (command == "observe") Console.WriteLine(JsonSerializer.Serialize(new { transactions = model.Model.Transactions, calls = model.Model.Trace.Count, cut = model.Model.Current.Cut.OffsetFeet }));
                 else Console.WriteLine(JsonSerializer.Serialize(new { command }));
             }

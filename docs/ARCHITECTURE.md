@@ -1,5 +1,7 @@
 # Architecture
 
+The [native MCP milestone](NATIVE-MCP.md) extends the native test connection: Rust owns schemas, bounded orchestration and health rules; .NET supplies model facts through the shared queue. Inspection has its own document/view readiness without a View Range geometry capture. Both native hosts compile the same inspection source. MCP exposes it through the fixture-bound lab; an in-product health UI remains a later caller. New installation and actual-Revit inspection qualification are pending.
+
 The [native test lab](NATIVE-REVIT-LAB.md) adds a Rust stdio MCP adapter over the existing protocol-2 native pipe. A separate, opt-in .NET lab host shares the ribbon's model implementation and pins one disposable file/document instance inside API callbacks. It does not use Routes or replace the working connection. Source/offline checks and actual-Revit installation/qualification remain separate; the first prepared run is read-only.
 
 Native Visual View Range uses the [minimal .NET 10 adapter](RUST-VIEW-RANGE-M2.md), Rust and Expo/Electron with protocol 2: owned launch bootstrap, session-bound Windows pipes, serialized ExternalEvent queue, immutable capture, native validation and transactional Apply/readback. The [M3 assessment](../verification/rust-view-range-m3-remaining.md) records bounded actual-host checks, including startup/capture/Apply/Undo with pyRevit disabled. The [guide](VISUAL-VIEW-RANGE.md) defines the accepted named-level restriction and recovery. Existing pyRevit tools and external TimberFold remain installed.

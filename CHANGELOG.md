@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased - Native MCP inspection milestone - 2026-10-13
+
+- Add `revit_context`, `revit_elements` and `revit_project_health` to the native test MCP. Read exact identity without geometry, inspect category pages/64-bit IDs and evaluate six review checks in shared Rust logic. Enforce target/revision guards in native callbacks, exact inputs and bounded results. Incomplete scans retain lower-bound counts; no automatic fixes or production-model enablement.
+- Bound pages by serialized bytes with valid continuation, health reads by row/page/byte/time budgets and MCP output by bytes. Evict terminal read receipts under pressure while retaining Apply outcomes. Add Windows regressions for known findings, missing IDs, partial scans, Unicode pagination, oversized responses and sustained inspection traffic. Installed bundles and actual-Revit qualification remain separate.
+
 ## Unreleased - Imperial View Range units - 2026-10-12
 
 - Default Visual View Range to feet/inches with reduced fractional inches rounded to 1/8 inch. Accept architectural entry, negative offsets and decimal feet; use eighth-inch imperial slider/plane-drag increments and consistent section/review/outcome labels. Retain metric options and exact untouched Revit values behind rounded display.

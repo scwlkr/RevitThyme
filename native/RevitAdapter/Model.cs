@@ -5,7 +5,7 @@ using Range = RevitThyme.Native.Range;
 using Plane = RevitThyme.Native.Plane;
 
 namespace RevitThyme.RevitAdapter;
-public sealed class Model(UIApplication app, IHostContext host) : IModel
+public sealed partial class Model(UIApplication app, IHostContext host) : IModel, IReadModel
 {
     internal static readonly PlanViewPlane[] Planes = [PlanViewPlane.TopClipPlane, PlanViewPlane.CutPlane, PlanViewPlane.BottomClipPlane, PlanViewPlane.ViewDepthPlane];
     private (Document doc, ViewPlan view) Active()

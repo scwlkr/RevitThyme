@@ -2,8 +2,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace RevitThyme.Native;
-public enum Operation { Capture, Geometry, Validate, Apply, Outcome, Cancel }
-public enum Status { Queued, Executing, Captured, Validated, AppliedVerified, UnchangedVerified, RollbackConfirmed, OutcomeUnconfirmed, Rejected, Cancelled }
+public enum Operation { Capture, Geometry, Validate, Apply, Outcome, Cancel, Context, Elements }
+public enum Status { Queued, Executing, Captured, Validated, AppliedVerified, UnchangedVerified, RollbackConfirmed, OutcomeUnconfirmed, Rejected, Cancelled, Inspected }
 public record Target(int ProcessId, string ProcessStartTicks, string SessionId, string DocumentId, string ViewId, uint Revision);
 public record Plane(string LevelId, string LevelName, double BaseFeet, double OffsetFeet, bool Unlimited, bool AllowUnlimited);
 public record Range(Plane Top, Plane Cut, Plane Bottom, Plane Depth)
@@ -20,10 +20,12 @@ public record Capture(string SnapshotId, Target Target, string DocumentName, str
     Range Original, double[] BoundsFeet, uint TriangleCount, bool Partial, string[] Diagnostics, uint ExpiresInSeconds);
 public record Facts(Capture Capture, RawRange Original, double[][][] Triangles, DateTime Created);
 public record Request(int Protocol, string RequestId, Operation Operation, Target? Target, string SnapshotId,
-    Range? Range, int ChunkIndex, string OutcomeId, bool Confirmed);
+    Range? Range, int ChunkIndex, string OutcomeId, bool Confirmed,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ReadQuery? Query = null);
 public record Hello(int Protocol, int ProcessId, string ProcessStartTicks, string SessionId, string Credential, string ConnectionId);
 public record Reply(int Protocol, string RequestId, Status Status, string Code, string Message, bool RefreshRequired,
-    Capture? Capture, double[][][]? Triangles, RawRange? NativeValues, string[] ChangedIds, string[] SkippedIds)
+    Capture? Capture, double[][][]? Triangles, RawRange? NativeValues, string[] ChangedIds, string[] SkippedIds,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] InspectionResult? Inspection = null)
 {
     public static Reply Result(Request r, Status status, string code, string message, bool refresh = false,
         RawRange? values = null, string[]? changed = null) => new(Wire.Protocol, r.RequestId, status, code, message, refresh,
@@ -56,5 +58,13 @@ public static class Wire
         if (r.Operation is Operation.Outcome or Operation.Cancel && !Guid.TryParse(r.OutcomeId, out _))
             throw new InvalidDataException("Original request identity required.");
         if (r.ChunkIndex is < 0 or > 390) throw new InvalidDataException("Chunk limit.");
+        if (r.Operation == Operation.Elements)
+        {
+            if (r.Target is null || r.Query is null) throw new InvalidDataException("Inspection target/query required.");
+            r.Query.Validate();
+        }
+        else if (r.Query is not null) throw new InvalidDataException("Query is only supported for element inspection.");
+        if (r.Operation is Operation.Context or Operation.Elements && (r.Range is not null || r.SnapshotId != "" || r.Confirmed))
+            throw new InvalidDataException("Inspection cannot carry mutation arguments.");
     }
 }

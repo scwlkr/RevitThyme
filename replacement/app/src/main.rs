@@ -1,5 +1,7 @@
 mod api;
 mod contract;
+mod inspection;
+mod inspection_contract;
 mod lab;
 mod lab_credential;
 mod mcp;

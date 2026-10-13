@@ -54,6 +54,9 @@ impl Lab {
             )
         };
         match name {
+            "revit_context" | "revit_elements" | "revit_project_health" => {
+                self.native.inspect(name, args).await
+            }
             "lab_capture" => {
                 if args != json!({}) {
                     return Err(bad());

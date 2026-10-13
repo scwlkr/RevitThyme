@@ -28,6 +28,8 @@ pub struct Request {
     pub chunk_index: u32,
     pub outcome_id: String,
     pub confirmed: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub query: Option<crate::inspection::Query>,
 }
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -82,6 +84,7 @@ pub struct Reply {
     pub native_values: Option<RawRange>,
     pub changed_ids: Vec<String>,
     pub skipped_ids: Vec<String>,
+    pub inspection: Option<crate::inspection::ResultData>,
 }
 impl Reply {
     pub fn mutation(self, target: Target) -> Result<MutationResult, ApiError> {
@@ -113,6 +116,21 @@ pub struct Client {
     serial: u64,
 }
 impl Client {
+    pub fn verify_target(&self, target: &Target) -> Result<(), ApiError> {
+        if target.process_id != self.binding.process_id
+            || target.process_start_ticks != self.binding.process_start_ticks
+            || target.session_id != self.binding.session_id
+            || target.document_id.is_empty()
+            || target.view_id.is_empty()
+        {
+            return Err(error(
+                "stale_target",
+                "Target does not belong to the pinned native process/session.",
+                true,
+            ));
+        }
+        Ok(())
+    }
     pub fn new(binding: Binding) -> Self {
         Self {
             binding,
@@ -138,6 +156,7 @@ impl Client {
             chunk_index: 0,
             outcome_id: String::new(),
             confirmed: false,
+            query: None,
         }
     }
     async fn connect(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

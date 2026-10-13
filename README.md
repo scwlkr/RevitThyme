@@ -17,7 +17,7 @@ The visual identity combines thyme leaves, earthy greens and timber colors. Each
 | Suite Status: host versions and document identity | Broader native suite migration |
 | Native Visual View Range preview: capture, review, Apply and Undo | Second-computer native qualification |
 | TimberFold inspection: candidate walls/roofs and source-file diagnostics | Preview-bound fabrication generation |
-| Shared ribbon and loopback Routes | Named MCP server and asynchronous jobs |
+| Native fixture-bound MCP; context, paged elements and project-health source milestone | New inspection installation/native qualification; production enablement and asynchronous jobs |
 | Allowlisted ZIP, hashes, backup/upgrade/uninstall tooling | Bundled TimberFold worker and second-computer pilot |
 
 TimberFold generation continues through its separate working installation. Inspection counts do not prove fabrication support.
@@ -33,6 +33,8 @@ Install pyRevit for Revit 2027. Download the ZIP and checksum from [Releases](ht
 Load the extension on a normal Revit start, then open **RevitThyme > Suite Status**. Tool Settings can select your existing TimberFold folder. The first-host cold-start smoke test passed with icons and read-only operations. The development host previously crashed during Reload and uses a separately documented local Routes repair; repeated Reload stability and another-machine behavior remain unverified. See [deployment](docs/DEPLOYMENT.md) for compatibility and recovery.
 
 ## Develop
+
+The [native MCP milestone](docs/NATIVE-MCP.md) adds read-only context, typed element inspection and six project-health checks to the dedicated Rust/.NET test connection. Windows transport/offline evidence is separate from pending actual-Revit inspection qualification. Existing installed bundles remain unchanged.
 
 The [native adapter](docs/RUST-VIEW-RANGE-M2.md) provides capture/Apply and ribbon-launched connection in the Rust/Expo/Electron feature. Standalone executable launch retains the offline fixture. [M3](verification/rust-view-range-m3-remaining.md) records bounded actual Revit qualification separately from Windows source/package checks. The portable bundle does not install an add-in automatically.
 

@@ -13,6 +13,36 @@ pub struct Service {
     latest_revision: std::sync::Arc<std::sync::atomic::AtomicU32>,
 }
 impl Service {
+    pub async fn inspect(
+        &mut self,
+        name: &str,
+        args: serde_json::Value,
+    ) -> Result<serde_json::Value, ApiError> {
+        let bad = || {
+            error(
+                "invalid_arguments",
+                "Use the tool's exact input schema.",
+                false,
+            )
+        };
+        match name {
+            "revit_context" if args == serde_json::json!({}) => Ok(serde_json::json!(
+                crate::inspection::context(&mut self.client).await?
+            )),
+            "revit_elements" => {
+                let r: crate::inspection::ElementsRequest =
+                    serde_json::from_value(args).map_err(|_| bad())?;
+                Ok(serde_json::json!(
+                    crate::inspection::elements(&mut self.client, r.target, r.query).await?
+                ))
+            }
+            "revit_project_health" => {
+                let r = serde_json::from_value(args).map_err(|_| bad())?;
+                crate::inspection::health(&mut self.client, r).await
+            }
+            _ => Err(bad()),
+        }
+    }
     pub fn new(
         client: Client,
         latest_revision: std::sync::Arc<std::sync::atomic::AtomicU32>,
@@ -158,6 +188,7 @@ impl Service {
             chunk_index: 0,
             outcome_id: String::new(),
             confirmed: true,
+            query: None,
         };
         self.accepted
             .insert(request.request_id.clone(), request.clone());

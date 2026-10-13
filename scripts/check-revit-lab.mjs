@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 
 const root=path.resolve(import.meta.dirname,".."),folder=path.join(root,"artifacts/revit-lab/offline",randomUUID());
 mkdirSync(folder,{recursive:true});
-const checks=[];
+const checks=[],observations=[];
 function processLines(exe,args){
  const child=spawn(exe,args,{cwd:root,stdio:["pipe","pipe","pipe"],windowsHide:true});
  const waiting=[],buffer=[];let stderr="";
@@ -35,7 +35,49 @@ let passed=false;
 try{
  await start(binding);
  const listed=(await rpc("tools/list")).result.tools;
- check(listed.length===6&&listed.every(t=>t.inputSchema.type==="object")&&!listed.some(t=>t.name.includes("code")),"MCP initialize/tools/list advertise only named native lab operations");
+ check(listed.length===9&&listed.every(t=>t.inputSchema.type==="object")&&!listed.some(t=>t.name.includes("code")),"MCP initialize/tools/list advertise only named native lab operations");
+ const context=(await call("revit_context")).structuredContent;
+ observations.push({case:"context",value:context});
+ check(context.target.process_id===JSON.parse(readFileSync(binding)).process_id&&context.internal_length_unit==="ft","Context identifies the native document without geometry capture");
+ const query={target:context.target,query:{category:"doors",after_id:"0",limit:2,name_contains:"",missing_mark:true,ids:[]}};
+ let page=await call("revit_elements",query);
+ check(!page.isError&&page.structuredContent.items.length===2&&page.structuredContent.has_more,"Door query pages missing marks with stable 64-bit IDs");
+ query.query.after_id=page.structuredContent.next_after_id;
+ page=await call("revit_elements",query);
+ check(page.structuredContent.items.length===1&&!page.structuredContent.has_more,"Door query continues without repeated elements");
+ const idsQuery={...query,query:{...query.query,missing_mark:false,after_id:"0",ids:["4294967303","4294967301","9999999999"],limit:1}};
+ const idsFirst=(await call("revit_elements",idsQuery)).structuredContent;
+ const idsSecond=(await call("revit_elements",{...idsQuery,query:{...idsQuery.query,after_id:idsFirst.next_after_id}})).structuredContent;
+ check(idsFirst.items[0].element_id==="4294967301"&&idsSecond.items[0].element_id==="4294967303"&&idsSecond.missing_ids.includes("9999999999"),"Exact ID inspection paginates in numeric order and reports missing IDs");
+ const health=(await call("revit_project_health",{target:context.target,limit:2})).structuredContent;
+ observations.push({case:"health_known_fixture",value:health});
+ const counts=Object.fromEntries(health.checks.map(c=>[c.code,c.count]));
+ check(counts.doors_missing_marks===3&&counts.unplaced_rooms===1&&counts.views_missing_templates===1&&counts.duplicate_view_names===2&&counts.duplicate_sheet_numbers===2&&counts.revit_warnings===1,"Health evaluates known findings through native transport and shared Rust rules");
+ check(health.checks.find(c=>c.code==="doors_missing_marks").truncated&&health.complete&&(await f.command("observe")).transactions===0,"Health caps samples while retaining exact counts and opens no transaction");
+ for(const bad of [{...query,query:{...query.query,limit:101}},{...query,unexpected:true},{...query,query:{...query.query,after_id:"-1"}},{...query,query:{...query.query,category:"rooms",missing_mark:true}}]){
+  check((await call("revit_elements",bad)).isError,"Element query rejects malformed or unsupported inputs");
+ }
+ const wrong={...context.target,document_id:randomUUID()};
+ const beforeInspection=await f.command("observe");
+ check((await call("revit_elements",{...query,target:wrong})).structuredContent.code==="stale_target"&&(await f.command("observe")).calls===beforeInspection.calls,"Wrong inspection target is rejected before reading element facts");
+ await f.command("inspection_partial");
+ const partial=(await call("revit_project_health",{target:context.target,limit:2})).structuredContent;
+ observations.push({case:"health_partial",value:partial});
+ check(!partial.complete&&partial.checks.every(c=>!c.complete),"Incomplete native scans never claim a complete health result");
+ await f.command("inspection_many");
+ const large=(await call("revit_project_health",{target:context.target,limit:2})).structuredContent;
+ observations.push({case:"health_row_limit",value:large});
+ check(!large.complete&&large.checks.find(c=>c.code==="doors_missing_marks").count===2000,"Health bounds examined rows while preserving lower-bound counts");
+ await f.command("inspection_wide");
+ const wideQuery={...query,query:{...query.query,after_id:"0",limit:100}};
+ const wide=(await call("revit_elements",wideQuery)).structuredContent;
+ check(wide.items.length>0&&wide.items.length<100&&wide.has_more,"Native pages enforce serialized byte limits for Unicode labels");
+ const wideNext=(await call("revit_elements",{...wideQuery,query:{...wideQuery.query,after_id:wide.next_after_id}})).structuredContent;
+ check(BigInt(wideNext.items[0].element_id)>BigInt(wide.items.at(-1).element_id),"Byte-limited pages preserve the continuation without lost rows");
+ await f.command("inspection_oversized");
+ check((await call("revit_elements",wideQuery)).structuredContent.code==="result_limit"&&!(await call("revit_context")).isError,"Oversized element fails with a structured result and connection stays usable");
+ await f.command("inspection_");
+ check((await m.command("{not-json")).error.code===-32700&&!(await call("revit_context")).isError,"Malformed JSON gets a protocol error and the next native call succeeds");
  check((await rpc("tools/call",{name:"lab_capture",arguments:{},unexpected:true})).error.code===-32602,"MCP rejects unexpected call fields");
  check((await call("lab_capture",{code:"anything"})).isError,"Capture rejects arbitrary arguments");
  let result=await call("lab_capture");check(!result.isError,"MCP capture traverses real Windows pipe, credential handoff and API-context queue");
@@ -50,7 +92,10 @@ try{
  for(let i=0;i<100&&["queued","executing"].includes(result.status);i++)result=(await call("view_range_outcome",{protocol:2,request_id:apply.request_id,target:s.target})).structuredContent;
  check(result.status==="applied_verified"&&result.native_values[0].cut.offset_feet===5&&(await f.command("observe")).transactions===1,"Confirmed MCP Apply verifies exact readback in one offline transaction");
  check((await call("view_range_apply",apply)).structuredContent.status==="applied_verified"&&(await f.command("observe")).transactions===1,"Duplicate confirmed request reads outcome without a second transaction");
+ for(let i=0;i<140;i++)assert.ok(!(await call("revit_context")).isError,"Repeated inspection must not exhaust retained mutation outcomes");
+ check((await call("view_range_outcome",{protocol:2,request_id:apply.request_id,target:s.target})).structuredContent.status==="applied_verified","Repeated read-only inspections preserve original Apply outcome");
  await f.command("wrong_fixture");const before=await f.command("observe");
+ check((await call("revit_context")).structuredContent.code==="wrong_fixture"&&(await f.command("observe")).calls===before.calls,"Context refuses a working file before model inspection");
  result=await call("lab_capture");const after=await f.command("observe");
  check(result.isError&&result.structuredContent.code==="wrong_fixture"&&after.calls===before.calls&&after.transactions===before.transactions,"Wrong working file is rejected at execution before any model API reads or writes");
  await f.command("restore");check(!(await call("lab_capture")).isError,"Original approved document remains usable after rejected wrong file");
@@ -74,6 +119,6 @@ try{
  passed=true;
 }finally{
  if(m)await m.close();await f.close();
- writeFileSync(path.join(folder,"report.json"),JSON.stringify({scope:"source_and_windows_mcp_offline",actual_revit:false,passed,checks},null,2)+"\n");
+ writeFileSync(path.join(folder,"report.json"),JSON.stringify({scope:"source_and_windows_mcp_offline",actual_revit:false,passed,checks,observations},null,2)+"\n");
  console.log("Evidence: "+path.join(folder,"report.json"));
 }

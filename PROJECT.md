@@ -52,6 +52,8 @@ The operation names, job states and proposed source layout in [ARCHITECTURE.md](
 
 ## Current state and evidence
 
+The 2026-10-13 custom MCP request is tracked as WLK-238. Build on the recent native lab/UI source at `6104656081738e8ff81d51f065d23e4f75a34252`, preserving installed bundles and the default branch. The first slice adds native context, typed paged inspection and shared Rust project-health rules; see [native MCP](docs/NATIVE-MCP.md). Source/offline checks do not extend actual-Revit qualification. Retain the native-only path and fixture/process/document guards; wider editing/export/family tools need their own named operations and acceptance.
+
 On 2026-10-12 the user approved installing the native test connection and creating/saving/reopening its new disposable fixture. The user also removed the blanket exact-step installation/fixture approval sentence from `AGENTS.md`. This does not authorize changes to working models, legacy retirement, publication or distribution. Test-run repair/rotation preserves prior fixtures and replaces only the identified test connection with backups.
 
 WLK-229 implements a separate native test adapter and Rust stdio MCP connection, sharing the existing native Visual View Range code. The accepted test design has no pyRevit dependency, a unique process/session pipe and an exact fixture/document guard in Revit API callbacks. The first prepared run is read-only. SDK compilation and Windows MCP/guard tests are offline evidence; approved installation and actual simultaneous-instance qualification follow [the native lab guide](docs/NATIVE-REVIT-LAB.md). The installed executable and SDK are now 27.3.0.28; historical 27.2 results remain historical. Preserve the working session and installed tools.
@@ -65,7 +67,7 @@ WLK-229 implements a separate native test adapter and Rust stdio MCP connection,
 | TimberFold implementation | External checkout; read-only inspection integrated, generation not integrated |
 | RevitThyme pyRevit adapter | Implemented read-only operations in v0.2.0; live evidence recorded separately |
 | Native C# host | Minimal .NET 10 replacement preview implemented; bounded actual Visual View Range evidence in verification/rust-view-range-m3.md; full suite parity unimplemented |
-| RevitThyme ribbon and MCP server | Ribbon and named Routes implemented; WLK-229 native test MCP installed with 11 actual-Revit 27.3 read-only checks passed, broader suite MCP parity remains separate |
+| RevitThyme ribbon and MCP server | Earlier WLK-229 native test MCP installed/qualified; WLK-238 context/inspection/health source added, new installation and actual-Revit qualification pending; broader suite parity remains separate |
 | Installer / boss's computer pilot | Versioned ZIP and per-user installer implemented; second-computer pilot unverified |
 | Live RevitThyme validation | See verification/release-0.2.0.md for exact scope and remaining gates |
 

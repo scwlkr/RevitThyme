@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <AssemblyName>RevitThyme.LabAdapter</AssemblyName><Version>0.1.0</Version>
+    <AssemblyName>RevitThyme.LabAdapter</AssemblyName><Version>0.2.0</Version>
     <RevitApiPath Condition="'$(RevitApiPath)' == ''">C:\Program Files\Autodesk\Revit 2027</RevitApiPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Adapter.Core/Adapter.Core.csproj" />
     <Compile Include="../RevitAdapter/IHostContext.cs" Link="Shared/IHostContext.cs" />
     <Compile Include="../RevitAdapter/Model.cs" Link="Shared/Model.cs" />
+    <Compile Include="../RevitAdapter/Inspection.cs" Link="Shared/Inspection.cs" />
     <Compile Include="../RevitAdapter/Geometry.cs" Link="Shared/Geometry.cs" />
     <Compile Include="../RevitAdapter/Orientation.cs" Link="Shared/Orientation.cs" />
     <Compile Include="../RevitAdapter/Change.cs" Link="Shared/Change.cs" />

@@ -52,6 +52,13 @@ public sealed class Session
             }
             foreach (var key in entries.Where(p => Terminal(p.Value.Reply.Status) && DateTime.UtcNow - p.Value.Created > TimeSpan.FromMinutes(10)).Select(p => p.Key).ToArray())
                 entries.Remove(key);
+            // Short read receipts can be evicted; uncertain/retained Apply outcomes must survive inspection traffic.
+            if (entries.Count >= 128)
+            {
+                var oldest = entries.Where(p => p.Value.Request.Operation != Operation.Apply && Terminal(p.Value.Reply.Status))
+                    .OrderBy(p => p.Value.Created).FirstOrDefault();
+                if (oldest.Key is not null) entries.Remove(oldest.Key);
+            }
             if (entries.Count >= 128 || queue.Count >= 16)
                 return Reply.Result(r, Status.Rejected, "queue_full", "Bounded native queue/outcome store is full. Wait before a new request.");
             entries.Add(r.RequestId, new(r, connection, DateTime.UtcNow)); queue.Enqueue(r.RequestId);
@@ -92,7 +99,17 @@ public sealed class Session
         try
         {
             var r = e.Request;
-            if (r.Operation == Operation.Capture)
+            if (r.Operation is Operation.Context or Operation.Elements)
+            {
+                if (model is not IReadModel reader) throw new Rejection("unsupported_operation", "This host does not implement model inspection.");
+                var inspection = r.Operation == Operation.Context ? new InspectionResult(Context: reader.Context())
+                    : new InspectionResult(Page: reader.Elements(r.Target!, r.Query!));
+                result = Reply.Result(r, Status.Inspected, "inspected", "Native read-only inspection; no transaction opened.") with { Inspection = inspection };
+                // Retain a bounded failure instead of disconnecting when a host violates the wire budget.
+                try { _ = Frames.Encode(result); }
+                catch (InvalidDataException) { throw new Rejection("result_limit", "Inspection exceeds the native result budget. Request fewer elements."); }
+            }
+            else if (r.Operation == Operation.Capture)
             {
                 var f = model.Capture();
                 if (f.Triangles.Length > 50_000 || f.Capture.TriangleCount != f.Triangles.Length) throw new InvalidDataException("Capture limit.");

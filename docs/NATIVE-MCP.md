@@ -44,6 +44,8 @@ Health examines at most 2,000 rows, 100 pages and approximately 2 MiB of page da
 
 Old terminal read receipts may be evicted to keep inspection usable. Apply outcomes survive read traffic. The existing ten-minute retention horizon remains; never infer a successful write from an unknown outcome. Queue/credential/handshake failures and stale targets remain structured errors with no automatic target selection or mutation retry.
 
+Connection rotation accepts an exact stopped prior run from another checkout. It verifies the prior plan/manifest and configured executable/binding, parses TOML, and preserves unrelated sections and settings such as `enabled`. It prepares a private candidate file before replacing the saved configuration. This avoids leaving an orphan setting after removing a raw snippet. Physical-path checks, backups and the prior-process guard still apply.
+
 ## Verification and installation
 
 `project check-revit-lab` runs SDK compilation, Rust format/clippy/tests and real stdio → Windows credential → named-pipe → owner-thread queue checks against an offline host. Its fixture has independently specified marks, duplicate keys, templates, sheets, room placement and warning relationships. It does not execute Revit APIs.

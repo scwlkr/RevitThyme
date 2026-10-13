@@ -42,21 +42,28 @@ if ($Action -eq 'install') {
     if ($PreviousRunFolder) {
         $previous = [IO.Path]::GetFullPath($PreviousRunFolder)
         $previousId = [Guid]::Empty
-        if ($previous -eq $folder -or (Split-Path $previous -Parent) -ne $labRoot -or -not [Guid]::TryParse((Split-Path $previous -Leaf), [ref]$previousId)) { throw 'Replacement requires the exact previous lab run folder.' }
+        if ($previous -eq $folder -or (Split-Path (Split-Path $previous -Parent) -Leaf) -ne 'revit-lab' -or -not [Guid]::TryParse((Split-Path $previous -Leaf), [ref]$previousId)) { throw 'Replacement requires the exact previous lab run folder.' }
         $null = Assert-NativeHostPath $previous
+        $oldPlan = Get-Content -LiteralPath (Join-Path $previous 'plan.json') -Raw | ConvertFrom-Json
+        if ($oldPlan.folder -ne $previous) { throw 'Previous prepared folder identity mismatch.' }
         $oldLaunch = Join-Path $previous 'launch.json'
         if (Test-Path -LiteralPath $oldLaunch) {
             $old = Get-Content -LiteralPath $oldLaunch -Raw | ConvertFrom-Json
             $running = Get-Process -Id $old.pid -ErrorAction SilentlyContinue
             if ($running -and $running.StartTime.ToUniversalTime().Ticks.ToString() -eq $old.start_ticks) { throw 'Previous test Revit process is still running. Do not replace its connection.' }
         }
-        $oldSnippet = [IO.File]::ReadAllText((Join-Path $previous 'mcp.toml'))
         $priorManifest = [IO.File]::ReadAllText((Join-Path $previous 'RevitThyme.Lab.addin'))
-        if (-not (Test-Path -LiteralPath $addin) -or [IO.File]::ReadAllText($addin) -ne $priorManifest -or [regex]::Matches($existing,[regex]::Escape($oldSnippet)).Count -ne 1) { throw 'Existing lab registration/MCP entry does not match the exact previous run. Refusing replacement.' }
-        $nextConfig = $existing.Replace($oldSnippet, '')
+        [xml]$oldManifest = $priorManifest
+        if ($oldManifest.RevitAddIns.AddIn.Assembly -ne (Join-Path $previous 'bundle\RevitThyme.LabAdapter.dll') -or $oldManifest.RevitAddIns.AddIn.FullClassName -ne 'RevitThyme.Lab.Host' -or $oldManifest.RevitAddIns.AddIn.AddInId -ne '45F4DB43-1E27-4C0F-A629-0DCC5B43FB18') { throw 'Previous lab registration identity mismatch.' }
+        if (-not (Test-Path -LiteralPath $addin) -or [IO.File]::ReadAllText($addin) -ne $priorManifest) { throw 'Existing lab registration does not match the exact previous run. Refusing replacement.' }
+        $rotationOutput = & python -X utf8 (Join-Path $PSScriptRoot 'native-mcp-config.py') prepare-rotation $previous $folder
+        if ($LASTEXITCODE) { throw 'Native MCP rotation preparation failed.' }
+        $rotation = $rotationOutput | ConvertFrom-Json
+        if ($rotation.candidate -ne (Join-Path $folder 'config.toml.prepared-rotation') -or (Get-FileHash -LiteralPath $codexConfig).Hash.ToLowerInvariant() -ne $rotation.source_sha256) { throw 'Codex configuration changed during rotation preparation.' }
+        $nextConfig = [IO.File]::ReadAllText($rotation.candidate)
         Copy-Item -LiteralPath $addin -Destination (Join-Path $folder 'RevitThyme.Lab.addin.before-install')
     }
-    if ($nextConfig -match '(?m)^\[mcp_servers\.revitthyme_test(\]|\.)') { throw 'Test MCP entry already exists. Review it; never silently replace a connection.' }
+    if (-not $PreviousRunFolder -and $nextConfig -match '(?m)^\[mcp_servers\.revitthyme_test(\]|\.)') { throw 'Test MCP entry already exists. Review it; never silently replace a connection.' }
     $source = Join-Path $folder 'RevitThyme.Lab.addin'
     [xml]$manifest = [IO.File]::ReadAllText($source)
     if ($manifest.RevitAddIns.AddIn.Assembly -ne (Join-Path $folder 'bundle\RevitThyme.LabAdapter.dll') -or $manifest.RevitAddIns.AddIn.FullClassName -ne 'RevitThyme.Lab.Host' -or $manifest.RevitAddIns.AddIn.AddInId -ne '45F4DB43-1E27-4C0F-A629-0DCC5B43FB18') { throw 'Prepared registration changed.' }
@@ -72,7 +79,8 @@ if ($Action -eq 'install') {
     try {
         Copy-Item -LiteralPath $source -Destination $addin -ErrorAction Stop
         if ([IO.File]::ReadAllText($codexConfig) -ne $existing) { throw 'Codex configuration changed during installation. Retry only after review.' }
-        [IO.File]::WriteAllText($codexConfig, $nextConfig.TrimEnd()+"`n`n"+$snippet, [Text.UTF8Encoding]::new($false))
+        $revisedConfig = if ($PreviousRunFolder) { $nextConfig } else { $nextConfig.TrimEnd()+"`n`n"+$snippet }
+        [IO.File]::WriteAllText($codexConfig, $revisedConfig, [Text.UTF8Encoding]::new($false))
         $wroteConfig = $true
         $null = Assert-NativeHostPath $addin
         if ((Get-FileHash -LiteralPath $addin).Hash -ne (Get-FileHash -LiteralPath $source).Hash) { throw 'Native registration readback mismatch.' }

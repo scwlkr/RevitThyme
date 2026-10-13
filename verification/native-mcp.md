@@ -13,6 +13,7 @@ The implementation and limits are in [NATIVE-MCP.md](../docs/NATIVE-MCP.md). It 
 - Sustained read traffic preserves a prior verified Apply outcome and does not create another transaction. The regression failed before receipt eviction with `Repeated inspection must not exhaust retained mutation outcomes`, then passed after the fix. Existing View Range confirmation/readback/duplicate-request tests remain intact.
 - The first expanded transport check failed on the unimplemented tool catalog before implementation. The retained fail/pass reports live under `artifacts/revit-lab/offline`; reports include raw context/health observations. No credentials are recorded.
 - `project check-project` passes the structural diagnostic; TimberFold is only inspected as an existing external reference. No TimberFold integration/generation change is made.
+- Configuration rotation tests preserve unrelated TOML settings and the enabled native entry while rejecting an unrelated previous target. The installer now accepts an exact stopped prior run from another checkout and uses the parsed candidate; no registration or configuration has been written during verification.
 
 Final aggregate CI is retained in `artifacts/native-mcp/ci.json` with its exact SHA/base, commands, cleanliness and result. The main checkout's unrelated untracked logo is preserved; use a temporary clean local checkout for `--require-clean`. Read the aggregate result before treating CI as passed. CI source/package/UI checks remain separate from actual Revit proof.
 

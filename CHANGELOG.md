@@ -4,6 +4,7 @@
 
 - Add `revit_context`, `revit_elements` and `revit_project_health` to the native test MCP. Read exact identity without geometry, inspect category pages/64-bit IDs and evaluate six review checks in shared Rust logic. Enforce target/revision guards in native callbacks, exact inputs and bounded results. Incomplete scans retain lower-bound counts; no automatic fixes or production-model enablement.
 - Bound pages by serialized bytes with valid continuation, health reads by row/page/byte/time budgets and MCP output by bytes. Evict terminal read receipts under pressure while retaining Apply outcomes. Add Windows regressions for known findings, missing IDs, partial scans, Unicode pagination, oversized responses and sustained inspection traffic. Installed bundles and actual-Revit qualification remain separate.
+- Prepare guarded connection rotation from an exact stopped run in another checkout; verify existing target/manifest and preserve TOML sections and enabled settings through parsed updates. Installation is not performed by this milestone.
 
 ## Unreleased - Imperial View Range units - 2026-10-12
 

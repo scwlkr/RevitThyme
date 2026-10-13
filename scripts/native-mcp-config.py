@@ -39,6 +39,24 @@ def revise(text, action, folder):
     return text
 
 
+def rotate(text, previous, folder):
+    server = tomllib.loads(text).get("mcp_servers", {}).get("revitthyme_test", {})
+    if server.get("command") != str(previous / "bundle/revitthyme-test.exe") or server.get("args") != ["--lab-mcp", str(previous / "binding.json")]:
+        raise ValueError("Existing native MCP target does not match the exact previous run")
+    return revise(text, "bind", folder)
+
+
+def prepare_rotation(previous, folder):
+    target = Path.home() / ".codex/config.toml"
+    original = target.read_bytes()
+    revised = rotate(original.decode("utf-8-sig"), previous, folder).encode("utf-8")
+    candidate = folder / "config.toml.prepared-rotation"
+    if candidate.exists() and candidate.read_bytes() != revised:
+        raise ValueError("Prepared rotation changed; preserve and review the existing candidate")
+    candidate.write_bytes(revised)
+    print(json.dumps({"candidate": str(candidate), "source_sha256": hashlib.sha256(original).hexdigest()}))
+
+
 def check():
     fixture = '[mcp_servers.revit]\ncommand="old"\n[mcp_servers.jev-revit]\ncommand="uv"\n[mcp_servers.revitthyme_test]\ncommand="native"\nargs=[]\n[mcp_servers.other.env]\nPRIVATE="preserve exactly"\n'
     disabled = revise(fixture, "disable", Path("unused"))
@@ -49,6 +67,19 @@ def check():
     assert not result["mcp_servers"]["jev-revit"]["enabled"]
     assert result["mcp_servers"]["revitthyme_test"]["enabled"]
     assert '[mcp_servers.other.env]\nPRIVATE="preserve exactly"\n' in bound
+    previous = Path("C:/another checkout/artifacts/revit-lab/old")
+    configured = revise(disabled, "bind", previous)
+    rotated = rotate(configured, previous, Path("C:/new checkout/artifacts/revit-lab/new"))
+    result = tomllib.loads(rotated)
+    assert result["mcp_servers"]["revitthyme_test"]["enabled"]
+    assert result["mcp_servers"]["other"]["env"]["PRIVATE"] == "preserve exactly"
+    assert result["mcp_servers"]["revit"]["enabled"] is False
+    try:
+        rotate(configured, Path("C:/wrong previous"), Path("C:/new"))
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Rotation must reject an unrelated previous target")
     try:
         revise('[mcp_servers.other]\ncommand="keep"\n', "disable", Path("unused"))
     except ValueError:
@@ -61,6 +92,8 @@ def check():
 if __name__ == "__main__":
     if sys.argv[1:] == ["check"]:
         check()
+    elif len(sys.argv) == 4 and sys.argv[1] == "prepare-rotation":
+        prepare_rotation(Path(sys.argv[2]).resolve(), Path(sys.argv[3]).resolve())
     else:
         action, folder_text = sys.argv[1:]
         if action not in ("disable", "bind"):

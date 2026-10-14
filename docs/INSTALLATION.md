@@ -4,17 +4,23 @@ The Windows x64 installer includes the native add-in, CLI and MCP server. It sup
 
 ## Windows setup or one-line bootstrap
 
-Close Revit normally, preserving unsaved work. Download `RevitThyme-0.8.1-win-x64.exe` and its `.sha256` from the same [GitHub Release](https://github.com/scwlkr/RevitThyme/releases), verify the SHA-256, and run the executable. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user.
-
-The version-pinned release bootstrapper downloads and verifies that same executable before running it:
+Close Revit normally, preserving unsaved work. Run this in PowerShell to install the **latest stable GitHub release**:
 
 ```powershell
-irm https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/install.ps1 | iex
+irm https://revitthyme.wlkrlabs.com/install | iex
 ```
+
+To keep the installation pinned to **v0.8.1**, including after newer releases appear:
+
+```powershell
+irm https://revitthyme.wlkrlabs.com/install-0.8.1 | iex
+```
+
+Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download `RevitThyme-0.8.1-win-x64.exe` and its `.sha256` from the [0.8.1 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.1), verify the SHA-256, and run the executable.
 
 The **0.8.1 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.8.1 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.1) contains the installer, bootstrapper, adjacent checksums and source/package metadata. It is separate from the older legacy release.
 
-`install.ps1` embeds the 0.8.1 default; the command keeps that version even when a newer release exists. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts GitHub and this repository. You can download and inspect the script first instead. The original `install-revitthyme.ps1` asset retains its latest-release default.
+`/install` selects the latest stable release; `/install-0.8.1` embeds the 0.8.1 default. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The release's `install.ps1` asset also defaults to 0.8.1; `install-revitthyme.ps1` retains its latest-release default.
 
 For a saved bootstrapper, `-Version 0.8.1` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
 

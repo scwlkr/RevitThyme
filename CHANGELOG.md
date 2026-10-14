@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1 — Windows PowerShell bootstrap fix — 2026-10-14
+
+- Handle Windows PowerShell 5.1's nonterminating maximum-redirect error while retaining and checking the HTTPS redirect response. Keep strict host, checksum and asset-digest verification.
+- Verify real public installer downloads in PowerShell 7 and Windows PowerShell 5.1. Add a regression for the observed redirect behavior. Installer patch only; the bundled native toolkit remains 0.8.0 with protocol 4.
 ## 0.8.0 — Windows installation — 2026-10-14
 
 - Implement only the install experience on plan lines 81–85: one per-user Windows setup executable and a checksum-verified GitHub Release bootstrap, bundling the existing add-in, CLI and MCP.

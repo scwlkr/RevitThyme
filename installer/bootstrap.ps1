@@ -45,12 +45,16 @@ function Save-RevitThymeAsset($Asset, [string]$Path) {
     $url = [string]$Asset.browser_download_url
     for ($hop = 0; $hop -lt 6; $hop++) {
         $response = $null
+        $requestErrors = @()
         try {
-            $response = Invoke-WebRequest -Uri $url -OutFile $Path -UseBasicParsing -PassThru -MaximumRedirection 0 -TimeoutSec 120
+            # Windows PowerShell emits the redirect response plus a nonterminating error.
+            $response = Invoke-WebRequest -Uri $url -OutFile $Path -UseBasicParsing -PassThru -MaximumRedirection 0 -TimeoutSec 120 -ErrorAction SilentlyContinue -ErrorVariable requestErrors
         } catch {
             $response = $_.Exception.Response
             if (-not $response -or [int]$response.StatusCode -notin @(301,302,303,307,308)) { throw }
         }
+        if (-not $response -and $requestErrors.Count) { $response = $requestErrors[0].Exception.Response }
+        if ($requestErrors.Count -and (-not $response -or [int]$response.StatusCode -notin @(301,302,303,307,308))) { throw $requestErrors[0] }
         if ([int]$response.StatusCode -eq 200) { return }
         if ([int]$response.StatusCode -notin @(301,302,303,307,308)) { throw 'GitHub release download did not return HTTP 200.' }
         $location = $response.Headers['Location']

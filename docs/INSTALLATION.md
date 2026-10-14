@@ -4,7 +4,7 @@ The Windows x64 installer includes the native add-in, CLI and MCP server. It sup
 
 ## Windows setup or one-line bootstrap
 
-Close Revit normally, preserving unsaved work. Download `RevitThyme-0.8.0-win-x64.exe` and its `.sha256` from the same [GitHub Release](https://github.com/scwlkr/RevitThyme/releases), verify the SHA-256, and run the executable. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user.
+Close Revit normally, preserving unsaved work. Download `RevitThyme-0.8.1-win-x64.exe` and its `.sha256` from the same [GitHub Release](https://github.com/scwlkr/RevitThyme/releases), verify the SHA-256, and run the executable. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user.
 
 The release bootstrapper downloads and verifies that same executable before running it:
 
@@ -12,9 +12,9 @@ The release bootstrapper downloads and verifies that same executable before runn
 & ([scriptblock]::Create((Invoke-RestMethod 'https://github.com/scwlkr/RevitThyme/releases/latest/download/install-revitthyme.ps1')))
 ```
 
-The **0.8.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.8.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.0) contains the installer, bootstrapper, adjacent checksums and source/package metadata. It is separate from the older legacy release.
+The **0.8.1 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.8.1 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.1) contains the installer, bootstrapper, adjacent checksums and source/package metadata. It is separate from the older legacy release.
 
-For a saved bootstrapper, `-Version 0.8.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
+For a saved bootstrapper, `-Version 0.8.1` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
 
 ## Installed files and recovery
 
@@ -46,4 +46,4 @@ Set `$package` to the fresh package folder and `$testSetup` to the isolated setu
 
 Isolated setup builds have a `-test.exe` suffix and require a UUID test root with simulated Revit discovery. They create no Windows uninstall registry entry and cannot be published by the release workflow. Tests exercise actual setup/install/uninstall processes through Windows PowerShell 5.1 while leaving real Revit registrations untouched. These are installer tests, not new actual-Revit tool qualification or another-computer evidence.
 
-The manual [release workflow](../.github/workflows/release.yml) requires a deliberately provisioned `revitthyme-release` Windows x64 runner with licensed local Revit API binaries. It checks and uploads review artifacts. Only an explicit `publish_draft` dispatch from the matching clean `v0.8.0` tag creates a **draft**, after verifying asset hashes and source identity. Public publication, signing and another-machine qualification remain separate review actions. No package manager or updater is installed.
+The manual [release workflow](../.github/workflows/release.yml) requires a deliberately provisioned `revitthyme-release` Windows x64 runner with licensed local Revit API binaries. It checks and uploads review artifacts. Only an explicit `publish_draft` dispatch from the matching clean `v0.8.1` tag creates a **draft**, after verifying asset hashes and source identity. Public publication, signing and another-machine qualification remain separate review actions. No package manager or updater is installed.

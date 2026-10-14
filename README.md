@@ -13,7 +13,7 @@ This checkout implements **Foundation, MCP, Native utilities and Dynamic executi
 
 ## Install or build
 
-Download the [Windows installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.0/RevitThyme-0.8.0-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.0/RevitThyme-0.8.0-win-x64.exe.sha256), or use the [verified PowerShell bootstrap](docs/INSTALLATION.md). It bundles the add-in, CLI and MCP and detects supported Revit installations. Only full Revit 2027 is supported by this build. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned.
+Download the [Windows installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe.sha256), or use the [verified PowerShell bootstrap](docs/INSTALLATION.md). It bundles the add-in, CLI and MCP and detects supported Revit installations. Only full Revit 2027 is supported by this build. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned.
 
 Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The current native target is Revit **27.3.0.28**; other releases and another computer need qualification. Revit supplies its proprietary API assemblies locally.
 

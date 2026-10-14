@@ -42,10 +42,12 @@ function Invoke-Case([hashtable]$Options = @{}, [hashtable]$Arguments = @{}) {
         return @{tag_name=('v'+$state.fixture.version);assets=$state.fixture.assets;draft=[bool]$state.fixture.options.Draft;prerelease=[bool]$state.fixture.options.Prerelease}
     }
     function Invoke-WebRequest {
+        [CmdletBinding()]
         param($Uri,$OutFile,[switch]$UseBasicParsing,[switch]$PassThru,$MaximumRedirection,$TimeoutSec)
         Assert ($MaximumRedirection -eq 0) 'asset redirects are disabled'
         $state.downloads += $Uri; $state.paths += $OutFile
         if ($state.fixture.options.Redirect -and $Uri -like 'https://github.com/*') {
+            if ($state.fixture.options.RedirectNonTerminating) { Write-Error 'The maximum redirection count has been exceeded.' -ErrorId MaximumRedirectExceeded }
             if ($state.fixture.options.RedirectException) {
                 Add-Type -AssemblyName System.Net.Http
                 $response = [Net.Http.HttpResponseMessage]::new([Net.HttpStatusCode]::Redirect)
@@ -145,6 +147,8 @@ try {
     Assert (-not $state.error -and $state.started.Count -eq 1 -and $state.downloads.Count -eq 4) 'official HTTPS CDN redirects supported'
     $state = Invoke-Case @{Redirect='https://release-assets.githubusercontent.com/github-production-release-asset/1/setup';RedirectException=$true}
     Assert (-not $state.error -and $state.started.Count -eq 1) 'redirect exceptions and HTTP response headers supported'
+    $state = Invoke-Case @{Redirect='https://release-assets.githubusercontent.com/github-production-release-asset/1/setup';RedirectNonTerminating=$true}
+    Assert (-not $state.error -and $state.started.Count -eq 1 -and $state.downloads.Count -eq 4) 'Windows PowerShell redirect response survives its nonterminating error'
     $destination = Join-Path $run 'offline deployment'
     $state = Invoke-Case @{} @{DownloadOnly=$true;Destination=$destination}
     $download = Join-Path $destination 'RevitThyme-0.8.0-win-x64.exe'

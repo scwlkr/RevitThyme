@@ -55,8 +55,8 @@ internal static class NativeDynamicExecution
             Require(change.Commit(), Completion.Committed);
             // Native DocumentChanged IDs are collected after commit, never taken from script output.
             var changes = new CodeChanges(added.Order().ToArray(), modified.Except(added).Except(deleted).Order().ToArray(), deleted.Order().ToArray());
-            if (changes.Added.Length + changes.Modified.Length + changes.Deleted.Length > 256)
-                throw new OperationException("changes_too_large", "Change set exceeds 256 native IDs; split the operation.");
+            if (changes.Added.Length + changes.Modified.Length + changes.Deleted.Length > DynamicExecutor.MaxChangedIds)
+                throw new OperationException("changes_too_large", "Change set exceeds 512 native IDs; split the operation.");
             var after = model.Capture(); var report = Report(value, changes);
             var result = new OperationResult(request.Id, Outcome.Applied, "applied", "Trusted C# completed; native changes committed as one Revit Undo item.", after,
                 ChangedIds: changes.Added.Concat(changes.Modified).Concat(changes.Deleted).Distinct().ToArray(), Execution: report);

@@ -16,6 +16,7 @@ public static class DynamicExecutor
 {
     public const int MaxSourceBytes = 24576;
     public const int MaxValueBytes = 8192;
+    public const int MaxChangedIds = 512;
     public static OperationResult Execute(IModel model, OperationRequest request)
     {
         if (request.Target is null) return OperationResult.Reject(request, "target_required", "Inspect first; supply the exact captured target.");

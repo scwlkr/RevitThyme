@@ -115,6 +115,13 @@ public sealed class DynamicQualificationApplication : IExternalApplication, IExt
         Check("cooperative budget rolls back after code returns", budget.Code == "budget_exceeded" && doc.ActiveView.Name == "Foundation Plan");
         var cancelled = Run("cancellationToken.WaitHandle.WaitOne(150); cancellationToken.ThrowIfCancellationRequested(); return 1;", true, 100);
         Check("cooperative cancellation exception rolls back", cancelled.Code == "budget_exceeded" && cancelled.Outcome == Outcome.RolledBack);
+        var large = Run("for(int i=0;i<513;i++) Level.Create(doc,100+i*10); return true;", true);
+        Check("oversized native change set rolls back after commit", large.Code == "changes_too_large" && large.Outcome == Outcome.RolledBack && Count(doc) == count);
+        var made = Run("Level.Create(doc,100); Level.Create(doc,110); return true;", true);
+        var added = made.Execution?.Changes?.Added ?? [];
+        Check("native added IDs come from committed document event", made.Outcome == Outcome.Applied && added.Length == 2 && added.All(id => doc.GetElement(new ElementId(id)) is Level));
+        var removed = Run(string.Join(" ", added.Select(id => "doc.Delete(new ElementId(" + id + "));")) + " return true;", true);
+        Check("native deleted IDs come from committed document event", removed.Outcome == Outcome.Applied && removed.Execution!.Changes!.Deleted.SequenceEqual(added) && Count(doc) == count);
         Check("query side effect created no surviving elements", Count(doc) == count);
     }
     private static Wall[] Walls(Document doc) => new FilteredElementCollector(doc).OfClass(typeof(Wall)).Cast<Wall>().ToArray();

@@ -26,7 +26,8 @@ public sealed partial class RevitTools(RevitConnection connection)
     {
         operations = Enum.GetNames<OperationKind>(), protocolVersion = Protocol.Version,
         dynamicExecution = "run_query/run_modify accept a C# method body with doc, uiapp, cancellationToken; return JSON data. Host REVITTHYME_TRUSTED_CODE=1 and trusted=true required. Full process trust, no sandbox. Query always rolls back current-document changes. Modify uses one Undo. Cooperative budgets cannot interrupt blocked/infinite code. Never retry with a new requestId after timeout; poll get_operation.",
-        limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100 },
+        limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100,
+            sourceBytes = DynamicExecutor.MaxSourceBytes, resultBytes = DynamicExecutor.MaxValueBytes, changedIds = DynamicExecutor.MaxChangedIds },
         parameterUnits = "Double values use Revit internal units (length feet, angles radians). dataType is the native Forge type ID. ElementId parameters are inspection-only.",
         utilityUnits = "Range offsets, room inset/clearance and dimensions use feet. Range levels: Current, Above, Below, Unlimited, or native Level UniqueId. Native Revit validates floor/ceiling plane order.",
         roomDimensions = "Preview one rectangular room on the active floor plan's level/phase, with four basic native wall finish faces. Send the exact returned preview and its options to create. Tags, existing dimensions and native references are rechecked. No linked/curved/separator/island boundaries.",

@@ -84,7 +84,8 @@ function Invoke-Case([hashtable]$Options = @{}, [hashtable]$Arguments = @{}) {
     try {
         $command = $bootstrap
         if ($Options.Inline) { $command = [scriptblock]::Create([IO.File]::ReadAllText($bootstrap)) }
-        $state.output = @(& $command @Arguments -WarningVariable capturedWarnings 3>$null)
+        if ($Options.Pipe) { $state.output = @([IO.File]::ReadAllText($bootstrap) | Invoke-Expression -WarningVariable capturedWarnings 3>$null) }
+        else { $state.output = @(& $command @Arguments -WarningVariable capturedWarnings 3>$null) }
     }
     catch { $state.error = $_.Exception.Message }
     $state.warnings = @($capturedWarnings)
@@ -95,6 +96,17 @@ function Assert-Rejected($State,[string]$Pattern,[string]$Name) {
     foreach ($path in $State.paths) { Assert (-not (Test-Path -LiteralPath $path)) "$Name cleans temporary downloads" }
 }
 try {
+    . (Join-Path (Split-Path $PSScriptRoot -Parent) 'installer\pinned-bootstrap.ps1')
+    $originalBootstrap = $bootstrap
+    $pinned = Join-Path $run 'install.ps1'
+    [IO.File]::WriteAllText($pinned,(Get-PinnedBootstrap -Version '0.8.1'))
+    try {
+        $bootstrap = $pinned
+        $state = Invoke-Case @{Pipe=$true;TagVersion='0.8.1'}
+        Assert (-not $state.error -and $state.started.Count -eq 1 -and $state.api[0].EndsWith('/tags/v0.8.1')) "piped release bootstrap pins v0.8.1 without arguments: $($state.error)"
+        Assert-Rejected (Invoke-Case @{Pipe=$true;TagVersion='0.9.0'}) '*different version*' 'piped release bootstrap cannot drift to a newer version'
+        Assert-Rejected (Invoke-Case @{Pipe=$true;TagVersion='0.8.1';Corrupt=$true}) '*checksum mismatch*' 'piped release bootstrap rejects modified installer'
+    } finally { $bootstrap = $originalBootstrap }
     $state = Invoke-Case
     Assert (-not $state.error -and $state.started.Count -eq 1) 'latest setup succeeds'
     Assert ($state.api[0] -ceq 'https://api.github.com/repos/scwlkr/RevitThyme/releases/latest') 'latest endpoint'

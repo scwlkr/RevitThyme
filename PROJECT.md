@@ -2,7 +2,7 @@
 
 The accepted product and architecture are defined by the complete [2026-10-14 plan](2026-10-14_NEW_PLAN.md). It supersedes the Rust/Axum and Expo/Electron replacement direction. RevitThyme is a native C# toolkit with optional AI interfaces.
 
-Current work: [WLK-248](https://linear.app/wlkr-labs/issue/WLK-248/complete-the-c-dynamic-execution-stage-with-native-cabin-eval), **Dynamic execution only**, building on completed Foundation, MCP and Native utilities. Acceptance is Roslyn query/modify, native transactions and disposable models with an executable, independently scored Cabin Eval. See [execution guide](docs/DYNAMIC-EXECUTION.md) and [evidence](verification/dynamic-execution.md).
+Current work: [WLK-249](https://linear.app/wlkr-labs/issue/WLK-249/implement-windows-installer-and-verified-release-bootstrap-plan-lines), **Install RevitThyme only**, lines 81–85 of the plan. Deliver one Windows setup executable and a verified PowerShell release bootstrap that detect the supported Revit version and install the existing add-in, CLI and MCP together. See [installation](docs/INSTALLATION.md) and [evidence](verification/installation.md). Existing Foundation, MCP, Native utilities and Dynamic execution are preserved; no additional product stage is authorized.
 
 The repository stays at `C:\Revit\RevitThyme`. Five product projects live under `src`; offline, stdio MCP and actual-Revit test projects live under `tests`. `project.cmd help` owns the developer command inventory. The build uses .NET 10/WPF, the pinned official MCP SDK and locally supplied Revit 2027 SDK binaries, with Autodesk redistribution disabled.
 

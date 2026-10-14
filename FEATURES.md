@@ -13,7 +13,7 @@
 | Generic inspection | Views, filtered/paged elements, paged typed parameters and native selection |
 | Parameter editing | Expected-value checks, verified atomic batches, whole-batch rollback and one Undo item |
 | Outcome recovery | Session-retained request IDs, value-based replay, conflict rejection and queued cancellation |
-| Local package | Allowlisted add-in, CLI, MCP dependencies and notices; reversible per-user registration |
+| Installation | Single per-user Windows setup and verified GitHub bootstrap; Revit 2027/runtime detection, bundled add-in/CLI/MCP, immutable upgrades and recoverable uninstall |
 | Verification | Portable unit/stdio checks, pinned actual-Revit and three external Codex rounds |
 
-Current scope extends through [Dynamic execution](docs/DYNAMIC-EXECUTION.md). Built-in Agent and Exploration are deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.
+Current work is only the [install step](docs/INSTALLATION.md), plan lines 81–85, packaging the existing toolkit through Dynamic execution. Release candidates are unsigned and local; public publication is pending. Built-in Agent and Exploration are deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.

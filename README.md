@@ -11,7 +11,9 @@ This checkout implements **Foundation, MCP, Native utilities and Dynamic executi
 ![Native WPF View Range](docs/images/native-view-range.png)
 ![Native WPF Room Dimensions](docs/images/native-room-dimensions.png)
 
-## Build and install
+## Install or build
+
+The [Windows installer](docs/INSTALLATION.md) bundles the add-in, CLI and MCP and detects supported Revit installations. The 0.8.0 `.exe` and verified one-line PowerShell bootstrap are implemented as local, unsigned review candidates; GitHub publication is pending. Only full Revit 2027 is supported by this build. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission.
 
 Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The current native target is Revit **27.3.0.28**; other releases and another computer need qualification. Revit supplies its proprietary API assemblies locally.
 
@@ -21,7 +23,7 @@ Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The curren
 .\project.cmd package
 ```
 
-The last command prints a package folder and checksum. Close Revit normally and run `install.ps1` in that folder, then open **RevitThyme → View Tools → View Range / Room Dimensions**. See [utility usage and limits](docs/NATIVE-UTILITIES.md) and [installation and recovery](docs/INSTALLATION.md). The toolkit has a reversible local installer; a signed production `.exe` and release bootstrap remain distribution work.
+The last command prints a package folder and checksum. `project.cmd setup -PackageDirectory $package` compiles a single Windows installer from that folder. See [installation, bootstrap and recovery](docs/INSTALLATION.md), [installer verification](verification/installation.md) and [utility usage and limits](docs/NATIVE-UTILITIES.md). Close Revit normally before installing.
 
 For CLI automation, inspect a chosen session into a private JSON capture, review it, then rename the exact captured view. See `project.cmd cli --help`. A successful rename creates one Revit Undo item; the tool never saves or syncs a project.
 

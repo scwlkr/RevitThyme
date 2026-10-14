@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Windows installation — 2026-10-14
+
+- Implement only the install experience on plan lines 81–85: one per-user Windows setup executable and a checksum-verified GitHub Release bootstrap, bundling the existing add-in, CLI and MCP.
+- Detect full Revit 2027 through Autodesk registration/default paths and verify the .NET 10 x64 runtime. Preserve immutable bundles, owned registration backups and foreign add-ins; refuse installation while Revit is open.
+- Add executable install/uninstall and bootstrap checks, stable release asset names and a manually dispatched review/draft workflow. Candidates remain unsigned and unpublished; Built-in Agent and Exploration remain deferred.
+
 ## Unreleased — C# Dynamic execution — 2026-10-14
 
 - Add opt-in trusted Roslyn C# query/modify through the existing Core, native ExternalEvent, CLI and official-SDK MCP path (18 tools, protocol 4). Queries always roll back; modifications share the native transaction wrapper and one Undo item. Return bounded JSON, mapped compiler diagnostics, source hashes, elapsed time and native change IDs with retained request recovery.

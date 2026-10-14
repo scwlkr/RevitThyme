@@ -17,5 +17,9 @@
 | Request ID | Caller-supplied GUID for a new write; native session retains its result and rejects conflicting reuse |
 | View Range | Four native plan planes with level references and offsets in feet; validated by Revit |
 | Room dimension preview | Read-only plan containing native finish-face references, dimension lines, tag clearance and existing IDs; recomputed before creation |
+| Trusted submission | C# method body run with full Revit process permissions; host opt-in and caller acknowledgement required, no sandbox |
+| Rollback query | Trusted submission whose current-document transaction is always rolled back after serializing its JSON result |
+| Cooperative budget | Cancellation token and elapsed check after code returns; cannot interrupt blocked/infinite code |
+| Cabin Eval | Independent native 100-point model evaluator, including temporary global length change and verified rollback |
 
 Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

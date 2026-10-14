@@ -4,6 +4,7 @@
     <RevitApiPath Condition="'$(RevitApiPath)' == ''">C:\Program Files\Autodesk\Revit 2027</RevitApiPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../CabinEval/*.cs" Link="CabinEval/%(Filename)%(Extension)" />
     <ProjectReference Include="../../src/RevitThyme.Addin/RevitThyme.Addin.csproj" />
     <Reference Include="RevitAPI"><HintPath>$(RevitApiPath)/RevitAPI.dll</HintPath><Private>false</Private><ExternallyResolved>true</ExternallyResolved></Reference>
     <Reference Include="RevitAPIUI"><HintPath>$(RevitApiPath)/RevitAPIUI.dll</HintPath><Private>false</Private><ExternallyResolved>true</ExternallyResolved></Reference>

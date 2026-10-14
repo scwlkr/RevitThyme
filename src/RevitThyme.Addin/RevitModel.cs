@@ -4,8 +4,10 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel
+public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel
 {
+    public bool TrustedCodeEnabled => host.TrustedCodeEnabled;
+    public OperationResult ExecuteCode(OperationRequest request) => NativeDynamicExecution.Run(app, this, request);
     private Document Document => app.ActiveUIDocument?.Document
         ?? throw new OperationException("no_document", "Open a Revit project and refresh.");
     public Snapshot Capture()

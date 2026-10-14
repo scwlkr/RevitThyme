@@ -6,6 +6,12 @@ New-Item -ItemType Directory -Path $report -Force | Out-Null
 $solution = if($Portable){'RevitThyme.Portable.slnf'}else{'RevitThyme.sln'}
 dotnet restore (Join-Path $root 'src\RevitThyme.Mcp') --locked-mode --nologo
 if ($LASTEXITCODE) { throw 'Pinned MCP dependency restore failed.' }
+dotnet restore (Join-Path $root 'tests\Unit') --locked-mode --nologo
+if ($LASTEXITCODE) { throw 'Pinned portable compiler dependency restore failed.' }
+if (-not $Portable) {
+    dotnet restore (Join-Path $root 'src\RevitThyme.Addin') --locked-mode --nologo
+    if ($LASTEXITCODE) { throw 'Pinned Roslyn dependency restore failed.' }
+}
 dotnet build (Join-Path $root $solution) -c Release --nologo -warnaserror
 if ($LASTEXITCODE) { throw 'Foundation build failed.' }
 dotnet run --project (Join-Path $root 'tests\Unit') -c Release --no-build | Tee-Object -FilePath (Join-Path $report 'unit.txt')
@@ -31,4 +37,4 @@ if (Test-Path -LiteralPath $migration) {
 }
 @{passed=$true;portable=[bool]$Portable;source_revision=(git -C $root rev-parse HEAD);dirty=[bool](git -C $root status --porcelain);build=$solution;unit='unit.txt';native_evidence='Separate live run required'} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $report 'result.json') -Encoding utf8
-Write-Output 'Foundation, MCP and Native utilities build, unit/protocol, script syntax, architecture and preservation checks passed.'
+Write-Output 'Toolkit through Dynamic execution: build, unit/protocol, script syntax, architecture and preservation checks passed.'

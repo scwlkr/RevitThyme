@@ -7,19 +7,20 @@ Push-Location $root
 try {
     switch ($Command) {
         { $_ -in 'help','--help' } {
-            Write-Output 'RevitThyme C# Foundation, MCP and Native utilities development'
+            Write-Output 'RevitThyme C# toolkit through Dynamic execution development'
             Write-Output 'project.cmd doctor | build | test | check | package | install | uninstall'
             Write-Output 'project.cmd cli <arguments> | live-prepare | live-start <run> | live-check <run> | live-cleanup <run>'
             Write-Output 'project.cmd check-installer -PackageDirectory ABSOLUTE_PACKAGE'
             Write-Output 'project.cmd mcp <server-options> | test-mcp | mcp-prepare | mcp-start <run> | mcp-check <run> | mcp-codex <run> | mcp-cleanup <run>'
             Write-Output 'project.cmd utilities-prepare | utilities-start <run> | utilities-check <run> | utilities-cleanup <run>'
+            Write-Output 'project.cmd dynamic-prepare | dynamic-start <run> | dynamic-check <run> | dynamic-cleanup <run>'
             Write-Output 'Build accepts MSBuild arguments such as -p:RevitApiPath=ABSOLUTE_PATH.'
         }
         'doctor' {
             dotnet --version
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
             $sdk = 'C:\Program Files\Autodesk\Revit 2027\RevitAPI.dll'
-            [pscustomobject]@{ root=$root; sdk_installed=(Test-Path -LiteralPath $sdk); native_tests='Separate disposable Revit session required'; stage='Native utilities' } | ConvertTo-Json
+            [pscustomobject]@{ root=$root; sdk_installed=(Test-Path -LiteralPath $sdk); native_tests='Separate disposable Revit session required'; stage='Dynamic execution' } | ConvertTo-Json
         }
         'build' { dotnet build RevitThyme.sln -c Release --nologo @Rest; exit $LASTEXITCODE }
         'test' { dotnet run --project tests/Unit -c Release @Rest; exit $LASTEXITCODE }
@@ -40,6 +41,10 @@ try {
         'utilities-start' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-utilities.ps1') -Action start @Rest; exit $LASTEXITCODE }
         'utilities-check' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-utilities.ps1') -Action check @Rest; exit $LASTEXITCODE }
         'utilities-cleanup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-utilities.ps1') -Action cleanup @Rest; exit $LASTEXITCODE }
+        'dynamic-prepare' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action prepare @Rest; exit $LASTEXITCODE }
+        'dynamic-start' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action start @Rest; exit $LASTEXITCODE }
+        'dynamic-check' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action check @Rest; exit $LASTEXITCODE }
+        'dynamic-cleanup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action cleanup @Rest; exit $LASTEXITCODE }
         'check' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-foundation.ps1') @Rest; exit $LASTEXITCODE }
         'check-installer' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-installer.ps1') @Rest; exit $LASTEXITCODE }
         'package' { pwsh -NoProfile -File (Join-Path $root 'installer\package.ps1') @Rest; exit $LASTEXITCODE }

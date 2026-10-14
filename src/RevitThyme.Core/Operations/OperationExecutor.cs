@@ -29,6 +29,9 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            bool dynamic = request.Operation is OperationKind.RunQuery or OperationKind.RunModify;
+            if (dynamic) return DynamicExecutor.Execute(model, request);
+            if (request.Code is not null) return OperationResult.Reject(request, "invalid_request", "Code is accepted only by run_query/run_modify.");
             bool utility = request.Operation is OperationKind.GetViewRange or OperationKind.SetViewRange
                 or OperationKind.PreviewRoomDimensions or OperationKind.CreateRoomDimensions;
             if (!utility && (request.ExpectedRange is not null || request.Range is not null || request.RoomOptions is not null || request.RoomPreview is not null))
@@ -50,7 +53,12 @@ public sealed class OperationExecutor
             };
         }
         catch (OperationException error) { return OperationResult.Reject(request, error.Code, error.Message); }
-        catch (Exception) { return OperationResult.Reject(request, "inspection_failed", "Revit context could not be inspected. Refresh."); }
+        catch (Exception error)
+        {
+            if (request.Operation is OperationKind.RunQuery or OperationKind.RunModify)
+                return new(request.Id, Outcome.Unconfirmed, "unconfirmed", (error.GetType().Name + ": " + error.Message)[..Math.Min(240, error.GetType().Name.Length + 2 + error.Message.Length)]);
+            return OperationResult.Reject(request, "inspection_failed", "Revit context could not be inspected. Refresh.");
+        }
     }
     private static OperationResult Rename(IModel model, OperationRequest request, Snapshot before)
     {

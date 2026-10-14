@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — C# Dynamic execution — 2026-10-14
+
+- Add opt-in trusted Roslyn C# query/modify through the existing Core, native ExternalEvent, CLI and official-SDK MCP path (18 tools, protocol 4). Queries always roll back; modifications share the native transaction wrapper and one Undo item. Return bounded JSON, mapped compiler diagnostics, source hashes, elapsed time and native change IDs with retained request recovery.
+- Add disposable process/model qualification and an independent 100-point native Cabin Eval with a temporary 14-to-18-foot parameter probe, negative controls and separate execution metrics. Keep Built-in Agent and Exploration deferred.
+- Package pinned Roslyn dependencies and document process trust, cooperative budgets and recovery. See [Dynamic execution evidence](verification/dynamic-execution.md).
+
 ## Unreleased — C# Native utilities — 2026-10-14
 
 - Add native WPF View Range and rectangular Room Dimensions ribbon tools with shared C# operations exposed through CLI and four additional official-SDK MCP tools. Preserve the completed Foundation/MCP implementation.

@@ -52,4 +52,4 @@ try {
     elseif ((Test-Path -LiteralPath $registration) -and [IO.File]::ReadAllText($registration) -eq $xml) { Remove-Item -LiteralPath $registration }
     throw
 }
-@{installed=$target;registration=$registration;cli=(Join-Path $target 'cli\revitthyme.exe');mcp=$(if($manifest.version -in @('0.5.0-mcp','0.6.0-utilities')){Join-Path $target 'mcp\revitthyme-mcp.exe'}else{$null});previous_registration_backup=$(if($old){$backup}else{$null})} | ConvertTo-Json
+@{installed=$target;registration=$registration;cli=(Join-Path $target 'cli\revitthyme.exe');mcp=$(if($manifest.version -in @('0.5.0-mcp','0.6.0-utilities','0.7.0-dynamic')){Join-Path $target 'mcp\revitthyme-mcp.exe'}else{$null});previous_registration_backup=$(if($old){$backup}else{$null})} | ConvertTo-Json

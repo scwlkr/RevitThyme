@@ -11,9 +11,9 @@ public static class Program
     {
         if (args is ["--help"])
         {
-            Console.WriteLine("revitthyme-mcp [--session ABSOLUTE_FILE] [--sessions-directory ABSOLUTE_FOLDER]\nOfficial MCP stdio server. Explicit connect_session required unless --session pins startup. No save/sync or arbitrary code."); return 0;
+            Console.WriteLine("revitthyme-mcp [--session ABSOLUTE_FILE] [--sessions-directory ABSOLUTE_FOLDER]\nOfficial MCP stdio server. Explicit connection. Trusted C# requires host opt-in; see DYNAMIC-EXECUTION.md."); return 0;
         }
-        if (args is ["--version"]) { Console.WriteLine("0.6.0-utilities"); return 0; }
+        if (args is ["--version"]) { Console.WriteLine("0.7.0-dynamic"); return 0; }
         try
         {
             var options = ServerSettings.Parse(args);

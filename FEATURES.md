@@ -16,4 +16,4 @@
 | Installation | Single per-user Windows setup and verified GitHub bootstrap; Revit 2027/runtime detection, bundled add-in/CLI/MCP, immutable upgrades and recoverable uninstall |
 | Verification | Portable unit/stdio checks, pinned actual-Revit and three external Codex rounds |
 
-Current work is only the [install step](docs/INSTALLATION.md), plan lines 81–85, packaging the existing toolkit through Dynamic execution. Release candidates are unsigned and local; public publication is pending. Built-in Agent and Exploration are deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.
+Current work is only the [install step](docs/INSTALLATION.md), plan lines 81–85, packaging the existing toolkit through Dynamic execution. The 0.8.0 installer is unsigned and supports full Revit 2027. Built-in Agent and Exploration are deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.

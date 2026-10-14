@@ -12,7 +12,7 @@ The release bootstrapper downloads and verifies that same executable before runn
 & ([scriptblock]::Create((Invoke-RestMethod 'https://github.com/scwlkr/RevitThyme/releases/latest/download/install-revitthyme.ps1')))
 ```
 
-The **0.8.0 artifacts are currently local review candidates, unsigned and unpublished**. The download and bootstrap commands become available when those assets are published. They do not refer to the older legacy release. Checksum verification proves consistency with the release assets; it is not a publisher signature.
+The **0.8.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.8.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.0) contains the installer, bootstrapper, adjacent checksums and source/package metadata. It is separate from the older legacy release.
 
 For a saved bootstrapper, `-Version 0.8.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
 

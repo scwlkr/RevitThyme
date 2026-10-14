@@ -1,3 +1,3 @@
 # Active implementation
 
-Foundation, MCP and Native utilities are implemented across `RevitThyme.Core`, `RevitThyme.Addin`, `RevitThyme.UI`, `RevitThyme.Cli` and `RevitThyme.Mcp`. See [architecture](../docs/ARCHITECTURE.md), [MCP](../docs/MCP.md) and [utilities](../docs/NATIVE-UTILITIES.md). Dynamic execution, built-in Codex and subsequent stages remain deferred.
+Foundation, MCP, Native utilities and Dynamic execution use `RevitThyme.Core`, `RevitThyme.Addin`, `RevitThyme.UI`, `RevitThyme.Cli` and `RevitThyme.Mcp`. See [architecture](../docs/ARCHITECTURE.md), [MCP](../docs/MCP.md), [utilities](../docs/NATIVE-UTILITIES.md) and [execution](../docs/DYNAMIC-EXECUTION.md). Built-in Agent and Exploration remain deferred.

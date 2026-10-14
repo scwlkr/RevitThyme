@@ -1,6 +1,6 @@
 # MCP interface
 
-Foundation and the MCP stage are complete; the current [2026-10-14 plan](../2026-10-14_NEW_PLAN.md) boundary is Native utilities. Twelve generic tools and four utility tools share native implementations. Dynamic execution/Cabin Eval, built-in Agent and Exploration remain deferred. See [Native utilities](NATIVE-UTILITIES.md) for their acceptance and limits.
+The current [2026-10-14 plan](../2026-10-14_NEW_PLAN.md) boundary is Dynamic execution. Twelve generic tools, four utility tools and two trusted C# tools share the native execution host. Built-in Agent and Exploration remain deferred. See [Native utilities](NATIVE-UTILITIES.md) and [Dynamic execution](DYNAMIC-EXECUTION.md) for acceptance and limits.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -22,6 +22,8 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `set_view_range` | Exact expected planes, native validity/readback/rollback, one Undo |
 | `preview_room_dimensions` | Read-only rectangular room plan against native wall finish faces and tag bounds |
 | `create_room_dimensions` | Recomputed exact preview, verified native associative pair and one Undo |
+| `run_query` | Explicitly trusted Roslyn C# method body, serialized JSON result, always rolls back current-document changes |
+| `run_modify` | Explicitly trusted Roslyn C# method body, native change IDs, rollback on failure and one Undo |
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
 
@@ -40,7 +42,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings older than protocol 3 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings other than protocol 4 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 
@@ -52,7 +54,7 @@ For source development, `project.cmd mcp` builds to stderr and then starts stdio
 4. Inspect fresh context and parameters to verify the native result. A successful parameter batch or rename is a single native Undo item. Selection is UI state and can already be empty after a native rollback.
 5. On connection loss, use `get_operation(requestId)` and inspect native values. Retry only the same ID and identical arguments, never a new ID for an uncertain edit. Outcomes remain in the add-in until session shutdown; pending requests can be polled. Connection-local captures retain at most 512 entries and reset on explicit connection changes; use outcome recovery if an old capture has expired.
 
-No operation saves, synchronizes, closes or deletes model elements. Room Dimensions creates only its verified native dimension pair. Writes are explicit edits to the captured live document, so the standard Codex tool approval policy applies. For unattended tasks, explicitly authorize the intended writes using per-tool `approval_mode="approve"` configuration; `approval_policy="never"` alone refuses writes that need approval. The generic Codex qualification script preauthorizes only its three generic write tools on its pinned disposable server. This is a local trusted-user interface, not a sandbox for untrusted code.
+Typed operations never save, synchronize or close models. Room Dimensions creates only its verified native dimension pair. Trusted C# is disabled by default, has full process permissions, and can affect files or other state outside Revit rollback; both tools are annotated as potentially destructive. Host opt-in, caller trust and the standard caller approval policy apply. The generic Codex qualification script preauthorizes only its three generic write tools on its pinned disposable server. Dynamic qualification uses a separate disposable fixture and official SDK client; see [guide](DYNAMIC-EXECUTION.md). This is a local trusted-user interface, not a sandbox for untrusted code.
 
 ## Repeatable qualification
 

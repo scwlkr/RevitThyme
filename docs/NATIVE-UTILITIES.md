@@ -1,6 +1,6 @@
 # Native utilities
 
-This stage implements only **View Range and Room Dimensions** from the [2026-10-14 plan](../2026-10-14_NEW_PLAN.md), building on completed C# Foundation and MCP. Both tools use shared Core operations, the native ExternalEvent host and verified Revit transactions. Dynamic execution, Cabin Eval, built-in Agent and Exploration remain deferred.
+This guide records **View Range and Room Dimensions** from the [2026-10-14 plan](../2026-10-14_NEW_PLAN.md), building on completed C# Foundation and MCP. Both tools use shared Core operations, the native ExternalEvent host and verified Revit transactions. The subsequent [Dynamic execution stage](DYNAMIC-EXECUTION.md) builds on these utilities; Built-in Agent and Exploration remain deferred.
 
 ## View Range
 
@@ -33,7 +33,7 @@ MCP flow: discover the room using `query_elements(categoryId="-2000160")`; call 
 & $cli room-dimensions create --session $session --capture $roomCapture --json
 ```
 
-Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JSON object. Capture files contain private model identities and paths; keep them private. No tool saves or synchronizes a model. On an uncertain result, inspect native state and recover the original request ID through MCP `get_operation`; do not submit a new write ID. Upgrade add-in, CLI and MCP together to bridge protocol **3**.
+Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JSON object. Capture files contain private model identities and paths; keep them private. These utility operations do not save or synchronize a model. On an uncertain result, inspect native state and recover the original request ID through MCP `get_operation`; do not submit a new write ID. Upgrade add-in, CLI and MCP together to bridge protocol **4**.
 
 ## Qualification
 

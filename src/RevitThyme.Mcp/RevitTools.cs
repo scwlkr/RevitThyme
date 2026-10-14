@@ -7,7 +7,7 @@ using RevitThyme.Core;
 namespace RevitThyme.Mcp;
 
 [McpServerToolType]
-public sealed class RevitTools(RevitConnection connection)
+public sealed partial class RevitTools(RevitConnection connection)
 {
     [McpServerTool(Name = "list_sessions", ReadOnly = true), Description("Discover live process-bound Revit sessions. Does not select a process.")]
     public CallToolResult ListSessions() => Reply(connection.Sessions());
@@ -21,11 +21,13 @@ public sealed class RevitTools(RevitConnection connection)
         var capture = await connection.Context(cancellationToken); return Reply(capture, !capture.Result.Succeeded);
     });
 
-    [McpServerTool(Name = "list_operations", ReadOnly = true), Description("Discover typed operation semantics, limits, units and recovery rules. No arbitrary code, file save or sync.")]
+    [McpServerTool(Name = "list_operations", ReadOnly = true), Description("Discover typed operation semantics, limits, units and recovery rules, including trusted C# execution.")]
     public CallToolResult ListOperations() => Reply(new
     {
         operations = Enum.GetNames<OperationKind>(), protocolVersion = Protocol.Version,
-        limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100 },
+        dynamicExecution = "run_query/run_modify accept a C# method body with doc, uiapp, cancellationToken; return JSON data. Host REVITTHYME_TRUSTED_CODE=1 and trusted=true required. Full process trust, no sandbox. Query always rolls back current-document changes. Modify uses one Undo. Cooperative budgets cannot interrupt blocked/infinite code. Never retry with a new requestId after timeout; poll get_operation.",
+        limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100,
+            sourceBytes = DynamicExecutor.MaxSourceBytes, resultBytes = DynamicExecutor.MaxValueBytes, changedIds = DynamicExecutor.MaxChangedIds },
         parameterUnits = "Double values use Revit internal units (length feet, angles radians). dataType is the native Forge type ID. ElementId parameters are inspection-only.",
         utilityUnits = "Range offsets, room inset/clearance and dimensions use feet. Range levels: Current, Above, Below, Unlimited, or native Level UniqueId. Native Revit validates floor/ceiling plane order.",
         roomDimensions = "Preview one rectangular room on the active floor plan's level/phase, with four basic native wall finish faces. Send the exact returned preview and its options to create. Tags, existing dimensions and native references are rechecked. No linked/curved/separator/island boundaries.",

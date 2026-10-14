@@ -31,6 +31,6 @@ For scripts, use the printed `revitthyme.exe` path:
 
 Set `$cli` to that executable, `$session` to the absolute session file shown by `sessions`, and `$capture` to a private absolute JSON file. Choose the intended process explicitly. Each capture records its document, view, revision and previous value. After renaming, inspect again before another edit. Exit codes: `0` successful/unchanged, `1` rejected/rolled back/unconfirmed operation, `2` invalid command or connection. An unconfirmed edit needs native inspection before another edit.
 
-Connect external Codex using the printed MCP executable and [MCP setup](MCP.md). The add-in, CLI and MCP share protocol version 3; old Foundation/MCP bindings cannot connect. Upgrade them together. Dynamic execution, built-in Agent and Exploration remain deferred.
+Connect external Codex using the printed MCP executable and [MCP setup](MCP.md). The add-in, CLI and MCP share protocol version 4; older bindings cannot connect. Upgrade them together. The package includes pinned Roslyn compiler dependencies; [trusted C#](DYNAMIC-EXECUTION.md) requires an explicit Revit-process opt-in. Built-in Agent and Exploration remain deferred.
 
 To unregister, close Revit normally and run the installed or packaged `uninstall.ps1`. It backs up the exact verified owned registration and removes that one file. Bundles, sessions, fixtures and other add-ins remain recoverable. Restore the saved registration only after verifying its referenced bundle.

@@ -26,12 +26,15 @@ public static class Program
                 revitthyme view-range set --session ABSOLUTE_FILE --capture RANGE_RESULT --range SETTINGS_FILE --json
                 revitthyme room-dimensions preview --session ABSOLUTE_FILE --room UNIQUE_ID [--inset-feet 1.5] [--tag-clearance-feet 1] --json
                 revitthyme room-dimensions create --session ABSOLUTE_FILE --capture PREVIEW_RESULT --json
+                revitthyme run-query|run-modify --session ABSOLUTE_FILE --capture INSPECTION --source CS_BODY_FILE --trusted true --request-id GUID [--budget-ms 10000] --json
+                revitthyme get-operation --session ABSOLUTE_FILE --request-id GUID --json
 
                 Write inspection JSON to a capture file, review it, then rename that exact view.
                 Capture files contain document paths; keep them private. No model save or sync occurs.
                 """); return 0;
         }
-        if (args is ["--version"]) { await output.WriteLineAsync("0.6.0-utilities"); return 0; }
+        if (args is ["--version"]) { await output.WriteLineAsync("0.7.0-dynamic"); return 0; }
+        if (args[0] is "run-query" or "run-modify" or "get-operation") return await DynamicCli.Run(args, output, error, clientFactory);
         if (args.Length >= 2 && args[0] is "view-range" or "room-dimensions") args = [args[0] + "-" + args[1], .. args[2..]];
         var options = Parse(args[1..]);
         string command = args[0];

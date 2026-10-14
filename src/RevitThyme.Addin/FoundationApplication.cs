@@ -19,6 +19,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     public OperationDispatcher Operations { get; } = new();
     public SessionBinding Binding { get; private set; } = null!;
     public long Revision { get; private set; }
+    public bool TrustedCodeEnabled { get; private set; }
     private readonly Dictionary<Document, string> documents = [];
     private ExternalEvent? externalEvent;
     private PipeServer? server;
@@ -37,6 +38,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         try
         {
             string session = Guid.NewGuid().ToString();
+            TrustedCodeEnabled = Environment.GetEnvironmentVariable("REVITTHYME_TRUSTED_CODE") == "1";
             string start = Process.GetCurrentProcess().StartTime.ToUniversalTime().Ticks.ToString(CultureInfo.InvariantCulture);
             Binding = new(Protocol.Version, Environment.ProcessId, start, session,
                 $"RevitThyme-Foundation-{Environment.ProcessId}-{session}", app.ControlledApplication.VersionNumber);

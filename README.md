@@ -2,9 +2,9 @@
 
 ![RevitThyme](assets/branding/revitthyme-logo.svg)
 
-RevitThyme is an open-source native Revit toolkit. Its shared C# operation layer serves WPF, CLI and an optional external AI interface through MCP.
+RevitThyme is an open-source native Revit toolkit. Its shared C# operation layer serves WPF, CLI, external AI through MCP and an optional built-in Codex Agent.
 
-This checkout implements **Foundation, MCP, Native utilities and Dynamic execution** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). **View Range** edits the four native plan planes with a section preview. **Room Dimensions** creates an associative width/depth pair for rectangular rooms, leaving room for tags. Both work through native ribbon buttons, CLI and MCP using shared C# operations and one Revit Undo item per edit. The official C# MCP server exposes 18 tools, including opt-in trusted Roslyn C# query/modify. Native tools work without an AI account, Rust, Electron or pyRevit.
+This checkout implements **Foundation, MCP, Native utilities, Dynamic execution and Built-in Agent** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). **View Range** edits the four native plan planes with a section preview. **Room Dimensions** creates an associative width/depth pair for rectangular rooms, leaving room for tags. Both work through native ribbon buttons, CLI and MCP using shared C# operations and one Revit Undo item per edit. The official C# MCP server exposes 18 tools, including opt-in trusted Roslyn C# query/modify. Native tools work without an AI account, Rust, Electron or pyRevit.
 
 ![Native WPF Inspect View](docs/images/foundation-wpf.png)
 
@@ -45,6 +45,8 @@ flowchart TD
     CLI[C# CLI] --> Bridge[Local named pipe]
     MCP[Official C# stdio MCP] --> Bridge
     Codex[External Codex] --> MCP
+    Agent[Dockable Agent panel] --> Runtime[Local Codex App Server]
+    Runtime --> MCP
     Bridge --> Core
     Core --> Host[ExternalEvent execution host]
     Host --> Operations[Shared C# operations]
@@ -55,7 +57,7 @@ See [architecture](docs/ARCHITECTURE.md), [MCP tools and Codex setup](docs/MCP.m
 
 [Trusted C# execution](docs/DYNAMIC-EXECUTION.md) uses rollback queries, atomic modifications, structured diagnostics/results and retained request outcomes. It is disabled by default and runs with full process permissions. The independent [Cabin Eval](tests/CabinEval/README.md) scores actual native results, including a temporary 14-to-18-foot length probe, in a new disposable process/model. See [Dynamic execution verification](verification/dynamic-execution.md).
 
-Built-in Codex Agent and Exploration remain [later stages](docs/ROADMAP.md). Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
+The [built-in Agent](docs/AGENT.md) adds a dockable Codex chat panel, ChatGPT sign-in, saved conversations and ordinary skills, pinned to the current Revit process. The local 0.9.0 Agent package bundles the official Codex runtime; the public 0.8.1 installer above predates this stage. See [Agent verification](verification/agent.md). Exploration remains deferred. Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
 
 ## Contribute
 

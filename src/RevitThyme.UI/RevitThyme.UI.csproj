@@ -1,4 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" /><ProjectReference Include="../RevitThyme.Codex/RevitThyme.Codex.csproj" /></ItemGroup>
 </Project>

@@ -3,11 +3,13 @@
     "path": "RevitThyme.sln",
     "projects": [
       "src\\RevitThyme.Core\\RevitThyme.Core.csproj",
+      "src\\RevitThyme.Codex\\RevitThyme.Codex.csproj",
       "src\\RevitThyme.Cli\\RevitThyme.Cli.csproj",
       "src\\RevitThyme.UI\\RevitThyme.UI.csproj",
       "src\\RevitThyme.Mcp\\RevitThyme.Mcp.csproj",
       "tests\\Unit\\RevitThyme.Unit.csproj",
-      "tests\\Mcp\\RevitThyme.McpTests.csproj"
+      "tests\\Mcp\\RevitThyme.McpTests.csproj",
+      "tests\\Agent\\RevitThyme.AgentTests.csproj"
     ]
   }
 }

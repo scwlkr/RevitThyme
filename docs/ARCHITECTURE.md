@@ -1,12 +1,15 @@
 # C# Native toolkit
 
-The accepted architecture is [the complete 2026-10-14 plan](../2026-10-14_NEW_PLAN.md). This implementation stops at its Dynamic execution row. Native tools work without an AI runtime.
+The accepted architecture is [the complete 2026-10-14 plan](../2026-10-14_NEW_PLAN.md). This implementation stops at its Built-in Agent row. Native tools work without an AI runtime.
 
 ```mermaid
 flowchart TD
     UI[WPF Inspect View / View Range / Room Dimensions] --> Queue[Core operation dispatcher]
     CLI[C# CLI] --> Pipe[Local Windows named pipe]
     Codex[External Codex] --> MCP[Official C# stdio MCP]
+    Panel[Dockable WPF Agent] --> Client[C# App Server client]
+    Client --> Runtime[Local Codex App Server]
+    Runtime --> MCP
     MCP --> Pipe
     Pipe --> Queue
     Queue --> Event[C# add-in ExternalEvent]
@@ -29,6 +32,8 @@ The first build targets .NET 10 and Revit 2027. Revit 2027 uses [.NET 10](https:
 
 Roslyn compilation lives in Addin; Core validates captured targets, trust and request bounds without referencing Autodesk or Roslyn. The compiler is source-linked into portable tests to exercise the exact implementation. Submissions load into collectible contexts sharing the native API assembly identity. Query rolls back; modify uses the existing native transaction wrapper, captures DocumentChanged IDs and assimilates one Undo. Results serialize inside the reversible group. Host launch opt-in plus caller trust are required. Full process privileges, cooperative budgets and limitations are documented in [Dynamic execution](DYNAMIC-EXECUTION.md). The independent [Cabin Eval](../tests/CabinEval/README.md) is compiled into the disposable test loader and never packaged with the product.
 
-The built-in Codex client and planning graphics remain later stages. External Codex launches the MCP directly; this stage does not implement App Server integration, reflection discovery, planning canvases or an agent framework.
+`RevitThyme.Codex` owns the JSON-RPC stdio process, correlated requests, server events, account/session/skill calls and turn lifecycle. It has no Autodesk or WPF dependency. The UI presents conversations, streamed replies, native tool results and approvals in a dockable pane. The add-in supplies an exact process/session binding. The Agent owns a separate Codex home, configuration, history and authentication; only its pinned MCP server is exposed. Codex handles inference, authentication and orchestration. See [Agent](AGENT.md).
+
+External Codex still launches the same MCP directly. Optional visual planning, reflection discovery and the Exploration experiment remain deferred.
 
 Superseded Rust, Electron and pyRevit implementation and earlier evidence live in `legacy/pre-foundation`. Existing installed bundles and private `artifacts` are preserved. That archive is outside the solution, CI and package allowlist; see [migration](MIGRATION.md).

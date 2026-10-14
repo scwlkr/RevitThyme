@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" /></ItemGroup>
+</Project>

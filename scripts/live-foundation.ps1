@@ -16,7 +16,7 @@ if ($Action -eq 'prepare') {
     $bundle = Join-Path $folder 'bundle'
     New-Item -ItemType Directory -Path $bundle -Force | Out-Null
     $native = Join-Path $root 'tests\RevitIntegration\bin\Release\net10.0-windows'
-    foreach ($file in @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','RevitThyme.RevitIntegration.dll')) {
+    foreach ($file in @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','RevitThyme.Codex.dll','RevitThyme.RevitIntegration.dll')) {
         Copy-Item -LiteralPath (Join-Path $native $file) -Destination (Join-Path $bundle $file)
     }
     dotnet publish (Join-Path $root 'src\RevitThyme.Cli') -c Release --no-self-contained -o (Join-Path $bundle 'cli') --nologo

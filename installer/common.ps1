@@ -1,0 +1,44 @@
+$ErrorActionPreference = 'Stop'
+$hostScript = Join-Path $PSScriptRoot 'host-path.ps1'
+if (-not (Test-Path -LiteralPath $hostScript)) { $hostScript = Join-Path (Split-Path $PSScriptRoot -Parent) 'scripts\host-path.ps1' }
+. $hostScript
+function Get-FoundationRegistration([string]$Directory) {
+    if (-not $Directory) { $Directory = Join-Path ([Environment]::GetFolderPath('UserProfile')) 'AppData\Roaming\Autodesk\Revit\Addins\2027' }
+    return Assert-NativeHostPath (Join-Path $Directory 'RevitThyme.Foundation.addin')
+}
+function Assert-FoundationPackage([string]$Folder) {
+    $manifestPath = Join-Path $Folder 'manifest.json'
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    if ($manifest.version -ne '0.4.0-foundation' -or $manifest.revit_year -ne '2027') { throw 'Unsupported Foundation package.' }
+    $required = @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','cli/revitthyme.exe','cli/revitthyme.dll','cli/revitthyme.deps.json','cli/revitthyme.runtimeconfig.json','cli/RevitThyme.Core.dll','install.ps1','uninstall.ps1','common.ps1','host-path.ps1','LICENSE','README.md')
+    $names = @($manifest.files.PSObject.Properties.Name)
+    if ((($names | Sort-Object) -join '|') -ne (($required | Sort-Object) -join '|')) { throw 'Package file allowlist changed.' }
+    $actual = @(Get-ChildItem -LiteralPath $Folder -File -Recurse | ForEach-Object { $_.FullName.Substring($Folder.Length+1).Replace('\','/') } | Where-Object {$_ -ne 'manifest.json'})
+    if ((($actual | Sort-Object) -join '|') -ne (($required | Sort-Object) -join '|')) { throw 'Unexpected or missing package files.' }
+    foreach ($entry in $manifest.files.PSObject.Properties) {
+        $path = Assert-NativeHostPath (Join-Path $Folder $entry.Name)
+        if ((Get-FileHash -LiteralPath $path).Hash.ToLowerInvariant() -ne $entry.Value) { throw "Package file modified: $($entry.Name)" }
+    }
+    return $manifest
+}
+function Read-FoundationRegistration([string]$Path) {
+    [xml]$xml = Get-Content -LiteralPath $Path -Raw
+    $entry = $xml.RevitAddIns.AddIn
+    if (@($entry).Count -ne 1 -or $entry.AddInId -ne 'B09CCF69-B916-40B7-8A57-5923E45915D6' -or
+        $entry.FullClassName -ne 'RevitThyme.Addin.FoundationApplication' -or $entry.Type -ne 'Application') { throw 'Existing registration is not owned Foundation.' }
+    $assembly = Assert-NativeHostPath ([string]$entry.Assembly)
+    if ((Split-Path $assembly -Leaf) -ne 'RevitThyme.Addin.dll') { throw 'Unexpected registered assembly.' }
+    return Split-Path $assembly -Parent
+}
+function Assert-IsolatedInstallTest([string]$InstallDirectory, [string]$AddinsDirectory) {
+    if (-not $InstallDirectory -or -not $AddinsDirectory) { throw 'Isolated install tests require both exact directories.' }
+    $install = Assert-NativeHostPath $InstallDirectory
+    $addins = Assert-NativeHostPath $AddinsDirectory
+    $run = Split-Path $install -Parent
+    $id = [Guid]::Empty
+    if ((Split-Path $install -Leaf) -ne 'installed' -or $addins -ne (Join-Path $run 'addins') -or
+        (Split-Path (Split-Path $run -Parent) -Leaf) -ne 'install-test' -or -not [Guid]::TryParse((Split-Path $run -Leaf), [ref]$id)) {
+        throw 'Isolated tests require one exact UUID/install-test folder, with installed and addins children.'
+    }
+    return $run
+}

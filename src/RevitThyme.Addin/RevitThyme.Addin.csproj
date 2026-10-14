@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework><UseWPF>true</UseWPF>
+    <RevitApiPath Condition="'$(RevitApiPath)' == ''">C:\Program Files\Autodesk\Revit 2027</RevitApiPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" />
+    <ProjectReference Include="../RevitThyme.UI/RevitThyme.UI.csproj" />
+    <Reference Include="RevitAPI"><HintPath>$(RevitApiPath)/RevitAPI.dll</HintPath><Private>false</Private><ExternallyResolved>true</ExternallyResolved></Reference>
+    <Reference Include="RevitAPIUI"><HintPath>$(RevitApiPath)/RevitAPIUI.dll</HintPath><Private>false</Private><ExternallyResolved>true</ExternallyResolved></Reference>
+  </ItemGroup>
+  <Target Name="RequireRevit" BeforeTargets="ResolveReferences" Condition="!Exists('$(RevitApiPath)/RevitAPI.dll') Or !Exists('$(RevitApiPath)/RevitAPIUI.dll')">
+    <Error Text="Install licensed Revit 2027 or set RevitApiPath to your local Revit 2027 SDK. Autodesk binaries are never downloaded or bundled." />
+  </Target>
+</Project>

@@ -36,3 +36,13 @@ node_modules/
 /desktop/.expo/
 /desktop/package-manifest.json
 /desktop/native/
+
+# Preserved pre-foundation caches are never part of the C# product.
+**/target/
+/legacy/pre-foundation/desktop/build/
+/legacy/pre-foundation/desktop/dist/
+/legacy/pre-foundation/desktop/out/
+/legacy/pre-foundation/desktop/.expo/
+/legacy/pre-foundation/desktop/package-manifest.json
+/legacy/pre-foundation/desktop/native/
+/legacy/pre-foundation/config/local.json

@@ -1,20 +1,16 @@
-# Glossary
+# Terms
 
-| Term | Meaning in RevitThyme |
+| Term | Meaning |
 | --- | --- |
-| Tool / operation | A named capability with validated inputs and a specific result. Ribbon and MCP callers share its implementation. |
-| Native adapter | The minimal .NET add-in that executes Revit API work in the proper API context. Rust owns orchestration and domain rules. |
-| ExternalEvent | Revit's mechanism for scheduling external requests into a valid Revit API callback. The native queue serializes those requests. |
-| MCP | Model Context Protocol: the external tool interface. The current native test server uses stdio and session-bound Windows IPC. |
-| Native lab | A separate Revit process and add-in limited to one exact disposable fixture. It has no working-model or Python bridge fallback. |
-| Target | Process ID/start time, session, open-document identity, view and revision. A changed target invalidates a previously captured request. |
-| Snapshot | Immutable facts captured from an exact target for preview/validation; it is not a saved Revit model. |
-| Proposal | Requested range settings checked against captured facts and native validity before any Apply. |
-| Apply | A confirmed, guarded native transaction with rollback/readback. It is absent from read-only MCP discovery. |
-| Outcome | Retained execution status/readback for a specific request. An unknown outcome does not prove a successful mutation. |
-| View range | A plan's top, cut, bottom and depth planes, including their level references and offsets. |
-| Internal units | Revit lengths are reported in feet internally; UI formatting and metric conversions preserve underlying values. |
-| Fixture | A disposable model with known inputs for isolated qualification. Portable/offline fixtures do not execute Revit APIs. |
-| TimberFold | An external, independently owned fabrication tool at `C:\Revit\Projects\TimberFold`. RevitThyme preserves its source, installation and baselines. |
+| Core | Autodesk-independent C# contracts, operations and execution policy |
+| Add-in | Native Revit ribbon, API adapter and execution host |
+| Operation | A named typed capability, shared across interfaces |
+| ExternalEvent | Revit callback used to execute queued model access on its API thread |
+| Capture | Inspection result containing the exact session, document, view, revision and prior value |
+| Session | One Revit process/start identity and one add-in lifetime |
+| Applied | Native value verified before/after commit; transaction group assimilated |
+| RolledBack | Native rollback and original value independently verified |
+| Unconfirmed | Completion/rollback cannot be verified; inspect before making another edit |
+| Foundation | First stage of the 2026-10-14 plan; C#, WPF, basic CLI and native inspection/modification |
 
-See [architecture](docs/ARCHITECTURE.md) for implementation boundaries and [PROJECT.md](PROJECT.md) for accepted product decisions.
+Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

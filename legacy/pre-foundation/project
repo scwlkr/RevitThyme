@@ -1,0 +1,9 @@
+#!/bin/sh
+set -eu
+root=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+if ! command -v cargo >/dev/null 2>&1; then
+    printf '%s\n' 'Cargo is required for the project CLI. See SETUP-TODO.md.' >&2
+    exit 127
+fi
+export RUSTUP_AUTO_INSTALL=0
+exec cargo run --quiet --offline --locked --manifest-path "$root/tools/project-cli/Cargo.toml" -- "$@"

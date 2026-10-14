@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — C# Foundation — 2026-10-14
+
+- Adopt the full new plan and complete only Foundation: shared C# operations, native Revit add-in, WPF Inspect View and a basic C# CLI. Rename View uses captured identity, verified readback, rollback and one Revit Undo item.
+- Replace active Rust/Electron/pyRevit build, developer tooling and CI with .NET 10. Preserve superseded source/evidence under `legacy/pre-foundation` with a verified 216-file migration inventory.
+- Add an allowlisted local package, immutable per-user installation and recoverable unregister. Keep Autodesk SDKs, private models, historical builds and test loaders out of distribution.
+- Pass 50 offline checks, 17 native Revit 27.3.0.28 checks, 12 real CLI checks and 7 isolated installer checks. See [Foundation evidence](verification/foundation.md). Later stages remain deferred.
+
+
 ## Unreleased - Wstack 0.2 setup refresh - 2026-10-13
 
 - Move general project workflow/verification notes to `w.md` and retain a short AGENTS.md pointer with the existing Revit-specific rules and authorization. Add current feature/glossary pointers without replacing the CLI or product architecture.
@@ -9,7 +17,7 @@
 
 - Add `revit_context`, `revit_elements` and `revit_project_health` to the native test MCP. Read exact identity without geometry, inspect category pages/64-bit IDs and evaluate six review checks in shared Rust logic. Enforce target/revision guards in native callbacks, exact inputs and bounded results. Incomplete scans retain lower-bound counts; no automatic fixes or production-model enablement.
 - Bound pages by serialized bytes with valid continuation, health reads by row/page/byte/time budgets and MCP output by bytes. Evict terminal read receipts under pressure while retaining Apply outcomes. Add Windows regressions for known findings, missing IDs, partial scans, Unicode pagination, oversized responses and sustained inspection traffic.
-- Install the read-only native inspection bundle in an isolated Revit 27.3.0.28 process. Ten actual-Revit inspection checks and eleven View Range read-only checks pass with the saved fixture unchanged and the working process preserved. Populated door/room/family mapping and larger models remain unqualified; see [evidence](verification/native-mcp.md).
+- Install the read-only native inspection bundle in an isolated Revit 27.3.0.28 process. Ten actual-Revit inspection checks and eleven View Range read-only checks pass with the saved fixture unchanged and the working process preserved. Populated door/room/family mapping and larger models remain unqualified; see [evidence](legacy/pre-foundation/verification/native-mcp.md).
 - Rotate the connection from an exact stopped run in another checkout, verifying its target/manifest and preserving unrelated TOML fields and enabled settings. Add a guarded external MCP-only update with separate native/client revisions, immutable artifacts and backups; keep the active Revit process and document intact.
 - Isolate the lab core's CLR assembly identity while sharing its source with the ribbon adapter, so an older installed preview cannot supply incompatible core types to the new test host.
 - Compare duplicate view names within each Revit view kind after actual Revit demonstrated valid repeated Level 1 floor/ceiling/structural plan names. Retain the initial failed qualification and a fail-before/pass-after regression.
@@ -17,12 +25,12 @@
 ## Unreleased - Imperial View Range units - 2026-10-12
 
 - Default Visual View Range to feet/inches with reduced fractional inches rounded to 1/8 inch. Accept architectural entry, negative offsets and decimal feet; use eighth-inch imperial slider/plane-drag increments and consistent section/review/outcome labels. Retain metric options and exact untouched Revit values behind rounded display.
-- Install and locally verify candidate 19d0806: clean full CI, packaged UI/native-fixture checks and actual Revit 27.3 imperial preview/review/reset. Independent native readback confirms unchanged range, captured geometry and saved fixture hash; working Revit remains open on its loaded bundle until normal restart. See [verification and limits](verification/imperial-units.md).
+- Install and locally verify candidate 19d0806: clean full CI, packaged UI/native-fixture checks and actual Revit 27.3 imperial preview/review/reset. Independent native readback confirms unchanged range, captured geometry and saved fixture hash; working Revit remains open on its loaded bundle until normal restart. See [verification and limits](legacy/pre-foundation/verification/imperial-units.md).
 
 ## Unreleased - Native Revit 27.3 cutover candidate - 2026-10-12
 
 - Target the installed Revit 27.3.0.28 in native preview adapter 0.2.6; retain the previous 27.2 bundle separately. Add native startup/runtime evidence and a guarded CLI cutover with immutable package checks, registration/config backups, reversible pyRevit disable and exact native test MCP selection. Preserve running documents and source files; broader native suite operations remain separate implementation work.
-- Locally qualify source 225bdf2 on a disposable Revit 27.3 process with no pyRevit assemblies loaded: native ribbon capture, preview without mutation, reviewed Cut 4 ft to 5 ft Apply, independent readback and one Undo restoring the baseline with the saved fixture hash unchanged. Disable the pyRevit startup registration and legacy Python/Jev MCP entries reversibly; existing working windows remain open until the user chooses a normal restart. See [verification](verification/native-cutover.md).
+- Locally qualify source 225bdf2 on a disposable Revit 27.3 process with no pyRevit assemblies loaded: native ribbon capture, preview without mutation, reviewed Cut 4 ft to 5 ft Apply, independent readback and one Undo restoring the baseline with the saved fixture hash unchanged. Disable the pyRevit startup registration and legacy Python/Jev MCP entries reversibly; existing working windows remain open until the user chooses a normal restart. See [verification](legacy/pre-foundation/verification/native-cutover.md).
 
 ## Unreleased - Compact dialogs and owned UI components - 2026-10-12
 

@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>revitthyme</AssemblyName></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" /></ItemGroup>
+</Project>

@@ -1,0 +1,30 @@
+<Window x:Class="RevitThyme.UI.InspectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="RevitThyme — Inspect View" Width="450" Height="340"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+        FontFamily="Segoe UI" FontSize="12">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="85"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <TextBlock Text="Document" Margin="0,4,10,12"/>
+        <TextBlock x:Name="DocumentText" Grid.Column="1" Margin="0,4,0,12" TextTrimming="CharacterEllipsis"/>
+        <TextBlock Grid.Row="1" Text="View type" Margin="0,4,10,12"/>
+        <TextBlock x:Name="TypeText" Grid.Row="1" Grid.Column="1" Margin="0,4,0,12"/>
+        <Label Grid.Row="2" Content="View _name" Target="{Binding ElementName=NameInput}" Padding="0,4,10,0"/>
+        <TextBox x:Name="NameInput" Grid.Row="2" Grid.Column="1" Height="26" Padding="4,2" MaxLength="200"/>
+        <TextBlock x:Name="IdentityText" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,12,0,0" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+        <TextBlock x:Name="StatusText" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,12,0,0" TextWrapping="Wrap"/>
+        <StackPanel Grid.Row="6" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="RefreshButton" Content="_Refresh" Width="78" Height="27" Click="RefreshClick" Margin="0,0,8,0"/>
+            <Button x:Name="ApplyButton" Content="_Apply" Width="78" Height="27" Click="ApplyClick" IsEnabled="False" Margin="0,0,8,0"/>
+            <Button Content="Close" Width="78" Height="27" Click="CloseClick"/>
+        </StackPanel>
+    </Grid>
+</Window>

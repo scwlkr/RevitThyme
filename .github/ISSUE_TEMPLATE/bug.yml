@@ -5,7 +5,7 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: RevitThyme, Revit build, pyRevit and Windows versions
+      description: RevitThyme, exact Revit build, .NET SDK/runtime and Windows versions
     validations:
       required: true
   - type: textarea

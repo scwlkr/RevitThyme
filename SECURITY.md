@@ -2,9 +2,9 @@
 
 Report vulnerabilities privately through the repository owner's GitHub profile or GitHub private reporting. Keep private models, credentials, document paths and session captures out of public issues.
 
-The C# Foundation bridge is local to Windows, restricted to the current user's SID, rejects remote pipe clients and verifies the server process. It accepts only Inspect and captured-target RenameView operations. The host executes them through Revit ExternalEvent; model-changing code uses verified transactions and rollback. No arbitrary-code execution, HTTP listener, model save or synchronization endpoint is present.
+The C# bridge is local to Windows, restricted to the current user's SID, rejects remote pipe clients and verifies the server process. The official-SDK MCP server runs over local stdio and accepts only typed inspection, selection, rename and parameter operations. It explicitly binds sessions and captures native identity/revision. The host executes model access through Revit ExternalEvent; edits verify expected values, transactions and whole-batch rollback. No arbitrary-code execution, HTTP listener, model save or synchronization endpoint is present.
 
-Treat local session files and inspection captures as private metadata. Processes running as your Windows user share this trust boundary. A submitted edit whose connection is lost is unconfirmed: inspect the native model before another edit. Requests are not automatically replayed.
+Treat session files, captures, parameter data and qualification transcripts as private metadata. Processes running as your Windows user share this trust boundary. A submitted edit whose connection is lost is unconfirmed: retrieve its retained outcome with `get_operation` and inspect native values before another edit. Requests are not automatically replayed; an intentional retry must use the same GUID and arguments. Queued cancellation prevents mutation, while running work completes and retains its result.
 
 Installation verifies an exact file allowlist and hashes, retains immutable bundles/registration backups, rejects unknown modified installations and blocks while Revit runs. SHA-256 establishes integrity against a trusted checksum, not publisher identity. The foundation package is unsigned local development output; public signing/distribution is future work.
 

@@ -12,5 +12,8 @@
 | RolledBack | Native rollback and original value independently verified |
 | Unconfirmed | Completion/rollback cannot be verified; inspect before making another edit |
 | Foundation | First stage of the 2026-10-14 plan; C#, WPF, basic CLI and native inspection/modification |
+| MCP | Official C# stdio adapter for external agents using the shared native operation layer |
+| Capture ID | Connection-local token referring to captured document/view/revision; refreshed after model changes |
+| Request ID | Caller-supplied GUID for a new write; native session retains its result and rejects conflicting reuse |
 
 Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

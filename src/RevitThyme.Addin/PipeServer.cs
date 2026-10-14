@@ -27,7 +27,7 @@ internal sealed class PipeServer(SessionBinding binding, OperationDispatcher ope
                 if (input.Request is null) throw new InvalidDataException("Request required.");
                 if (input.ProtocolVersion != Protocol.Version || input.SessionId != binding.SessionId)
                     result = OperationResult.Reject(input.Request, "wrong_session", "Bridge session or protocol mismatch.");
-                else result = await operations.ExecuteAsync(input.Request).WaitAsync(deadline.Token);
+                else result = await operations.ExecuteAsync(input.Request, deadline.Token).WaitAsync(deadline.Token);
                 await Frames.WriteAsync(pipe, result, deadline.Token);
             }
             catch (Exception error) when (error is IOException or OperationCanceledException or System.Text.Json.JsonException or InvalidDataException)

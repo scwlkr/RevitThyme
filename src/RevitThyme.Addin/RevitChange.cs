@@ -3,10 +3,10 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-internal sealed class RevitChange(Document document, View view) : IChange
+internal sealed class RevitChange(Document document, View view, string label = "RevitThyme Rename View") : IParameterChange
 {
-    private readonly TransactionGroup group = new(document, "RevitThyme Rename View");
-    private readonly Transaction transaction = new(document, "Rename view");
+    private readonly TransactionGroup group = new(document, label);
+    private readonly Transaction transaction = new(document, label);
     public Completion StartGroup() => Map(group.Start());
     public Completion StartTransaction()
     {
@@ -17,6 +17,7 @@ internal sealed class RevitChange(Document document, View view) : IChange
         return Map(status);
     }
     public void RenameView(string name) => view.Name = name;
+    public void SetParameter(ParameterEdit edit) => ElementInspection.Set(document, edit);
     public void Regenerate() => document.Regenerate();
     public Completion Commit() => Map(transaction.Commit());
     public Completion Assimilate() => Map(group.Assimilate());

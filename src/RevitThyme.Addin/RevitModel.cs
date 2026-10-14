@@ -4,7 +4,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed class RevitModel(UIApplication app, FoundationApplication host) : IModel
+public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel
 {
     private Document Document => app.ActiveUIDocument?.Document
         ?? throw new OperationException("no_document", "Open a Revit project and refresh.");
@@ -32,5 +32,36 @@ public sealed class RevitModel(UIApplication app, FoundationApplication host) : 
         var snapshot = Capture();
         if (!snapshot.CanModify) throw new OperationException("write_blocked", snapshot.WriteBlock!);
         return new RevitChange(Document, Document.ActiveView);
+    }
+    public ElementPage ListViews(ElementQuery query)
+    {
+        host.AssertDocument(Document);
+        using var collector = new FilteredElementCollector(Document).OfClass(typeof(View));
+        return ElementInspection.Page(collector, query);
+    }
+    public ElementPage QueryElements(ElementQuery query)
+    {
+        host.AssertDocument(Document);
+        using var collector = new FilteredElementCollector(Document);
+        if (query.CategoryId is not null) collector.OfCategoryId(new ElementId(long.Parse(query.CategoryId, System.Globalization.CultureInfo.InvariantCulture)));
+        if (!query.IncludeTypes) collector.WhereElementIsNotElementType();
+        return ElementInspection.Page(collector, query);
+    }
+    public ElementDetail[] InspectElements(string[] ids, int parameterOffset)
+    { host.AssertDocument(Document); return ids.Select(id => ElementInspection.Detail(Document, id, parameterOffset)).ToArray(); }
+    public string[] GetSelection()
+    {
+        host.AssertDocument(Document); var ids = app.ActiveUIDocument.Selection.GetElementIds();
+        if (ids.Count > 100) throw new OperationException("selection_too_large", "Selection exceeds 100 elements; reduce it in Revit.");
+        return ids.Select(id => Document.GetElement(id).UniqueId).Order().ToArray();
+    }
+    public void SetSelection(string[] ids)
+    { host.AssertDocument(Document); app.ActiveUIDocument.Selection.SetElementIds(ids.Select(id => ElementInspection.Resolve(Document, id).Id).ToArray()); }
+    public ParameterInfo ReadParameter(string elementId, string parameterId)
+    { host.AssertDocument(Document); return ElementInspection.Read(ElementInspection.ResolveParameter(Document, elementId, parameterId)); }
+    public IParameterChange BeginParameterChange()
+    {
+        if (!Capture().CanModify) throw new OperationException("write_blocked", "Document cannot be edited.");
+        return new RevitChange(Document, Document.ActiveView, "RevitThyme Set Parameters");
     }
 }

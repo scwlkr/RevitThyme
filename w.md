@@ -6,7 +6,7 @@ For architecture or scope changes, read [PROJECT.md](PROJECT.md) and the complet
 
 Use `project.cmd help` for supported development routes. Implement shared operations in Core and Autodesk access in Addin, under ExternalEvent/API callbacks. Each edit requires explicit captured identity and native before/after readback. Files should normally stay under 300 lines; split by responsibility when useful.
 
-Before declaring an implementation complete, run `project.cmd check` and record source revision, actual checks and limitations. Hosted portability checks use `project.cmd check -Portable`; actual Revit changes use the separate disposable process/fixture procedure in [Foundation acceptance](docs/FOUNDATION.md). Source/build/package checks cannot substitute for native proof.
+Before declaring an implementation complete, run `project.cmd check` and record source revision, actual checks and limitations. Hosted portability checks use `project.cmd check -Portable`; actual Revit changes use the separate disposable process/fixture procedure in [Foundation acceptance](docs/FOUNDATION.md) or [MCP qualification](docs/MCP.md). Source/build/package checks cannot substitute for native proof.
 
 Keep focused local commits on `codex/<issue>-<purpose>` branches and preserve unrelated edits. Track maintainer implementation in WLKR LABS / RevitThyme. Issue Done requires verified acceptance and default-branch landing; pushing, public publication or model save/sync/close require applicable user authorization. Never change a working model as a fallback for a test failure.
 

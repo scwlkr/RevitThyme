@@ -1,0 +1,81 @@
+using System.ComponentModel;
+using System.Text.Json;
+using ModelContextProtocol.Protocol;
+using ModelContextProtocol.Server;
+using RevitThyme.Core;
+
+namespace RevitThyme.Mcp;
+
+[McpServerToolType]
+public sealed class RevitTools(RevitConnection connection)
+{
+    [McpServerTool(Name = "list_sessions", ReadOnly = true), Description("Discover live process-bound Revit sessions. Does not select a process.")]
+    public CallToolResult ListSessions() => Reply(connection.Sessions());
+
+    [McpServerTool(Name = "connect_session", ReadOnly = true), Description("Explicitly bind to an absolute session file from list_sessions. Captures reset on connection changes; pinned startup cannot switch.")]
+    public Task<CallToolResult> ConnectSession(string sessionFile, CancellationToken cancellationToken) => Safe(async () => Reply(await connection.Connect(sessionFile, cancellationToken)));
+
+    [McpServerTool(Name = "get_context", ReadOnly = true), Description("Inspect native document/view and get a captureId. Use a fresh capture after every edit, view change or document change.")]
+    public Task<CallToolResult> GetContext(CancellationToken cancellationToken) => Safe(async () =>
+    {
+        var capture = await connection.Context(cancellationToken); return Reply(capture, !capture.Result.Succeeded);
+    });
+
+    [McpServerTool(Name = "list_operations", ReadOnly = true), Description("Discover typed operation semantics, limits, units and recovery rules. No arbitrary code, file save or sync.")]
+    public CallToolResult ListOperations() => Reply(new
+    {
+        operations = Enum.GetNames<OperationKind>(), protocolVersion = Protocol.Version,
+        limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100 },
+        parameterUnits = "Double values use Revit internal units (length feet, angles radians). dataType is the native Forge type ID. ElementId parameters are inspection-only.",
+        writes = "Use get_context and native UniqueId/parameter Id. set_parameters requires exact Expected values. Supply a unique requestId per new write. Retry only the same ID/arguments; get_operation retrieves retained outcomes. Unconfirmed edits require polling and native inspection.",
+        reversibility = "Rename and parameter batches create one Revit Undo item each. Selection is UI state and restored on failure. No implicit save/sync."
+    });
+
+    [McpServerTool(Name = "list_views", ReadOnly = true), Description("Page native views with names, types, unique IDs and template flags; validates captured revision.")]
+    public Task<CallToolResult> ListViews(string captureId, int offset = 0, int limit = 50, CancellationToken cancellationToken = default) =>
+        Run(captureId, new(Guid.NewGuid(), OperationKind.ListViews, Query: new(Offset: offset, Limit: limit)), cancellationToken);
+
+    [McpServerTool(Name = "query_elements", ReadOnly = true), Description("Page document elements by optional native negative category ID and name substring. Returns UniqueId for inspection. Stable pages require unchanged capture.")]
+    public Task<CallToolResult> QueryElements(string captureId, string? categoryId = null, string? nameContains = null,
+        bool includeTypes = false, int offset = 0, int limit = 50, CancellationToken cancellationToken = default) =>
+        Run(captureId, new(Guid.NewGuid(), OperationKind.QueryElements, Query: new(categoryId, nameContains, includeTypes, offset, limit)), cancellationToken);
+
+    [McpServerTool(Name = "inspect_elements", ReadOnly = true), Description("Inspect 1–5 native UniqueIds. Page 20 parameters per element including numeric parameter Id, typed raw value, dataType and read-only/truncation flags.")]
+    public Task<CallToolResult> InspectElements(string captureId, string[] elementIds, int parameterOffset = 0, CancellationToken cancellationToken = default) =>
+        Run(captureId, new(Guid.NewGuid(), OperationKind.InspectElements, ElementIds: elementIds, ParameterOffset: parameterOffset), cancellationToken);
+
+    [McpServerTool(Name = "get_selection", ReadOnly = true), Description("Read native selected element UniqueIds (up to 100).")]
+    public Task<CallToolResult> GetSelection(string captureId, CancellationToken cancellationToken) =>
+        Run(captureId, new(Guid.NewGuid(), OperationKind.GetSelection), cancellationToken);
+
+    [McpServerTool(Name = "set_selection", ReadOnly = false, Destructive = false, Idempotent = true), Description("Set 0–100 selected UniqueIds in the captured document, with verified readback. Changes UI selection, no model transaction.")]
+    public Task<CallToolResult> SetSelection(string captureId, string requestId, string[] elementIds, CancellationToken cancellationToken) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.SetSelection, ElementIds: elementIds), cancellationToken));
+
+    [McpServerTool(Name = "rename_view", ReadOnly = false, Destructive = false, Idempotent = true), Description("Rename the captured active view through the same Foundation operation as WPF/CLI. Native readback, rollback, one Undo item. Refresh context afterwards.")]
+    public Task<CallToolResult> RenameView(string captureId, string requestId, string name, CancellationToken cancellationToken) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.RenameView, Name: name), cancellationToken));
+
+    [McpServerTool(Name = "set_parameters", ReadOnly = false, Destructive = false, Idempotent = true), Description("Atomically edit 1–20 parameters by UniqueId and numeric parameter Id. Each edit requires Expected and Value objects: Storage String/Integer/Double with Text/Integer/Number. Use native internal units. Verifies all values before and after; rolls back the whole batch on failure.")]
+    public Task<CallToolResult> SetParameters(string captureId, string requestId, ParameterEdit[] edits, CancellationToken cancellationToken) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.SetParameters, Edits: edits), cancellationToken));
+
+    [McpServerTool(Name = "get_operation", ReadOnly = true), Description("Recover a retained native result by write requestId. Returns pending/not_found or the original result and original request ID. Never submits the edit again.")]
+    public Task<CallToolResult> GetOperation(string requestId, CancellationToken cancellationToken) => Safe(async () =>
+    { var result = await connection.Outcome(Id(requestId), cancellationToken); return Reply(result, !result.Succeeded); });
+
+    private Task<CallToolResult> Run(string captureId, OperationRequest request, CancellationToken token) => Safe(async () =>
+    { var result = await connection.Execute(captureId, request, token); return Reply(result, !result.Succeeded); });
+    private static Guid Id(string text) => Guid.TryParse(text, out var id) && id != Guid.Empty ? id : throw new OperationException("invalid_id", "requestId must be a non-empty GUID.");
+    private static async Task<CallToolResult> Safe(Func<Task<CallToolResult>> action)
+    {
+        try { return await action(); }
+        catch (Exception error) when (error is OperationException or IOException or ArgumentException or InvalidOperationException or JsonException or System.ComponentModel.Win32Exception or OperationCanceledException)
+        { return Reply(new { code = error is OperationException op ? op.Code : error is OperationCanceledException ? "cancelled" : "connection_failed", message = error.Message }, true); }
+    }
+    private static CallToolResult Reply(object value, bool error = false)
+    {
+        var json = JsonSerializer.SerializeToElement(value, Protocol.Json);
+        return new() { IsError = error, Content = [new TextContentBlock { Text = json.GetRawText() }], StructuredContent = json };
+    }
+}

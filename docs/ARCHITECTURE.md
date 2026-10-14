@@ -1,84 +1,28 @@
-# Architecture
+# C# Foundation
 
-Native Visual View Range uses the [minimal .NET 10 adapter](RUST-VIEW-RANGE-M2.md), Rust and Expo/Electron with protocol 2: owned launch bootstrap, session-bound Windows pipes, serialized ExternalEvent queue, immutable capture, native validation and transactional Apply/readback. The [M3 assessment](../verification/rust-view-range-m3-remaining.md) records bounded actual-host checks, including startup/capture/Apply/Undo with pyRevit disabled. The [guide](VISUAL-VIEW-RANGE.md) defines the accepted named-level restriction and recovery. Existing pyRevit tools and external TimberFold remain installed.
-
-The historical architecture below describes the shipped 0.2.0 host. Replacement M1 now uses the [Rust/Axum and Expo/Electron feature boundary](RUST-VIEW-RANGE-M1.md), following the [replacement spec](specs/RUST-WSTACK-REPLACEMENT.md). The minimal .NET 10 native adapter remains M2; M1 has only execution-frame contract checks and synthetic geometry.
-
-## Modules and responsibilities
-
-The host owns execution in Revit. A tool owns its workflow. A small operation interface is the seam between callers and tool implementations; a host adapter supplies Revit-specific execution behind that interface.
+The accepted architecture is [the complete 2026-10-14 plan](../2026-10-14_NEW_PLAN.md). This implementation stops at its Foundation row. RevitThyme works without an AI runtime.
 
 ```mermaid
-flowchart LR
-    Ribbon[RevitThyme ribbon] --> Operations[Named tool operations]
-    Codex[Codex / MCP client] --> MCP[Local MCP adapter]
-    MCP --> Operations
-    Operations --> Host[Revit host adapter]
-    Operations --> Worker[External tool worker]
-    Host --> Revit[Revit API]
-    Revit --> Evidence[Read-back verification and reports]
-    Worker --> Evidence
+flowchart TD
+    UI[WPF Inspect View] --> Queue[Core operation dispatcher]
+    CLI[C# CLI] --> Pipe[Local Windows named pipe]
+    Pipe --> Queue
+    Queue --> Event[C# add-in ExternalEvent]
+    Event --> Ops[Core typed operations]
+    Ops --> Adapter[Revit document and transaction adapter]
+    Adapter --> Revit[Autodesk Revit API]
 ```
 
-Version 0.2.0 implements the pyRevit ribbon and shared read-only operations. Named loopback Routes execute through pyRevit ExternalEvent. A standalone MCP adapter, writes and jobs remain planned. See [implemented operations](OPERATIONS.md).
+`src/RevitThyme.Core` owns requests, results, target checks, the serialized queue, transaction orchestration and IPC contracts. It references no Autodesk assemblies or UI framework. `RevitThyme.Addin` supplies the native document adapter, ribbon, ExternalEvent and transaction implementation. `RevitThyme.UI` is a modeless WPF window using `IOperationClient`. `RevitThyme.Cli` is another client of those same operations; it contains no model-changing implementation.
 
-| Module | Responsibility | Initial approach |
-| --- | --- | --- |
-| Host adapter | Session/document identity, queued API execution, transactions and Revit diagnostics | Current pyRevit bridge; then a C# pilot |
-| TimberFold | Extraction, fabrication geometry, nesting, documentation and CAD verification | Existing IronPython entry points and separate CPython worker |
-| Operation interface | Validated arguments, declared effects, stable results and job identity | Small draft interface below |
-| MCP adapter | Discoverable named tools and structured results | Separate local process; implementation language remains open |
-| Ribbon/UI | Settings, preview, progress and result access | pyRevit extension ribbon for read-only operations |
+Only `Inspect` and `RenameView` are registered. A rename requires the captured process ID/start time, session, open document identity, active view UniqueId, model revision and previous name. Revit events invalidate captures after document/view changes; reopening a file creates a new document identity. A successful rename verifies the native value before and after commit, then assimilates a transaction group into one Undo item. Native failures roll back; an unverified rollback or disconnected submitted edit reports an unconfirmed outcome. The client never automatically repeats edits.
 
-Keep language-specific libraries inside each implementation. Cross-process workers exchange serializable data and artifact paths, not live Revit objects. Geometry can run outside Revit; live extraction and native export must return to a valid Revit execution context.
+The bridge uses a session-specific Windows named pipe restricted to the current user's SID, rejects remote clients, verifies the server's OS process ID and uses size-bounded framed JSON. Requests contain data, not executable code. The dispatcher retains request outcomes for the session and rejects conflicting IDs. WPF and pipe callers enqueue work; all model access runs in Revit API callbacks. No model is implicitly saved or synchronized.
 
-## Host constraints
+## Scope and compatibility
 
-External requests queue into Revit through supported mechanisms such as ExternalEvent. The host re-resolves the document and elements when executing, since the active document or model can change while a job waits. A session/document token must identify the intended document; a display title alone is insufficient.
+The first build targets .NET 10 and Revit 2027. Revit 2027 uses [.NET 10](https://blog.autodesk.io/revit-2027-sdk-net-10-api-changes-and-additions/); a promise of Revit 2025+ support would need separate per-release builds and qualification. Local SDK references have CopyLocal disabled. Public builds never fetch or redistribute Autodesk binaries.
 
-Model changes use transactions with rollback on failure. Group related document changes into an undoable operation where Revit permits it. File creation and external-worker side effects cannot be undone by a Revit transaction: keep a unique run directory and report partial artifacts on failure.
+MCP, Codex client, Room Dimensions, full View Range, Roslyn execution, Cabin Eval and planning graphics are later stages. Their intended project names are reserved in the roadmap; empty executable projects and fake tool registrations have not been added. Future adapters must call these shared operations.
 
-Long computations should run in an external worker while Revit's UI remains usable. Revit API access stays within its valid execution context. The existing TimberFold launcher synchronously waits for its worker, so job handling requires implementation work.
-
-## Draft operation interface
-
-| Operation | Result | Declared effects |
-| --- | --- | --- |
-| `revitthyme_status` | Host version, session identity, document identity and readiness | Read-only |
-| `timberfold_inspect` | Tool readiness, intended document, source scope/counts and obvious unsupported conditions | Read model; report data |
-| `timberfold_preview` | Effective settings, extracted scope, geometry/packing diagnostics and preview artifacts | Read model; write a new run folder; no persistent document changes |
-| `timberfold_generate` | Job ID, generated files, new review-view/sheet IDs and verification | Read model; create documentation and files; preserve source building geometry; no save/sync |
-| `timberfold_verify` | Verification scope and evidence for a specific run | Read files/model; write report; native DWG checks may use temporary rollback-protected model changes |
-| `get_job_status` | State, progress, diagnostics and partial/final artifact paths | Read job record |
-
-Status and inspect are implemented read-only in v0.2.0. The other operations below remain proposals. Detailed geometry diagnostics require actual extraction and the worker; inspect must not claim complete support from a category count alone. The existing launcher runs extraction through generation and verification together. Splitting preview/generate/verify is adapter work, not an existing supported split of that launcher.
-
-Requests should identify the operation, request ID, target session/document and validated parameters. A generate request should reference the preview of those same settings and scope. The host checks the preview's source/settings identity again before execution; stale previews return a diagnostic and require regeneration.
-
-Results should include operation/host/tool versions, source identity, resolved settings, status, changed/skipped IDs, artifact locations and verification evidence. Preserve TimberFold part IDs and inverse 2D-to-3D transforms in its reports. Keep file names and paths associated with a specific run.
-
-## Job behavior
-
-Draft states: `queued`, `running`, `cancel_requested`, `cancelled`, `succeeded`, `failed`.
-
-- A retry with the same accepted request ID returns the existing job rather than creating another set of sheets. Enforce this in implementation; a metadata field alone is insufficient.
-- Serialize conflicting writes to the same document. Readiness includes Revit edit/modal states and an explicit diagnostic when execution must wait.
-- Cancellation is cooperative at safe stage transitions. It rolls back an active uncommitted document transaction; it does not promise to terminate an arbitrary Revit API call or erase committed work/files.
-- A failed job returns its failing stage, rollback outcome and partial artifact paths. Success requires the declared verification to pass.
-
-## Implementation order
-
-Use the existing bridge for the first read-only operations. Build a focused C# host pilot next, rather than duplicating all pyRevit functionality. Compare both implementations through the same operation interface. Add only the registration and execution structure required by working tools; defer a general plugin framework until another tool demonstrates the need.
-
-The native pilot's .NET target and SDK references will be checked against the installed Revit 2027 build. Python/TypeScript/other runtimes can be external workers or callers; choosing another language does not bypass Revit's execution constraints.
-
-## References
-
-- [pyRevit architecture](https://docs.pyrevitlabs.io/architecture/)
-- [pyRevit extensions and script engines](https://github.com/pyrevitlabs/pyRevit/blob/develop/docs/extensions.md)
-- [pyRevit Routes](https://docs.pyrevitlabs.io/reference/pyrevit/routes/)
-- [Autodesk ExternalEvent execution](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/13bf4411-c400-dcd2-458c-7f09357d9ecb.htm)
-- [Autodesk transactions](https://help.autodesk.com/cloudhelp/2024/ENU/Revit-API/files/Revit_API_Developers_Guide/Basic_Interaction_with_Revit_Elements/Revit_API_Revit_API_Developers_Guide_Basic_Interaction_with_Revit_Elements_Transactions_html.html)
-- [MCP architecture](https://modelcontextprotocol.io/docs/learn/architecture)
-
-The Autodesk links explain execution concepts; check the installed Revit 2027 SDK for implementation-specific types and framework targets.
+Superseded Rust, Electron and pyRevit implementation and earlier evidence live in `legacy/pre-foundation`. Existing installed bundles and private `artifacts` are preserved. That archive is outside the solution, CI and package allowlist; see [migration](MIGRATION.md).

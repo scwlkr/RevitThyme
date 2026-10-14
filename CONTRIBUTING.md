@@ -1,13 +1,13 @@
 # Contributing
 
-Start with README.md, PROJECT.md and AGENTS.md. Changes should have a small observable outcome and preserve existing models and tools.
+Read the [architecture](docs/ARCHITECTURE.md) and [current stage](docs/ROADMAP.md). The active implementation is C#/.NET 10 and WPF; the current scope is Foundation. Public issues and pull requests are welcome without Linear access. Maintainer tracking uses WLKR LABS / RevitThyme.
 
-Use GitHub issues for public reports and contribution proposals. Maintainer implementation is tracked in WLKR LABS / RevitThyme on Linear; maintainers link public requests there. Contributors do not need Linear access.
+1. Reproduce the problem in a small public sample or offline model adapter. Preserve unrelated source and user models.
+2. Add typed requests/results and shared behavior in `RevitThyme.Core`. Implement Autodesk access in `RevitThyme.Addin`, entirely inside API callbacks. Keep WPF/CLI adapters free of duplicated operations.
+3. Run `project.cmd check`. Use `check -Portable` without Autodesk SDKs. The unit test executable has no external test framework; `project.cmd test` runs it. Hosted Windows CI builds WPF and portable code; real Revit tests require licensed Revit on a separate Windows test host.
+4. For native changes, run the exact disposable procedure in [Foundation acceptance](docs/FOUNDATION.md), record native readback/rollback and distinguish actual-Revit evidence from offline checks. Keep private paths, models and session captures out of public commits.
+5. Submit the problem, resulting behavior, source revision, checks and limits in a focused PR.
 
-Revit-facing code must work with IronPython 2.7. CPython scripts are separate. Reuse lib/revitthyme/operations.py for ribbon and external callers. Do not expose arbitrary code execution or save models implicitly.
+`project.cmd build` builds the complete solution against local Revit 2027. An alternate SDK folder can be supplied through `-p:RevitApiPath=ABSOLUTE_PATH`. Autodesk binaries must stay outside the repository and package. Small contribution candidates include accessible status presentation, improved CLI diagnostics and test coverage for transaction failures; use `good first issue` for narrowly bounded public requests.
 
-Run project.cmd check-release. Full maintainer CI is project.cmd ci --base <base-sha> --require-clean --full and also needs external TimberFold and the wstack setup skill. Public CI checks portable packaging and the Rust CLI; live Revit behavior needs separate evidence.
-
-For model changes, include a dedicated sample, deterministic target checks, rollback and read-back evidence. Never upload private models, credentials or settings. Redact private document names and paths from screenshots/logs.
-
-Submit focused pull requests with the problem, resulting behavior, checks and limits. Contributions are provided under GPL-3.0-or-later.
+Contributions are licensed GPL-3.0-or-later. Superseded Rust/Electron/pyRevit sources in `legacy` are reference material and excluded from the current build.

@@ -1,0 +1,105 @@
+import {chromium} from "playwright";
+import assert from "node:assert/strict";
+import {mkdirSync,writeFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
+import path from "node:path";
+import {fixture,root} from "./native-fixture.mjs";
+import {verifySectionLayout,verifyUnderlay} from "./section-layout.mjs";
+const f=await fixture(),samples=[];let browser,page,passed=false;
+const check=(value,name)=>{assert.ok(value,name);samples.push({name,passed:true});console.log("PASS "+name);};
+try{
+ // Use the same .NET DesktopLaunch as the actual ribbon, including its PID-bound bootstrap pipe.
+ // An allocated loopback CDP port is enabled only in the offline fixture launcher for this driver.
+ const launched=await f.command("launch "+path.join(root,"desktop/out/RevitThyme-win32-x64/RevitThyme.exe"));
+ browser=await chromium.connectOverCDP(launched.cdp);const context=browser.contexts()[0];
+ page=context.pages()[0]??await context.waitForEvent("page");page.setDefaultTimeout(15000);
+ await page.getByText("Adapter orchestration fixture (no Revit)",{exact:false}).waitFor();
+ await page.getByText("Revit connected",{exact:true}).waitFor();
+ check(await page.getByText("Revit connected",{exact:true}).isVisible(),"Packaged UI presents explicit native connection");
+ const cut=page.getByLabel("Cut Plane offset");await cut.waitFor();
+ check(await cut.inputValue()===`4' 0"`,"Native UI uses imperial feet/inches by default");
+ await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ const apply=page.getByRole("button",{name:"Apply to Revit",exact:true});
+ check(await apply.isDisabled(),"Native Apply stays disabled until target/range checkbox confirmed");
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByText("Native outcome: unchanged_verified",{exact:true}).waitFor();
+ check((await f.command("observe")).transactions===0,"Packaged identical Apply opens no fixture transaction");
+ await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+ await page.getByLabel("Display units").selectOption("mm");
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Display units"]').value==="mm");
+ await cut.fill("1524");await cut.blur();
+ await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await page.getByLabel("Confirm displayed target and range").waitFor();
+ assert.equal(await page.getByText("Side effects: none.",{exact:false}).count(),0,"Changed native review must not claim no side effects");
+ assert.ok(await page.getByText("One plan-view range transaction and undo item; source geometry unchanged.",{exact:true}).isVisible(),"Native mutation effect must be disclosed before confirmation");
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByRole("button",{name:"Inspect Apply outcome",exact:true}).click();
+ await page.getByText("Native outcome: applied_verified",{exact:true}).waitFor();
+ const observation=await f.command("observe");
+ check(observation.transactions===1&&observation.cut===5,"Packaged numeric mm edit applies exactly 5 ft through Rust and native IPC");
+ await page.keyboard.press("Escape");
+ check(await page.getByText("Native outcome: applied_verified",{exact:true}).isVisible()&&await page.getByRole("button",{name:"Cancel",exact:true}).isDisabled(),"Escape/Cancel after native Apply cannot claim the mutation was cancelled or undone");
+ await page.getByRole("button",{name:"Inspect Apply outcome",exact:true}).click();
+ check((await f.command("observe")).transactions===1,"Inspect outcome never reruns mutation");
+ await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();await cut.fill("1828.8");await cut.blur();
+ await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await f.command("invalidate");await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByRole("button",{name:"Inspect Apply outcome",exact:true}).click();await page.getByText("Native outcome: rejected",{exact:true}).waitFor();
+ check((await f.command("observe")).transactions===1,"Native revision changed after review rejects packaged Apply without another transaction");
+ await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();await cut.fill("1828.8");await cut.blur();
+ await page.getByRole("button",{name:"Review Apply",exact:true}).click();await f.command("pause");
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();await page.getByText("Native outcome: queued",{exact:true}).waitFor();
+ await page.getByRole("button",{name:"Cancel queued Apply",exact:true}).click();await page.getByText("Native outcome: cancelled",{exact:true}).waitFor();await f.command("resume");
+ check((await f.command("observe")).transactions===1,"Packaged queued cancellation prevents a transaction");
+ await page.getByRole("button",{name:"Reconnect",exact:true}).click();await cut.waitFor();
+ check(await page.getByRole("button",{name:"Review Apply",exact:true}).isEnabled(),"Reconnect captures fresh native facts before another review");
+ check(await page.evaluate(()=>typeof window.revitthyme?.apply==="function"&&typeof window.require==="undefined"&&!Object.keys(window.revitthyme).some(k=>/credential|pipe|file|shell/i.test(k))),"Native preload exposes only named operations; no credential/pipe/filesystem/Node access");
+ mkdirSync(path.join(root,"artifacts/wlk-117"),{recursive:true});
+ for(const direction of ["up","down"]){
+  await f.command("orientation "+direction);
+  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+  await page.getByText("Main plan: Looking "+direction+(direction==="up"?" ↑":" ↓"),{exact:true}).waitFor();
+  await page.getByText("Underlay Orientation: "+(direction==="up"?"Look Down ↓":"Look Up ↑")+" · Enabled",{exact:true}).waitFor();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
+  await verifySectionLayout(page);
+  check(true,"Native packaged structural "+direction+" uses captured direction and displays opposite underlay independently");
+  await page.getByLabel("View Depth offset").fill(direction==="up"?"2133.6":"609.6");
+  await page.getByText(direction==="up"?/Looking up: View Depth must be at or above Top/:/Looking down: View Depth must be at or below Bottom/).waitFor();
+  check(await page.getByRole("button",{name:"Review Apply",exact:true}).isDisabled(),"Native UI blocks wrong-side "+direction+" depth");
+  await page.getByRole("button",{name:"Reset",exact:true}).click();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  await page.screenshot({path:path.join(root,"artifacts/wlk-117","native-fixture-"+direction+".png"),fullPage:true});
+ }
+ for(const choice of ["none","up","down","unbounded_up","unbounded_down"]){
+  await f.command("underlay "+choice);
+  await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+  await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+  await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
+  await verifyUnderlay(page,choice,10);await verifySectionLayout(page);
+  check(true,"Native Underlay Orientation " +choice+" reaches packaged band/arrow without changing main range");
+  await page.getByRole("button",{name:"Review Apply",exact:true}).waitFor({state:"visible"});
+  await page.waitForFunction(()=>!document.querySelector('[aria-label="Review Apply"]').disabled);
+  await page.getByRole("img",{name:"Model section"}).scrollIntoViewIfNeeded();
+  await page.screenshot({path:path.join(root,"artifacts/wlk-117","native-underlay-"+choice+".png"),fullPage:true});
+ }
+ await cut.fill("1219.5048");await cut.blur();await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ const transactionsBefore=(await f.command("observe")).transactions;
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByText("Native outcome: applied_verified",{exact:true}).waitFor();
+ check(Math.abs((await f.command("observe")).cut-4.001)<1e-12,"Native fixture retains an offset finer than display precision");
+ await page.getByRole("button",{name:"Refresh native capture",exact:true}).click();
+ await page.getByLabel("Display units").selectOption("ft");
+ await page.waitForFunction(()=>document.querySelector('[aria-label="Cut Plane offset"]')?.value===`4' 0"`);
+ await cut.focus();await cut.blur();await page.getByRole("button",{name:"Review Apply",exact:true}).click();
+ await page.getByText("Apply preview · identical values",{exact:true}).waitFor();
+ await page.getByLabel("Confirm displayed target and range").check();await apply.click();
+ await page.getByText("Native outcome: unchanged_verified",{exact:true}).waitFor();
+ const untouched=await f.command("observe");
+ check(untouched.transactions===transactionsBefore+1&&Math.abs(untouched.cut-4.001)<1e-12,"Rounded imperial display and focus/blur do not alter exact capture or create an Undo item");
+ mkdirSync(path.join(root,"artifacts/m2"),{recursive:true});await page.screenshot({path:path.join(root,"artifacts/m2/native-packaged.png"),fullPage:true});passed=true;
+}catch(error){if(page)console.error((await page.locator("body").innerText()).slice(0,2200));throw error;}
+finally{
+ if(page)await page.close();if(browser)await browser.close();f.stop();mkdirSync(path.join(root,"artifacts/m2"),{recursive:true});
+ writeFileSync(path.join(root,"artifacts/m2/native-ui.json"),JSON.stringify({sha:execFileSync("git",["rev-parse","HEAD"],{cwd:root,encoding:"utf8"}).trim(),scope:"packaged_application_with_offline_native_fixture",actual_revit:false,passed,samples},null,2)+"\n");
+}

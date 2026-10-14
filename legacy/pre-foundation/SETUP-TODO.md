@@ -1,0 +1,49 @@
+# Setup handoff
+
+## Current setup - WLK-240
+
+The 2026-10-13 refresh uses [w.md](w.md), current [features](FEATURES.md)/[terms](GLOSSARY.md) and `project.cmd check-wstack`. CI uses the project-owned read-only setup check instead of invoking the retired separate wstack-setup skill, which could restore obsolete instructions. The global wstack 0.2 worker's Unix timer is unavailable on Windows; the refresh applies its small local fallback and preserves owner notes/commands. See [current verification](verification/wstack-setup.md). No product migration or Revit/model operation is part of setup.
+
+## Historical foundation setup - 2026-10-05
+
+The original setup follow-up authorized needed dependencies, Windows repairs and local CI while product version was 0.1.0. Track implementation in [RevitThyme / WLKR LABS](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9); the original setup was [WLK-95](https://linear.app/wlkr-labs/issue/WLK-95/apply-wstack-project-setup-to-revitthyme). The notes below preserve that evidence, not current architecture or a product backlog.
+
+## Tooling and evidence
+
+- [x] Wire the existing structural diagnostic into `tools/project-cli/src/routes.rs` as `check-project`; preserve `-LocalConfigPath`, `-ReportPath` and process failure codes in the route/launcher source.
+- [x] Exercise that route through Rust and capture the result. Rust 1.99.0, rustfmt and clippy are installed through checksum-verified rustup, using the existing Visual Studio C++ build tools. The toolchain is pinned in rust-toolchain.toml. `project.cmd` handles immediate Cargo discovery without restarting Codex.
+- [x] Pass the upstream setup checker. The owning skill now generates/uses project.cmd on Windows. The previous WinError 193 regression was reproduced before repair and passes afterward, including a temporary project path with spaces. The patch is retained in verification/wstack-setup-windows.patch.
+- [x] Resolve the setup script's Windows permission reporting. It now applies Unix executable permissions only on Unix. Repeated apply returns `changed: []`, preserving the custom instructions and routes. Seven relevant owning-skill tests pass.
+- [x] Record a clean checked SHA and land on the local default branch. `master` follows the existing Git default; full CI passed in a temporary clean checkout before fast-forward landing. Recheck the final landed SHA after this checklist update; its aggregate record is artifacts/local-ci/landed.json. The unrelated logo is preserved outside commits. No remote publication is part of this follow-up.
+
+The real Rust route passes 44 structural checks. The CLI boundary driver passes 13 checks: help/doctor, invalid commands/arguments, explicit configuration/report paths with spaces, offline read-back, missing-source failure and malformed-JSON failure. Expected exits 0, 1 and 2 are preserved through the Windows launcher. Evidence is in ignored artifacts/local-ci; no live Revit, native CAD or physical-fit checks are part of setup.
+
+## Current stack and bounded next work
+
+| Current | Preferred target or exception | Next bounded step |
+| --- | --- | --- |
+| Offline PowerShell diagnostic | Rust CLI now orchestrates the existing script, retaining implementation and flags | Complete: real route and failure/report read-back verified |
+| Planned pyRevit adapter with IronPython; separate CPython workers | Retain these Revit-specific languages; Rust CLI does not replace a Revit execution context | M1 in docs/ROADMAP.md, through the existing loopback bridge |
+| Planned C#/.NET native host pilot | Retain C# because the host must match the installed Revit SDK/runtime | Confirm the SDK/runtime before M2 project files |
+| Planned ribbon/MCP interface | Keep the small shared operation seam and Revit interface | Implement only named operations proved by the next roadmap milestone |
+| No database, web/mobile/desktop shell or container service | PostgreSQL, Axum, OpenAPI/Zod, React/Expo/Electron, Docker and pnpm remain defaults only for future accepted layers | No migration or provisioning is currently needed |
+| External TimberFold | Preserve its independent repository, runtime, baselines and toolchain | Read its instructions and record its revision before future integration |
+
+## CI alignment
+
+- [x] Locate/plan local CI behind `./project`: proportional checks, useful caching, exact clean SHA/base/commands/results. Implemented and verified in this authorized follow-up; failed clean-checkout gates correctly produce aggregate failure and exit 1. Before push/merge, applicable checks must pass on the current clean SHA; recheck after edits/landing. No hosted config is required. <!-- setup:ci-discovery -->
+
+Local CI is implemented through `.\project.cmd ci`, with scope routing, Rust format/lint/build, the real CLI contract, setup readiness/idempotence and Cargo warm-cache/invalidation checks. It records aggregate success/failure, commands, SHA/base and checkout cleanliness. Static Markdown takes the light route; code, dependencies, CI and executable documentation take full checks. Full clean-checkout evidence is in artifacts/local-ci/prelanding.json and artifacts/local-ci/landed.json; the latter identifies the final landed SHA.
+
+The setup skill's CI inventory remains a conservative text-hint report; actual local CI results provide alignment evidence. No hosted service is needed for this foundation, and no hosted jobs or source publication are part of this work. Planned Revit operations remain future roadmap milestones.
+
+## Public release CI - WLK-97
+
+- [x] Public workflows always run the full portable release boundary; there are no path filters. Local project ci retains docs/full scope routing. Hosted Windows checks are required for the requested public project and package releases. <!-- setup:ci-scope -->
+- [x] Portable checks retain aggregate evidence at the checked SHA. Full local exact-SHA checks remain a separate maintainer gate; public checks cannot prove Revit or TimberFold behavior. Pending/failed hosted results are not release evidence. <!-- setup:ci-verify -->
+
+## Rust M1 check alignment - WLK-109
+
+M2 extends local full CI with Windows adapter compilation, real local pipe/queue/failure checks and packaged native-orchestration UI tests. Hosted Windows still lacks replacement gates and a licensed Revit SDK reference path. No Autodesk assemblies may be uploaded to resolve this gap. WLK-111 owns implementation/runtime qualification; this item records CI setup alignment only.
+
+Local full CI now also runs `check-m1`, `package-m1` and the actual packaged `check-m1-ui` driver. The hosted portable-release job continues to verify the legacy distribution boundary. It does not run the Rust replacement or desktop drivers; hosted M1 alignment remains unverified and needs a separately configured Windows Node/pnpm/.NET job before any hosted M1 qualification claim. The implementation and native acceptance gates are tracked in Linear and [the M1 handoff](docs/RUST-VIEW-RANGE-M1.md).

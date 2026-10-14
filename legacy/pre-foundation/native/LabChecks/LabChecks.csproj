@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0-windows</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Lab.Core/Lab.Core.csproj" />
+    <ProjectReference Include="../Adapter.Core/Adapter.Core.csproj" Aliases="legacy" />
+    <Compile Include="../LabAdapter/LabConfig.cs" Link="LabConfig.cs" />
+    <Compile Include="../LabAdapter/Credential.cs" Link="Credential.cs" />
+    <Compile Include="../Adapter.Checks/FakeModel.cs" Link="FakeModel.cs" />
+  </ItemGroup>
+</Project>

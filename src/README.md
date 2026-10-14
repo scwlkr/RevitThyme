@@ -1,3 +1,3 @@
-# Implementation layout
+# Active implementation
 
-The implemented host adapter and shared read-only operations are in extensions/RevitThyme.extension/lib/revitthyme. Ribbon buttons and Routes import that implementation. CPython release/check drivers stay under scripts; no native host is implemented yet.
+Only Foundation is implemented: `RevitThyme.Core`, `RevitThyme.Addin`, `RevitThyme.UI` and `RevitThyme.Cli`. See [architecture](../docs/ARCHITECTURE.md). MCP and Codex projects are reserved for later stages and are not executable placeholders.

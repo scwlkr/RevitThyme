@@ -2,53 +2,44 @@
 
 ![RevitThyme](assets/branding/revitthyme-logo.svg)
 
-A Revit tool suite with a pyRevit extension and a native Visual View Range preview.
+RevitThyme is an open-source native Revit toolkit. Its C# operation layer serves a WPF interface and CLI; AI interfaces are optional later stages.
 
-**Visual View Range 0.3.0-preview.1** is an unpublished candidate with native capture, interactive sections and reviewed Apply/Undo. Bounded checks 1–10 passed on the current Revit 2027.2 host, including startup/use with pyRevit disabled. Unresolved Above/Below references require named levels. See the [user guide](docs/VISUAL-VIEW-RANGE.md), [release notes](docs/VIEW-RANGE-RELEASE-NOTES.md) and [separate qualification evidence](verification/rust-view-range-m3-remaining.md). The existing tools remain installed; broader suite replacement and second-computer distribution are separate work.
+This checkout implements **Foundation only** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). The native **Inspect View** tool reads the active document/view and renames the captured view through a verified, undoable transaction. WPF and CLI use the same operations. No AI account, Rust, Electron or pyRevit is required.
 
-**Version 0.2.0** provides a RevitThyme ribbon, shared read-only operations, a versioned ZIP and per-user installer. This is an independent extension built on pyRevit; no upstream implementation or Revit binaries are bundled.
+![Native WPF Inspect View](docs/images/foundation-wpf.png)
 
-The visual identity combines thyme leaves, earthy greens and timber colors. Each ribbon button has transparent artwork for light and dark Revit themes. Editable sources are in [branding](assets/branding/README.md).
+## Build and install
 
-| Available now | Still planned |
-| --- | --- |
-| Suite Status: host versions and document identity | Broader native suite migration |
-| Native Visual View Range preview: capture, review, Apply and Undo | Second-computer native qualification |
-| TimberFold inspection: candidate walls/roofs and source-file diagnostics | Preview-bound fabrication generation |
-| Shared ribbon and loopback Routes | Named MCP server and asynchronous jobs |
-| Allowlisted ZIP, hashes, backup/upgrade/uninstall tooling | Bundled TimberFold worker and second-computer pilot |
-
-TimberFold generation continues through its separate working installation. Inspection counts do not prove fabrication support.
-
-## Install
-
-Install pyRevit for Revit 2027. Download the ZIP and checksum from [Releases](https://github.com/scwlkr/RevitThyme/releases), verify and extract it. From the extracted folder:
+Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The current native target is Revit **27.3.0.28**; other releases and another computer need qualification. Revit supplies its proprietary API assemblies locally.
 
 ```powershell
-& .\scripts\install.ps1
+.\project.cmd doctor
+.\project.cmd check
+.\project.cmd package
 ```
 
-Load the extension on a normal Revit start, then open **RevitThyme > Suite Status**. Tool Settings can select your existing TimberFold folder. The first-host cold-start smoke test passed with icons and read-only operations. The development host previously crashed during Reload and uses a separately documented local Routes repair; repeated Reload stability and another-machine behavior remain unverified. See [deployment](docs/DEPLOYMENT.md) for compatibility and recovery.
+The last command prints a package folder and checksum. Close Revit normally and run `install.ps1` in that folder, then open **RevitThyme → Foundation → Inspect View**. See [installation and recovery](docs/INSTALLATION.md). This foundation has a reversible local installer; a signed production `.exe` and release bootstrap remain distribution work.
 
-## Develop
+For CLI automation, inspect a chosen session into a private JSON capture, review it, then rename the exact captured view. See `project.cmd cli --help`. A successful rename creates one Revit Undo item; the tool never saves or syncs a project.
 
-The [native adapter](docs/RUST-VIEW-RANGE-M2.md) provides capture/Apply and ribbon-launched connection in the Rust/Expo/Electron feature. Standalone executable launch retains the offline fixture. [M3](verification/rust-view-range-m3-remaining.md) records bounded actual Revit qualification separately from Windows source/package checks. The portable bundle does not install an add-in automatically.
+## Architecture
 
-The [M1 report](docs/RUST-VIEW-RANGE-M1.md) preserves the earlier synthetic offline milestone. Later M2/M3 work adds the native adapter and actual Revit Apply qualification while preserving the shipped pyRevit host.
-
-Clone the source repository for development; the install ZIP omits the developer CLI. Read [PROJECT.md](PROJECT.md), [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md) and [roadmap](docs/ROADMAP.md). Automation uses Windows Python 3.13 and Rust 1.99.0; the extension stays IronPython 2.7 compatible.
-
-```powershell
-.\project.cmd check-project
-.\project.cmd check-release
-.\project.cmd ci --base HEAD^ --require-clean --full
-.\project.cmd package --require-clean
+```mermaid
+flowchart TD
+    WPF[WPF tool] --> Core[C# operation dispatcher]
+    CLI[C# CLI] --> Bridge[Local named pipe]
+    Bridge --> Core
+    Core --> Host[ExternalEvent execution host]
+    Host --> Operations[Shared C# operations]
+    Operations --> Revit[Revit API and transactions]
 ```
 
-Full local CI uses external TimberFold configured in config/local.example.json or ignored config/local.json. Public package checks need no TimberFold checkout. Keep private models outside this repository.
+See [architecture](docs/ARCHITECTURE.md), [Foundation acceptance](docs/FOUNDATION.md) and [verification](verification/foundation.md). Hosted CI builds the portable C#/WPF solution and runs offline checks. Real Revit tests use a new, pinned disposable process and fixture.
 
-Use project.cmd check-live after installing to exercise Routes and identity failure cases. Live reports stay in ignored artifacts; publish only sanitized evidence. See [operations](docs/OPERATIONS.md), [contributing](CONTRIBUTING.md), [security](SECURITY.md) and [changelog](CHANGELOG.md).
+MCP, full View Range/Room Dimensions migration, dynamic C#, Cabin Eval, Codex Agent and exploration remain [later stages](docs/ROADMAP.md). Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
 
-## License
+## Contribute
 
-GPL-3.0-or-later. See [LICENSE](LICENSE) and [third-party notices](THIRD-PARTY-NOTICES.md). Users supply licensed Revit and independently installed pyRevit. TimberFold source and dependencies are not in v0.2.0.
+Small tools and clear bug reports are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). Public contributors need no Linear account or Codex runtime knowledge. The [issue templates](.github/ISSUE_TEMPLATE) collect small reproducible examples; [starter labels](.github/labels.json) describe contribution categories.
+
+GPL-3.0-or-later. See [LICENSE](LICENSE), [third-party notices](THIRD-PARTY-NOTICES.md) and [security](SECURITY.md). Revit is supplied and licensed separately; Autodesk binaries are excluded from source packages.

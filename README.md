@@ -20,9 +20,11 @@ Close Revit normally, preserving unsaved work, then run this in PowerShell to in
 irm https://revitthyme.wlkrlabs.com/install | iex
 ```
 
-To install **v0.8.1** specifically, use `irm https://revitthyme.wlkrlabs.com/install-0.8.1 | iex`.
+To install **v0.9.0** specifically, use `irm https://github.com/scwlkr/RevitThyme/releases/download/v0.9.0/install.ps1 | iex`. The older `/install-0.8.1` command remains pinned to 0.8.1.
 
-The bootstrap downloads and verifies the Windows installer before running it. It bundles the add-in, CLI and MCP and detects supported Revit installations. Only full Revit 2027 is supported by this build. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned. Piping to `iex` trusts the script served by this domain and its GitHub release source; you can inspect it first or download the [v0.8.1 installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe.sha256) directly. See [installation and recovery](docs/INSTALLATION.md).
+The bootstrap downloads and verifies the Windows installer before running it. Version 0.9.0 bundles the add-in, CLI, MCP and built-in Agent with the official Codex runtime. Only full Revit 2027 is supported. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned. Piping to `iex` trusts the script served by this domain and its GitHub release source; you can inspect it first or download the [v0.9.0 installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.9.0/RevitThyme-0.9.0-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.9.0/RevitThyme-0.9.0-win-x64.exe.sha256) directly. See [installation and recovery](docs/INSTALLATION.md).
+
+RevitThyme checks for updates once a day in the background. **Check for Updates** on the ribbon checks immediately and can download a verified installer. During development, use `project.cmd cli --version`, `project.cmd cli update check --json`, or `project.cmd cli update install` with Revit closed. See [update commands](docs/UPDATES.md).
 
 ## Build
 
@@ -58,7 +60,7 @@ See [architecture](docs/ARCHITECTURE.md), [MCP tools and Codex setup](docs/MCP.m
 
 [Trusted C# execution](docs/DYNAMIC-EXECUTION.md) uses rollback queries, atomic modifications, structured diagnostics/results and retained request outcomes. It is disabled by default and runs with full process permissions. The independent [Cabin Eval](tests/CabinEval/README.md) scores actual native results, including a temporary 14-to-18-foot length probe, in a new disposable process/model. See [Dynamic execution verification](verification/dynamic-execution.md).
 
-The [built-in Agent](docs/AGENT.md) adds a dockable Codex chat panel, ChatGPT sign-in, saved conversations and ordinary skills, pinned to the current Revit process. The local 0.9.0 Agent package bundles the official Codex runtime; the public 0.8.1 installer above predates this stage. See [Agent verification](verification/agent.md). Exploration remains deferred. Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
+The [built-in Agent](docs/AGENT.md) adds a dockable Codex chat panel, ChatGPT sign-in, saved conversations and ordinary skills, pinned to the current Revit process. The 0.9.0 installer bundles the official Codex runtime. See [Agent verification](verification/agent.md). Exploration remains deferred. Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
 
 ## Contribute
 

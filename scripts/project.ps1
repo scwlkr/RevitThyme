@@ -10,6 +10,7 @@ try {
             Write-Output 'RevitThyme C# toolkit through Built-in Agent development'
             Write-Output 'project.cmd doctor | build | test | check | package | install | uninstall'
             Write-Output 'project.cmd cli <arguments> | live-prepare | live-start <run> | live-check <run> | live-cleanup <run>'
+            Write-Output 'project.cmd cli --version | cli version --json | cli update check --json | cli update download --destination ABSOLUTE_FOLDER | cli update install'
             Write-Output 'project.cmd check-installer -PackageDirectory ABSOLUTE_PACKAGE'
             Write-Output 'project.cmd setup -PackageDirectory ABSOLUTE_PACKAGE | check-bootstrap | check-setup -PackageDirectory ABSOLUTE_PACKAGE -SetupExecutable ISOLATED_EXE'
             Write-Output 'project.cmd mcp <server-options> | test-mcp | mcp-prepare | mcp-start <run> | mcp-check <run> | mcp-codex <run> | mcp-cleanup <run>'

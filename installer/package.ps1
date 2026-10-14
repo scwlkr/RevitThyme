@@ -15,7 +15,7 @@ foreach ($file in @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.
 $publish = Join-Path $root ('artifacts\foundation\publish-'+[Guid]::NewGuid().ToString('N'))
 dotnet publish (Join-Path $root 'src\RevitThyme.Cli') -c Release --no-self-contained -o $publish --nologo
 if ($LASTEXITCODE) { throw 'CLI publish failed.' }
-foreach ($file in @('revitthyme.exe','revitthyme.dll','revitthyme.deps.json','revitthyme.runtimeconfig.json','RevitThyme.Core.dll')) {
+foreach ($file in @('revitthyme.exe','revitthyme.dll','revitthyme.deps.json','revitthyme.runtimeconfig.json','RevitThyme.Core.dll','update.ps1')) {
     Copy-Item -LiteralPath (Join-Path $publish $file) -Destination (Join-Path (Join-Path $folder 'cli') $file)
 }
 $mcpPublish = Join-Path $root ('artifacts\mcp\publish-'+[Guid]::NewGuid().ToString('N'))
@@ -28,6 +28,8 @@ foreach ($file in @('install.ps1','uninstall.ps1','common.ps1','mcp-files.ps1','
 & (Join-Path $PSScriptRoot 'codex-runtime.ps1') -Destination (Join-Path $folder 'codex')
 Copy-Item -LiteralPath (Join-Path $root 'skills') -Destination (Join-Path $folder 'skills') -Recurse
 Copy-Item -LiteralPath (Join-Path $root 'docs\AGENT.md') -Destination (Join-Path $folder 'AGENT.md')
+Copy-Item -LiteralPath (Join-Path $root 'docs\UPDATES.md') -Destination (Join-Path $folder 'UPDATES.md')
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'bootstrap.ps1') -Destination (Join-Path $folder 'update.ps1')
 Copy-Item -LiteralPath (Join-Path $root 'THIRD-PARTY-NOTICES.md') -Destination (Join-Path $folder 'THIRD-PARTY-NOTICES.md')
 Copy-Item -LiteralPath (Join-Path $root 'docs\MCP.md') -Destination (Join-Path $folder 'MCP.md')
 Copy-Item -LiteralPath (Join-Path $root 'docs\NATIVE-UTILITIES.md') -Destination (Join-Path $folder 'NATIVE-UTILITIES.md')

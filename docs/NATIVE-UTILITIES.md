@@ -33,7 +33,7 @@ MCP flow: discover the room using `query_elements(categoryId="-2000160")`; call 
 & $cli room-dimensions create --session $session --capture $roomCapture --json
 ```
 
-Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JSON object. Capture files contain private model identities and paths; keep them private. No tool saves or synchronizes a model. On an uncertain result, inspect native state and recover the original request ID through MCP `get_operation`; do not submit a new write ID. Upgrade add-in, CLI and MCP together to bridge protocol **3**.
+Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JSON object. Capture files contain private model identities and paths; keep them private. These utility operations do not save or synchronize a model. On an uncertain result, inspect native state and recover the original request ID through MCP `get_operation`; do not submit a new write ID. Upgrade add-in, CLI and MCP together to bridge protocol **4**.
 
 ## Qualification
 

@@ -1,5 +1,7 @@
 # Install RevitThyme
 
+The source now builds a local **0.9.0-agent** package with the dockable Agent client, ordinary skills and pinned official Codex CLI 0.162.1. The public **0.8.1** release below predates Built-in Agent. Build the new package and setup with the project commands to review it locally; no release publication is implied. See [Agent use and private state](AGENT.md).
+
 The Windows x64 installer includes the native add-in, CLI and MCP server. It supports **full Revit 2027**; other years and Revit LT are not supported by this build. Revit 2027 supplies the required [.NET 10 runtime](https://help.autodesk.com/view/RVT/2027/ENU/?guid=GUID-8D7A4715-EAF8-4BD1-BE78-061F900D0BCE). Setup verifies the x64 Desktop and Core runtimes; no SDK, PowerShell 7, AI account or administrator permission is needed to install.
 
 ## Windows setup or one-line bootstrap

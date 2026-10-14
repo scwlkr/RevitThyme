@@ -15,7 +15,7 @@ if ($Action -eq 'prepare') {
     $folder = Join-Path $runs ([Guid]::NewGuid().ToString())
     $bundle = Join-Path $folder 'bundle'
     New-Item -ItemType Directory -Path $bundle -Force | Out-Null
-    foreach ($file in @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','RevitThyme.RevitIntegration.dll')) {
+    foreach ($file in @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','RevitThyme.Codex.dll','RevitThyme.RevitIntegration.dll')) {
         Copy-Item -LiteralPath (Join-Path $root "tests\RevitIntegration\bin\Release\net10.0-windows\$file") -Destination (Join-Path $bundle $file)
     }
     foreach ($entry in @(@('src\RevitThyme.Mcp','mcp'),@('tests\Mcp','tests'))) {

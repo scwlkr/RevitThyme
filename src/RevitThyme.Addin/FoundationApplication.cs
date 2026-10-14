@@ -10,6 +10,7 @@ using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Events;
 using RevitThyme.Core;
 using RevitThyme.UI;
+using RevitThyme.Codex;
 
 namespace RevitThyme.Addin;
 
@@ -26,6 +27,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private InspectWindow? window;
     public ViewRangeWindow? ViewRangeWindow { get; private set; }
     public RoomDimensionsWindow? RoomDimensionsWindow { get; private set; }
+    public AgentPanel? AgentPanel { get; private set; }
     private string? bindingPath;
     private string? fixturePath;
     private string? fixtureDocumentId;
@@ -67,12 +69,26 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
             var roomButton = (PushButton)tools.AddItem(new PushButtonData("RevitThyme.Native.RoomDimensions", "Room\nDimensions",
                 Assembly.GetExecutingAssembly().Location, typeof(RoomDimensionsCommand).FullName!));
             roomButton.ToolTip = "Preview and create width/depth dimensions for a rectangular room using native wall finish faces.";
+            AgentPanel = new(Operations, () => AgentConfiguration());
+            app.RegisterDockablePane(AgentPane.Id, "RevitThyme Agent", new AgentPane(AgentPanel));
+            var agentTools = app.CreateRibbonPanel("RevitThyme", "Agent");
+            var agentButton = (PushButton)agentTools.AddItem(new PushButtonData("RevitThyme.Agent", "Connect\nCodex",
+                Assembly.GetExecutingAssembly().Location, typeof(AgentCommand).FullName!));
+            agentButton.ToolTip = "Chat with Codex in Revit using this process's native MCP connection.";
             Instance = this; return Result.Succeeded;
         }
         catch (Exception error)
         {
             Stop(); TaskDialog.Show("RevitThyme", "Foundation startup failed: " + error.Message); return Result.Failed;
         }
+    }
+    private AgentOptions AgentConfiguration()
+    {
+        string bundle = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
+        string home = Environment.GetEnvironmentVariable("REVITTHYME_AGENT_HOME") ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitThyme", "agent");
+        if (!Path.IsPathFullyQualified(home)) throw new InvalidDataException("Agent home must be absolute.");
+        return new(AgentOptions.FindRuntime(bundle), Path.Combine(bundle, "mcp", "revitthyme-mcp.exe"), bindingPath!,
+            Path.Combine(home, "workspace"), Path.Combine(bundle, "skills"), Path.Combine(home, "skills"), TrustedCodeEnabled);
     }
     public InspectWindow Show(UIApplication app)
     {
@@ -139,7 +155,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private void Stop()
     {
         stopping = true; Instance = null; Operations.Stop();
-        window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
+        AgentPanel?.Shutdown(); window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
         // Bindings are non-secret historical identities; exited processes fail client verification.
         documents.Clear();
     }

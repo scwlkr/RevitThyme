@@ -22,6 +22,19 @@ if ($PreviousPackageDirectory) {
 }
 $registration = Join-Path $addins 'RevitThyme.Foundation.addin'
 Check 'registers the exact native assembly' (([xml](Get-Content $registration -Raw)).RevitAddIns.AddIn.Assembly -eq (Join-Path $first.installed 'RevitThyme.Addin.dll'))
+$packageManifest = Get-Content -LiteralPath (Join-Path $PackageDirectory 'manifest.json') -Raw | ConvertFrom-Json
+if ($packageManifest.version -eq '0.9.0-agent') {
+    $runtimeVersion = & (Join-Path $first.installed 'codex\codex.exe') --version
+    Check 'installed official Codex runtime launches at pinned version' ($LASTEXITCODE -eq 0 -and $runtimeVersion -eq 'codex-cli 0.162.1')
+    Check 'Agent client and ordinary bundled skills installed' ((Test-Path (Join-Path $first.installed 'RevitThyme.Codex.dll')) -and (Test-Path (Join-Path $first.installed 'skills\edit-revit\SKILL.md')))
+    $agentDll = Join-Path $first.installed 'RevitThyme.Codex.dll'; $agentBytes = [IO.File]::ReadAllBytes($agentDll)
+    try {
+        [IO.File]::WriteAllBytes($agentDll,[byte[]](1,2,3)); $refused = $false
+        try { & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated | Out-Null }
+        catch { $refused = $_.Exception.Message -like '*modified*' }
+        Check 'modified Agent client rejected with registration preserved' ($refused -and (Test-Path $registration))
+    } finally { [IO.File]::WriteAllBytes($agentDll,$agentBytes) }
+}
 if ($first.mcp) {
     $version = & $first.mcp --version
     $expectedVersion = (Get-Content -LiteralPath (Join-Path $PackageDirectory 'manifest.json') -Raw | ConvertFrom-Json).version

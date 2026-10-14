@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_draft:
-        description: Publish a draft GitHub release (dispatch from the v0.8.1 tag only)
+        description: Publish a draft GitHub release (dispatch from the v0.9.0 tag only)
         type: boolean
         default: false
 permissions:
@@ -23,7 +23,7 @@ jobs:
           if ((dotnet --version) -notmatch '^10\.0\.4\d\d$') { throw 'Install the pinned .NET 10.0.400 SDK feature band on this runner.' }
           if (-not (Test-Path -LiteralPath 'C:\Program Files\Autodesk\Revit 2027\RevitAPI.dll')) { throw 'The runner must supply licensed Revit 2027 API binaries.' }
           if (Get-Process Revit -ErrorAction SilentlyContinue) { throw 'Use an idle release runner with no Revit session.' }
-          if ($env:PUBLISH_DRAFT -eq 'true' -and ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne 'v0.8.1')) { throw 'Draft publication requires dispatch from the v0.8.1 source tag.' }
+          if ($env:PUBLISH_DRAFT -eq 'true' -and ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne 'v0.9.0')) { throw 'Draft publication requires dispatch from the v0.9.0 source tag.' }
           $output = Join-Path $env:GITHUB_WORKSPACE ('artifacts\installer\'+[Guid]::NewGuid().ToString('N'))
           "REVITTHYME_SETUP_TEST=$(Join-Path $output 'test')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "REVITTHYME_RELEASE=$(Join-Path $output 'release')" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
@@ -53,13 +53,13 @@ jobs:
         shell: pwsh
         run: |
           & .\installer\build-setup.ps1 -PackageDirectory $env:REVITTHYME_PACKAGE -OutputDirectory $env:REVITTHYME_SETUP_TEST -Isolated
-          & .\scripts\check-setup.ps1 -PackageDirectory $env:REVITTHYME_PACKAGE -SetupExecutable (Join-Path $env:REVITTHYME_SETUP_TEST 'RevitThyme-0.8.1-win-x64-test.exe')
+          & .\scripts\check-setup.ps1 -PackageDirectory $env:REVITTHYME_PACKAGE -SetupExecutable (Join-Path $env:REVITTHYME_SETUP_TEST 'RevitThyme-0.9.0-win-x64-test.exe')
       - name: Compile production release candidate
         shell: pwsh
         run: |
           & .\installer\build-setup.ps1 -PackageDirectory $env:REVITTHYME_PACKAGE -OutputDirectory $env:REVITTHYME_RELEASE
           $metadata = Get-Content -LiteralPath (Join-Path $env:REVITTHYME_RELEASE 'release.json') -Raw | ConvertFrom-Json
-          if ($metadata.isolated_build -or $metadata.version -ne '0.8.1' -or $metadata.source_revision -ne $env:GITHUB_SHA -or $metadata.source_dirty) { throw 'Production release metadata does not match this clean checkout.' }
+          if ($metadata.isolated_build -or $metadata.version -ne '0.9.0' -or $metadata.source_revision -ne $env:GITHUB_SHA -or $metadata.source_dirty) { throw 'Production release metadata does not match this clean checkout.' }
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: revitthyme-release-candidate
@@ -88,22 +88,22 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne 'v0.8.1') { throw 'Draft publication requires the v0.8.1 tag.' }
+          if ($env:GITHUB_REF_TYPE -ne 'tag' -or $env:GITHUB_REF_NAME -ne 'v0.9.0') { throw 'Draft publication requires the v0.9.0 tag.' }
           $download = Join-Path $env:RUNNER_TEMP ('revitthyme-draft-'+[Guid]::NewGuid().ToString('N'))
           gh run download $env:GITHUB_RUN_ID --repo $env:GITHUB_REPOSITORY --name revitthyme-release-candidate --dir $download
           if ($LASTEXITCODE) { throw 'Could not download the reviewed release candidate.' }
           $metadata = Get-Content -LiteralPath (Join-Path $download 'release.json') -Raw | ConvertFrom-Json
-          $expected = @('RevitThyme-0.8.1-win-x64.exe','RevitThyme-0.8.1-win-x64.exe.sha256','install-revitthyme.ps1','install-revitthyme.ps1.sha256','install.ps1','install.ps1.sha256','release.json')
+          $expected = @('RevitThyme-0.9.0-win-x64.exe','RevitThyme-0.9.0-win-x64.exe.sha256','install-revitthyme.ps1','install-revitthyme.ps1.sha256','install.ps1','install.ps1.sha256','release.json')
           $actual = @(Get-ChildItem -LiteralPath $download -File | Select-Object -ExpandProperty Name)
           if ((($actual | Sort-Object) -join '|') -ne (($expected | Sort-Object) -join '|')) { throw 'Release asset allowlist differs.' }
-          if ($metadata.isolated_build -or $metadata.source_dirty -or $metadata.version -ne '0.8.1' -or $metadata.source_revision -ne $env:GITHUB_SHA -or $metadata.package_version -ne '0.8.0-install') { throw 'Release metadata does not identify the tagged production build.' }
+          if ($metadata.isolated_build -or $metadata.source_dirty -or $metadata.version -ne '0.9.0' -or $metadata.source_revision -ne $env:GITHUB_SHA -or $metadata.package_version -ne '0.9.0-agent') { throw 'Release metadata does not identify the tagged production build.' }
           if (@($metadata.files.PSObject.Properties).Count -ne 3) { throw 'Expected checksums for setup and both bootstrappers.' }
-          foreach ($name in @('RevitThyme-0.8.1-win-x64.exe','install-revitthyme.ps1','install.ps1')) {
+          foreach ($name in @('RevitThyme-0.9.0-win-x64.exe','install-revitthyme.ps1','install.ps1')) {
             $hash = (Get-FileHash -LiteralPath (Join-Path $download $name) -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($hash -ne $metadata.files.$name -or (Get-Content -LiteralPath (Join-Path $download ($name+'.sha256')) -Raw).Trim() -ne ($hash+'  '+$name)) { throw "Release checksum mismatch: $name" }
           }
           $notes = Join-Path $env:RUNNER_TEMP ('revitthyme-release-notes-'+[Guid]::NewGuid().ToString('N')+'.md')
           "Windows x64 installer for Revit 2027. Includes native add-in, CLI and MCP. Source: $($metadata.source_revision). Installer checks use isolated directories; see the workflow review artifacts. Installer is unsigned." | Set-Content -LiteralPath $notes -Encoding utf8
           $assets = @($expected | ForEach-Object { Join-Path $download $_ })
-          gh release create v0.8.1 --repo $env:GITHUB_REPOSITORY --draft --verify-tag --target $env:GITHUB_SHA --title 'RevitThyme 0.8.1' --notes-file $notes @assets
+          gh release create v0.9.0 --repo $env:GITHUB_REPOSITORY --draft --verify-tag --target $env:GITHUB_SHA --title 'RevitThyme 0.9.0' --notes-file $notes @assets
           if ($LASTEXITCODE) { throw 'Draft release creation failed. Existing releases are never overwritten.' }

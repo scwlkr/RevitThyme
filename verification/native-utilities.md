@@ -21,11 +21,15 @@ Expanded successful run: `artifacts/utilities/live/af2aaf08-1622-422b-be2f-ebe53
 
 Reports: `plan.json`, `launch.json`, `ready.json`, `mcp-checks.txt`, `utilities-mcp-complete.json`, `native-result.json` and `cleanup.json`. The host was pinned to this process/session/document/fixture, with no working-model or legacy-bridge fallback.
 
+Final committed-source run: **b01aba9ac19dddb6dab5e1303e4e4c18c916bb5b** on `codex/wlk-246-native-utilities`, `artifacts/utilities/live/f3a411a5-b126-4319-96ee-52414ace9df4`. This repeated the entire suite with **40 direct native checks and 40 live MCP/CLI checks**, adding a real Unicode level-name case proving bounded display labels. Owned PID **14568**, start **639275937813947009**, session **8095129e-aea3-47fb-b074-24e998d64b1c**, protocol **3**. All **2,535 elements** and original ranges were restored; saved hash remained **6EABFE133E074A42DD43065F615A069069F7F2A19C36B5E9A41FC3BFB6317FD4**. Cleanup removed the owned process/registration and verified prior process/start and registration hashes. Full checks passed at the committed source with zero warnings/errors. A subsequent evidence-only commit records this result without changing product source.
+
 ## Packaging and preservation
 
 The local **0.6.0-utilities** package contains Addin/Core/UI, framework-dependent CLI/MCP, pinned SDK dependencies/notices and the utility guide. It excludes Autodesk DLLs, test loaders, models and legacy runtimes. **11 isolated installer/upgrade checks passed** at `artifacts/foundation/install-test/a0310a1c-929a-474c-9eb2-501fe6109c34`, including MCP startup, modified dependency/native bundle rejection, immutable reinstall, reversible unregister/recovery and upgrade preserving the prior MCP bundle/registration. Existing production registrations were untouched.
 
 The new ribbon shares an existing View Tools panel using distinct command IDs; installed legacy View Range remains intact. Test cleanup addresses only the owned PID/start and exact hash-verified qualification registration, verifies pre-existing process/start and registration hashes, and retains every fixture and failed run. Local source/package delivery only; no push, public publication or production installation was requested.
+
+Final package: `packages/RevitThyme-0.6.0-utilities-571327b11fc948e79e9d4363668bd8fe`, adjacent ZIP/SHA-256. Addin/Core/UI and CLI/MCP product binary hashes match the final committed-source native bundle. The ZIP checksum was read back and verified. **11 isolated installer/upgrade checks passed again** at `artifacts/foundation/install-test/345dbad7-3032-45f1-a544-b1703a2d3ef6`. Private delivery receipt: `artifacts/utilities/delivery.json`. The tracked checkout is clean; the pre-existing untracked logo is preserved.
 
 ## Repairs and limits
 

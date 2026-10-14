@@ -9,7 +9,7 @@ public static class Program
     public static async Task<int> Main(string[] args)
     {
         try { return await RunAsync(args, Console.Out, Console.Error); }
-        catch (Exception error) when (error is IOException or InvalidDataException or ArgumentException or JsonException or InvalidOperationException or FormatException or OverflowException or System.ComponentModel.Win32Exception)
+        catch (Exception error) when (error is IOException or InvalidDataException or ArgumentException or JsonException or InvalidOperationException or FormatException or OverflowException or System.ComponentModel.Win32Exception or HttpRequestException or OperationCanceledException or KeyNotFoundException)
         { Console.Error.WriteLine(error.Message); return 2; }
     }
     public static async Task<int> RunAsync(string[] args, TextWriter output, TextWriter error,
@@ -19,6 +19,10 @@ public static class Program
         {
             await output.WriteLineAsync("""
                 RevitThyme
+                revitthyme --version | version [--json]
+                revitthyme update check [--json] [--version VERSION]
+                revitthyme update download --destination ABSOLUTE_FOLDER [--version VERSION]
+                revitthyme update install [--version VERSION]
                 revitthyme sessions [--directory ABSOLUTE_PATH] [--json]
                 revitthyme inspect --session ABSOLUTE_FILE [--json]
                 revitthyme rename-view --session ABSOLUTE_FILE --capture ABSOLUTE_FILE --name NAME [--json]
@@ -33,7 +37,8 @@ public static class Program
                 Capture files contain document paths; keep them private. No model save or sync occurs.
                 """); return 0;
         }
-        if (args is ["--version"]) { await output.WriteLineAsync("0.7.0-dynamic"); return 0; }
+        if (args is ["--version"]) { await output.WriteLineAsync(ProductVersion.Build); return 0; }
+        if (args[0] is "version" or "update") return await UpdateCli.Run(args, output);
         if (args[0] is "run-query" or "run-modify" or "get-operation") return await DynamicCli.Run(args, output, error, clientFactory);
         if (args.Length >= 2 && args[0] is "view-range" or "room-dimensions") args = [args[0] + "-" + args[1], .. args[2..]];
         var options = Parse(args[1..]);

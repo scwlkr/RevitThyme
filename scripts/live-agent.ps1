@@ -2,7 +2,8 @@ param(
     [Parameter(Mandatory)][ValidateSet('prepare','start','check','cleanup')][string]$Action,
     [Parameter(Position=1)][string]$RunFolder,
     [switch]$Abort,
-    [switch]$ReuseCodexSignIn
+    [switch]$ReuseCodexSignIn,
+    [switch]$UpdatesOnly
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -20,7 +21,7 @@ if ($Action -eq 'prepare') {
     foreach ($file in @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','RevitThyme.Codex.dll','RevitThyme.RevitIntegration.dll')) {
         Copy-Item -LiteralPath (Join-Path $root "tests\RevitIntegration\bin\Release\net10.0-windows\$file") -Destination (Join-Path $bundle $file)
     }
-    foreach ($file in @('Microsoft.CodeAnalysis.dll','Microsoft.CodeAnalysis.CSharp.dll','RevitThyme.Addin.deps.json')) {
+    foreach ($file in @('Microsoft.CodeAnalysis.dll','Microsoft.CodeAnalysis.CSharp.dll','RevitThyme.Addin.deps.json','update.ps1')) {
         Copy-Item -LiteralPath (Join-Path $root "src\RevitThyme.Addin\bin\Release\net10.0-windows\$file") -Destination (Join-Path $bundle $file)
     }
     dotnet publish (Join-Path $root 'src\RevitThyme.Mcp') -c Release --no-self-contained -o (Join-Path $bundle 'mcp') --nologo
@@ -29,16 +30,17 @@ if ($Action -eq 'prepare') {
     & (Join-Path $root 'installer\codex-runtime.ps1') -Destination (Join-Path $bundle 'codex')
     New-Item -ItemType Directory -Path (Join-Path $folder 'sessions') -Force | Out-Null
     $escaped = [Security.SecurityElement]::Escape($bundle)
+    $qualification = if ($UpdatesOnly) { 'UpdateQualificationApplication' } else { 'AgentQualificationApplication' }
     $manifest = @"
 <?xml version="1.0" encoding="utf-8"?>
 <RevitAddIns>
 <AddIn Type="Application"><Name>RevitThyme</Name><Assembly>$escaped\RevitThyme.Addin.dll</Assembly><AddInId>B09CCF69-B916-40B7-8A57-5923E45915D6</AddInId><FullClassName>RevitThyme.Addin.FoundationApplication</FullClassName><VendorId>WLKR</VendorId><VendorDescription>RevitThyme</VendorDescription></AddIn>
-<AddIn Type="Application"><Name>RevitThyme Agent Qualification</Name><Assembly>$escaped\RevitThyme.RevitIntegration.dll</Assembly><AddInId>50C6065C-FE18-448E-A7B4-D8ED3C6FE2DD</AddInId><FullClassName>RevitThyme.RevitIntegration.AgentQualificationApplication</FullClassName><VendorId>WLKR</VendorId><VendorDescription>Disposable qualification</VendorDescription></AddIn>
+<AddIn Type="Application"><Name>RevitThyme Qualification</Name><Assembly>$escaped\RevitThyme.RevitIntegration.dll</Assembly><AddInId>50C6065C-FE18-448E-A7B4-D8ED3C6FE2DD</AddInId><FullClassName>RevitThyme.RevitIntegration.$qualification</FullClassName><VendorId>WLKR</VendorId><VendorDescription>Disposable qualification</VendorDescription></AddIn>
 </RevitAddIns>
 "@
     [IO.File]::WriteAllText((Join-Path $folder 'qualification.addin'), $manifest)
     $hashes = @{}; Get-ChildItem -LiteralPath $bundle -Recurse -File | ForEach-Object { $hashes[[IO.Path]::GetRelativePath($bundle,$_.FullName)] = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant() }
-    @{folder=$folder;source_revision=(git -C $root rev-parse HEAD);hashes=$hashes;manifest_hash=(Get-FileHash (Join-Path $folder 'qualification.addin')).Hash;revit_build=(Get-Item 'C:\Program Files\Autodesk\Revit 2027\Revit.exe').VersionInfo.FileVersion} |
+    @{folder=$folder;updates_only=[bool]$UpdatesOnly;source_revision=(git -C $root rev-parse HEAD);hashes=$hashes;manifest_hash=(Get-FileHash (Join-Path $folder 'qualification.addin')).Hash;revit_build=(Get-Item 'C:\Program Files\Autodesk\Revit 2027\Revit.exe').VersionInfo.FileVersion} |
         ConvertTo-Json -Depth 4 | Set-Content (Join-Path $folder 'plan.json') -Encoding utf8
     Write-Output $folder; return
 }
@@ -74,6 +76,7 @@ if ($Action -eq 'start') {
         Copy-Item -LiteralPath $sourceManifest -Destination $registration
         if ((Get-FileHash (Assert-NativeHostPath $registration)).Hash -ne $plan.manifest_hash) { throw 'Registration readback failed.' }
         $environment = @{REVITTHYME_AGENT_TEST_RUN=$folder;REVITTHYME_AGENT_HOME=(Join-Path $folder 'agent');REVITTHYME_FOUNDATION_FIXTURE=(Join-Path $folder 'Foundation-Test.rvt');REVITTHYME_FOUNDATION_SESSIONS=(Join-Path $folder 'sessions')}
+        if ($plan.updates_only) { $environment.Remove('REVITTHYME_AGENT_TEST_RUN'); $environment['REVITTHYME_UPDATE_TEST_RUN']=$folder }
         $process = Start-Process -FilePath $exe -ArgumentList '/nosplash' -Environment $environment -PassThru -WindowStyle Hidden
         @{pid=$process.Id;start=$process.StartTime.ToUniversalTime().Ticks.ToString();existing_processes=$before;existing_registrations=$registrations;registration=$registration;production=$production;parked=$parked} |
             ConvertTo-Json -Depth 5 | Set-Content (Join-Path $folder 'launch.json') -Encoding utf8

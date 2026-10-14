@@ -28,6 +28,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     public ViewRangeWindow? ViewRangeWindow { get; private set; }
     public RoomDimensionsWindow? RoomDimensionsWindow { get; private set; }
     public AgentPanel? AgentPanel { get; private set; }
+    private UpdateCoordinator? updates;
     private string? bindingPath;
     private string? fixturePath;
     private string? fixtureDocumentId;
@@ -75,6 +76,10 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
             var agentButton = (PushButton)agentTools.AddItem(new PushButtonData("RevitThyme.Agent", "Connect\nCodex",
                 Assembly.GetExecutingAssembly().Location, typeof(AgentCommand).FullName!));
             agentButton.ToolTip = "Chat with Codex in Revit using this process's native MCP connection.";
+            updates = new(fixturePath);
+            var updateButton = (PushButton)panel.AddItem(new PushButtonData("RevitThyme.Updates", "Check for\nUpdates",
+                Assembly.GetExecutingAssembly().Location, typeof(UpdateCommand).FullName!));
+            updateButton.ToolTip = "Check the latest stable release and download a verified installer. Install after closing Revit.";
             Instance = this; return Result.Succeeded;
         }
         catch (Exception error)
@@ -114,6 +119,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         if (!documents.TryGetValue(document, out string? id)) documents.Add(document, id = Guid.NewGuid().ToString());
         return id;
     }
+    public UpdateWindow ShowUpdates(UIApplication app, UpdateResult? result = null) => updates!.Show(app, result);
     public void AssertDocument(Document document)
     {
         if (fixturePath is null) return;
@@ -132,7 +138,8 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         documents.Remove(e.Document); Revision++;
     }
     private void Activated(object? sender, ViewActivatedEventArgs e) => Revision++;
-    private void Idle(object? sender, IdlingEventArgs e) { if (Operations.HasPending) Schedule(); }
+    private void Idle(object? sender, IdlingEventArgs e)
+    { if (Operations.HasPending) Schedule(); if (!stopping && sender is UIApplication app) updates?.Idle(app); }
     private void Schedule()
     {
         if (stopping) return;
@@ -156,6 +163,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     {
         stopping = true; Instance = null; Operations.Stop();
         AgentPanel?.Shutdown(); window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
+        updates?.Dispose();
         // Bindings are non-secret historical identities; exited processes fail client verification.
         documents.Clear();
     }

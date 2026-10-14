@@ -1,6 +1,6 @@
 # Install RevitThyme
 
-The source now builds a local **0.9.0-agent** package with the dockable Agent client, ordinary skills and pinned official Codex CLI 0.162.1. The public **0.8.1** release below predates Built-in Agent. Build the new package and setup with the project commands to review it locally; no release publication is implied. See [Agent use and private state](AGENT.md).
+Version **0.9.0** includes the dockable Agent client, ordinary skills, pinned official Codex CLI 0.162.1 and a release checker. The source package version is **0.9.0-agent**. See [Agent use and private state](AGENT.md) and [manual update commands](UPDATES.md).
 
 The Windows x64 installer includes the native add-in, CLI and MCP server. It supports **full Revit 2027**; other years and Revit LT are not supported by this build. Revit 2027 supplies the required [.NET 10 runtime](https://help.autodesk.com/view/RVT/2027/ENU/?guid=GUID-8D7A4715-EAF8-4BD1-BE78-061F900D0BCE). Setup verifies the x64 Desktop and Core runtimes; no SDK, PowerShell 7, AI account or administrator permission is needed to install.
 
@@ -12,19 +12,19 @@ Close Revit normally, preserving unsaved work. Run this in PowerShell to install
 irm https://revitthyme.wlkrlabs.com/install | iex
 ```
 
-To keep the installation pinned to **v0.8.1**, including after newer releases appear:
+To keep the installation pinned to **v0.9.0**, including after newer releases appear:
 
 ```powershell
-irm https://revitthyme.wlkrlabs.com/install-0.8.1 | iex
+irm https://github.com/scwlkr/RevitThyme/releases/download/v0.9.0/install.ps1 | iex
 ```
 
-Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download `RevitThyme-0.8.1-win-x64.exe` and its `.sha256` from the [0.8.1 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.1), verify the SHA-256, and run the executable.
+Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download `RevitThyme-0.9.0-win-x64.exe` and its `.sha256` from the [0.9.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.9.0), verify the SHA-256, and run the executable.
 
-The **0.8.1 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.8.1 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.8.1) contains the installer, bootstrapper, adjacent checksums and source/package metadata. It is separate from the older legacy release.
+The **0.9.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.9.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.9.0) contains the installer, bootstrapper, adjacent checksums and source/package metadata. It is separate from the older legacy release.
 
-`/install` selects the latest stable release; `/install-0.8.1` embeds the 0.8.1 default. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The release's `install.ps1` asset also defaults to 0.8.1; `install-revitthyme.ps1` retains its latest-release default.
+`/install` selects the latest stable release; the older `/install-0.8.1` remains pinned to 0.8.1. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The 0.9.0 release's `install.ps1` asset defaults to 0.9.0; `install-revitthyme.ps1` retains its latest-release default.
 
-For a saved bootstrapper, `-Version 0.8.1` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
+For a saved bootstrapper, `-Version 0.9.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
 
 ## Installed files and recovery
 
@@ -32,7 +32,7 @@ Setup verifies the package's exact file allowlist and hashes, then copies an imm
 
 The installation receipt at `%LOCALAPPDATA%\RevitThyme\setup\receipt.json` contains absolute `cli`, `mcp`, `installed` and `registration` paths. The CLI and MCP are installed together with the add-in and their dependencies. Use the receipt paths in scripts or external [MCP configuration](MCP.md); setup does not change PATH. Bridge protocol 4 requires compatible clients and add-in. Trusted C# remains disabled unless explicitly enabled for the Revit process; see [execution](DYNAMIC-EXECUTION.md).
 
-Open Revit normally and load the owned add-in when prompted. Built-in tools need no AI account. See [native tools](NATIVE-UTILITIES.md) for usage and limits; built-in Agent and Exploration are separate, deferred stages.
+Open Revit normally and load the owned add-in when prompted. Built-in tools need no AI account. See [native tools](NATIVE-UTILITIES.md) for usage and limits. The optional [Agent](AGENT.md) uses your existing Codex account. Exploration remains deferred.
 
 Uninstall from Windows **Installed apps → RevitThyme**, with Revit closed. The uninstaller verifies the receipt, registration ownership and installed bundle, saves a recoverable registration, and removes only that registration and setup's own files. Immutable bundles, sessions, models, backups and other add-ins remain. A changed or foreign registration blocks uninstall and preserves the recovery files. Restore a registration backup only after verifying the referenced bundle.
 
@@ -56,4 +56,4 @@ Set `$package` to the fresh package folder and `$testSetup` to the isolated setu
 
 Isolated setup builds have a `-test.exe` suffix and require a UUID test root with simulated Revit discovery. They create no Windows uninstall registry entry and cannot be published by the release workflow. Tests exercise actual setup/install/uninstall processes through Windows PowerShell 5.1 while leaving real Revit registrations untouched. These are installer tests, not new actual-Revit tool qualification or another-computer evidence.
 
-The manual [release workflow](../.github/workflows/release.yml) requires a deliberately provisioned `revitthyme-release` Windows x64 runner with licensed local Revit API binaries. It checks and uploads review artifacts. Only an explicit `publish_draft` dispatch from the matching clean `v0.8.1` tag creates a **draft**, after verifying asset hashes and source identity. Public publication, signing and another-machine qualification remain separate review actions. No package manager or updater is installed.
+The manual [release workflow](../.github/workflows/release.yml) requires a deliberately provisioned `revitthyme-release` Windows x64 runner with licensed local Revit API binaries. It checks and uploads review artifacts. Only an explicit `publish_draft` dispatch from the matching clean `v0.9.0` tag creates a **draft**, after verifying asset hashes and source identity. Public publication requires owner review. Signing and another-machine qualification remain separate work. The [release checker](UPDATES.md) uses the existing installer; no background service or separate package manager is installed.

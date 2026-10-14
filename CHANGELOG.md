@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0 — Built-in Agent and update checks — 2026-10-14
+
+- Add the dockable Codex Agent, ChatGPT sign-in, streamed conversations, native approvals, interruption, saved session resume and ordinary skills. Bundle the pinned official Codex CLI 0.162.1 with the add-in, CLI and MCP. See [actual Revit Agent qualification](verification/agent.md).
+- Check stable releases quietly once per day after Revit becomes idle. Add a manual ribbon check and verified installer download. Install only after Revit is closed; preserve Agent state, registrations and earlier bundles.
+- Report the actual version and source commit through CLI `--version` and `version --json`. Add `update check`, `update download` and `update install`; development builds do not automatically downgrade. See [commands](docs/UPDATES.md) and [verification](verification/updates.md).
+- Keep Exploration deferred. The Windows installer supports full Revit 2027 and remains unsigned.
+
 ## 0.8.1 — Windows PowerShell bootstrap fix — 2026-10-14
 
 - Handle Windows PowerShell 5.1's nonterminating maximum-redirect error while retaining and checking the HTTPS redirect response. Keep strict host, checksum and asset-digest verification.

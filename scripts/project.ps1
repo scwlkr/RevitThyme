@@ -11,6 +11,7 @@ try {
             Write-Output 'project.cmd doctor | build | test | check | package | install | uninstall'
             Write-Output 'project.cmd cli <arguments> | live-prepare | live-start <run> | live-check <run> | live-cleanup <run>'
             Write-Output 'project.cmd check-installer -PackageDirectory ABSOLUTE_PACKAGE'
+            Write-Output 'project.cmd setup -PackageDirectory ABSOLUTE_PACKAGE | check-bootstrap | check-setup -PackageDirectory ABSOLUTE_PACKAGE -SetupExecutable ISOLATED_EXE'
             Write-Output 'project.cmd mcp <server-options> | test-mcp | mcp-prepare | mcp-start <run> | mcp-check <run> | mcp-codex <run> | mcp-cleanup <run>'
             Write-Output 'project.cmd utilities-prepare | utilities-start <run> | utilities-check <run> | utilities-cleanup <run>'
             Write-Output 'project.cmd dynamic-prepare | dynamic-start <run> | dynamic-check <run> | dynamic-cleanup <run>'
@@ -47,6 +48,9 @@ try {
         'dynamic-cleanup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action cleanup @Rest; exit $LASTEXITCODE }
         'check' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-foundation.ps1') @Rest; exit $LASTEXITCODE }
         'check-installer' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-installer.ps1') @Rest; exit $LASTEXITCODE }
+        'check-bootstrap' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-bootstrap.ps1') @Rest; exit $LASTEXITCODE }
+        'check-setup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-setup.ps1') @Rest; exit $LASTEXITCODE }
+        'setup' { pwsh -NoProfile -File (Join-Path $root 'installer\build-setup.ps1') @Rest; exit $LASTEXITCODE }
         'package' { pwsh -NoProfile -File (Join-Path $root 'installer\package.ps1') @Rest; exit $LASTEXITCODE }
         'install' { pwsh -NoProfile -File (Join-Path $root 'installer\install.ps1') @Rest; exit $LASTEXITCODE }
         'uninstall' { pwsh -NoProfile -File (Join-Path $root 'installer\uninstall.ps1') @Rest; exit $LASTEXITCODE }

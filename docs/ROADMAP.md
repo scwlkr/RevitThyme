@@ -1,6 +1,6 @@
 # Development order
 
-This roadmap follows the development stage table in [the full plan](../2026-10-14_NEW_PLAN.md). The current request authorizes Dynamic execution only, building on completed Foundation, MCP and Native utilities.
+This roadmap follows the development stage table in [the full plan](../2026-10-14_NEW_PLAN.md). The current request authorizes only the Install RevitThyme experience on lines 81–85, packaging the existing toolkit through Dynamic execution.
 
 | Stage | Scope | Acceptance |
 | --- | --- | --- |
@@ -13,6 +13,6 @@ This roadmap follows the development stage table in [the full plan](../2026-10-1
 
 Foundation uses Inspect View and Rename View to prove the shared stack. MCP adds 12 generic tools, native inspection, selection and atomic parameter editing. Native utilities adds shared View Range and rectangular Room Dimensions with WPF ribbon buttons, CLI and four MCP tools. Dynamic execution adds Roslyn query/modify, explicit trust opt-in, transactions, disposable model qualification and independent native Cabin Eval scoring. See [execution guide](DYNAMIC-EXECUTION.md) and [verification](../verification/dynamic-execution.md). Built-in Agent and Exploration remain deferred. Earlier implementations remain migration references; their historical evidence does not certify this C# product.
 
-The production `.exe` installer, verified GitHub bootstrap, signing, supported per-release builds and another-machine qualification remain distribution work. Foundation includes a local allowlisted package and reversible per-user registration script so contributors can compile and qualify the add-in now. It does not build a package manager or updater.
+The [install stage](INSTALLATION.md) adds one per-user `.exe`, a verified GitHub bootstrap, supported-version/runtime detection and recoverable installation of the existing add-in, CLI and MCP. The 0.8.0 release supports full Revit 2027 only and is unsigned. Signing, additional Revit builds and another-machine qualification remain separate work. No package manager or updater is added.
 
 See [Foundation acceptance](FOUNDATION.md) for current evidence and limitations.

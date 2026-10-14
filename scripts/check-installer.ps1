@@ -4,8 +4,13 @@ $root = Split-Path $PSScriptRoot -Parent
 $run = Join-Path (Join-Path $root 'artifacts\foundation\install-test') ([Guid]::NewGuid().ToString())
 $installed = Join-Path $run 'installed'; $addins = Join-Path $run 'addins'
 New-Item -ItemType Directory -Path $installed,$addins -Force | Out-Null
+$revit = Join-Path $run 'revit\2027'
+New-Item -ItemType Directory -Path $revit -Force | Out-Null
+foreach ($file in @('Revit.exe','RevitAPI.dll')) { [IO.File]::WriteAllText((Join-Path $revit $file),'isolated discovery fixture') }
 $checks = [Collections.Generic.List[object]]::new()
 function Check([string]$Name,[bool]$Passed) { $checks.Add(@{name=$Name;passed=$Passed}); if (-not $Passed) { throw "Install test failed: $Name" } }
+$preflight = & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated -CheckOnly | ConvertFrom-Json
+Check 'preflight detects only supported Revit without installing' ($preflight.detected_revit[0].year -eq '2027' -and -not (Test-Path $preflight.installed) -and -not (Test-Path $preflight.registration))
 if ($PreviousPackageDirectory) {
     $previous = & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PreviousPackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated | ConvertFrom-Json
     $oldRegistration = (Get-FileHash (Join-Path $addins 'RevitThyme.Foundation.addin')).Hash
@@ -35,6 +40,26 @@ $before = (Get-FileHash $registration).Hash
 $second = & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated | ConvertFrom-Json
 Check 'idempotent immutable install' ($first.installed -eq $second.installed -and (Get-FileHash $registration).Hash -eq $before)
 Check 'owned registration backup' (Test-Path -LiteralPath $second.previous_registration_backup)
+$receipt = Join-Path $run 'receipt.json'
+& (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated -ReceiptPath $receipt | Out-Null
+Check 'receipt and registration identify same bundle' ((Get-Content -LiteralPath $receipt -Raw | ConvertFrom-Json).installed -eq $first.installed)
+$receiptBytes = [IO.File]::ReadAllText($receipt)
+(Get-Item -LiteralPath $receipt).IsReadOnly = $true
+try {
+    $rejected = $false
+    try { & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated -ReceiptPath $receipt | Out-Null }
+    catch { $rejected = $_.Exception.Message -like '*receipt is read-only*' }
+    Check 'read-only receipt preserves registration and receipt' ($rejected -and (Get-FileHash $registration).Hash -eq $before -and [IO.File]::ReadAllText($receipt) -eq $receiptBytes)
+} finally { (Get-Item -LiteralPath $receipt).IsReadOnly = $false }
+$rejected = $false
+try { & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated -ReceiptPath (Join-Path $run 'absent\receipt.json') | Out-Null }
+catch { $rejected = $true }
+Check 'receipt persistence failure restores prior registration' ($rejected -and (Get-FileHash $registration).Hash -eq $before -and [IO.File]::ReadAllText($receipt) -eq $receiptBytes)
+$wrongRoot = Join-Path $run 'different'
+$rejected = $false
+try { & (Join-Path $root 'installer\uninstall.ps1') -InstallDirectory $wrongRoot -AddinsDirectory $addins -CheckOnly | Out-Null }
+catch { $rejected = $true }
+Check 'different installation cannot unregister current bundle' ($rejected -and (Test-Path $registration))
 $uninstall = & (Join-Path $root 'installer\uninstall.ps1') -InstallDirectory $installed -AddinsDirectory $addins -Isolated | ConvertFrom-Json
 Check 'unregister only owned file' (-not (Test-Path $registration) -and (Test-Path $uninstall.preserved_bundle))
 Check 'recoverable registration' ((Get-FileHash $uninstall.recoverable_registration).Hash -eq $before)
@@ -53,5 +78,11 @@ $rejected = $false
 try { & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated | Out-Null }
 catch { $rejected = $_.Exception.Message -like '*not owned*' }
 Check 'unknown registration preserved' ($rejected -and [IO.File]::ReadAllText($registration).Contains('unknown'))
+Remove-Item -LiteralPath $registration
+Remove-Item -LiteralPath (Join-Path $revit 'Revit.exe')
+$rejected = $false
+try { & (Join-Path $root 'installer\install.ps1') -PackageDirectory $PackageDirectory -InstallDirectory $installed -AddinsDirectory $addins -Isolated | Out-Null }
+catch { $rejected = $_.Exception.Message -like '*No supported Revit*' }
+Check 'unsupported or absent Revit cannot register' ($rejected -and -not (Test-Path $registration))
 $checks | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'result.json') -Encoding utf8
 Write-Output "Passed $($checks.Count) installer checks in $run; native registrations untouched."

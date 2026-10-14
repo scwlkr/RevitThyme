@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace RevitThyme.Core;
 
-public enum OperationKind { Inspect, RenameView }
+public enum OperationKind { Inspect, RenameView, ListViews, QueryElements, InspectElements, GetSelection, SetSelection, SetParameters, GetOperation }
 public enum Outcome { Inspected, Applied, Unchanged, Rejected, RolledBack, Unconfirmed }
 public sealed record Target(int ProcessId, string ProcessStart, string SessionId,
     string DocumentId, string ViewId, long Revision);
@@ -11,9 +11,17 @@ public sealed record Snapshot(Target Target, string RevitVersion, string Documen
     string DocumentPath, bool IsWorkshared, bool IsModified, string ViewName,
     string ViewType, long ViewElementId, bool CanModify, string? WriteBlock);
 public sealed record OperationRequest(Guid Id, OperationKind Operation,
-    Target? Target = null, string? ExpectedName = null, string? Name = null);
+    Target? Target = null, string? ExpectedName = null, string? Name = null,
+    ElementQuery? Query = null, string[]? ElementIds = null, int ParameterOffset = 0,
+    ParameterEdit[]? Edits = null, Guid? OperationId = null)
+{
+    public bool IsWrite => Operation is OperationKind.RenameView or OperationKind.SetParameters or OperationKind.SetSelection;
+    public bool EquivalentTo(OperationRequest other) => JsonSerializer.Serialize(this, Protocol.Json) == JsonSerializer.Serialize(other, Protocol.Json);
+}
 public sealed record OperationResult(Guid Id, Outcome Outcome, string Code, string Message,
-    Snapshot? Snapshot = null, string? PreviousName = null, long[]? ChangedIds = null)
+    Snapshot? Snapshot = null, string? PreviousName = null, long[]? ChangedIds = null,
+    ElementPage? Elements = null, ElementDetail[]? Details = null, string[]? Selection = null,
+    ParameterEdit[]? ParameterChanges = null)
 {
     public bool Succeeded => Outcome is Outcome.Inspected or Outcome.Applied or Outcome.Unchanged;
     public static OperationResult Reject(OperationRequest request, string code, string message) =>
@@ -25,7 +33,7 @@ public interface IOperationClient
 }
 public static class Protocol
 {
-    public const int Version = 1;
+    public const int Version = 2;
     public const int MaxBytes = 65536;
     public static readonly JsonSerializerOptions Json = CreateOptions();
     private static JsonSerializerOptions CreateOptions()

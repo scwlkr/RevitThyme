@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — C# MCP Development — 2026-10-14
+
+- Add official C# SDK stdio MCP with 12 generic tools and external Codex support, sharing the Foundation operation layer and native pipe. Add paged native inspection, selection, atomic typed parameter edits, retained outcomes, value-based replay, cancellation and protocol-2 guards.
+- Package the add-in, CLI and MCP together with pinned dependencies and license notices; preserve Foundation upgrade/rollback and existing installations.
+- Pass 50 Foundation and 33 MCP offline checks, 58 live MCP checks, 50 independent native checks, three external Codex rounds (78 calls, zero failures) and 11 isolated installer/upgrade checks. See [MCP evidence](verification/mcp.md). All subsequent stages remain deferred.
+
 ## Unreleased — C# Foundation — 2026-10-14
 
 - Adopt the full new plan and complete only Foundation: shared C# operations, native Revit add-in, WPF Inspect View and a basic C# CLI. Rename View uses captured identity, verified readback, rollback and one Revit Undo item.

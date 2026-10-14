@@ -5,7 +5,9 @@
       "src\\RevitThyme.Core\\RevitThyme.Core.csproj",
       "src\\RevitThyme.Cli\\RevitThyme.Cli.csproj",
       "src\\RevitThyme.UI\\RevitThyme.UI.csproj",
-      "tests\\Unit\\RevitThyme.Unit.csproj"
+      "src\\RevitThyme.Mcp\\RevitThyme.Mcp.csproj",
+      "tests\\Unit\\RevitThyme.Unit.csproj",
+      "tests\\Mcp\\RevitThyme.McpTests.csproj"
     ]
   }
 }

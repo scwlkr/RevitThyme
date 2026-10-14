@@ -1,4 +1,4 @@
-# Install the C# Foundation
+# Install RevitThyme Foundation and MCP
 
 This is a local development package for Revit 2027 on Windows, requiring .NET 10. It has no AI dependency. A production signed `.exe` installer and GitHub bootstrap remain distribution work.
 
@@ -9,7 +9,7 @@ From a source checkout with .NET SDK 10.0.400 and licensed Revit 2027 installed:
 .\project.cmd package
 ```
 
-The package command prints a fresh folder, ZIP and adjacent SHA-256 file under `packages`. It includes native Addin/Core/UI assemblies, the framework-dependent CLI and installation scripts. Autodesk assemblies, test loaders and models are excluded. If you received the ZIP, verify its SHA-256 against the separately trusted checksum and extract it first.
+The package command prints a fresh folder, ZIP and adjacent SHA-256 file under `packages`. It includes native Addin/Core/UI assemblies, framework-dependent CLI and official-SDK MCP server, allowlisted dependencies, third-party notices and installation scripts. Autodesk assemblies, test loaders and models are excluded. If you received the ZIP, verify its SHA-256 against the separately trusted checksum and extract it first.
 
 Close Revit normally, preserving your unsaved work. In the extracted package folder:
 
@@ -17,7 +17,7 @@ Close Revit normally, preserving your unsaved work. In the extracted package fol
 & .\install.ps1
 ```
 
-The installer detects local Revit 2027, verifies the exact file allowlist and hashes, copies an immutable bundle under your physical `AppData\Local\RevitThyme\foundation` folder, and registers `RevitThyme.Foundation.addin` under the native per-user Revit 2027 Addins folder. It prints the absolute CLI path. It does not change PATH or other add-ins. Reinstallation retains earlier bundles and backs up the previous owned registration; unknown or modified existing packages are refused. Native path probes reject MSIX-redirection mistakes.
+The installer detects local Revit 2027, verifies the exact file allowlist and hashes, copies an immutable bundle under your physical `AppData\Local\RevitThyme\foundation` folder, and registers `RevitThyme.Foundation.addin` under the native per-user Revit 2027 Addins folder. The registration/storage names remain stable for reversible Foundation upgrades. It prints absolute CLI and MCP paths. It does not change PATH, Codex configuration or other add-ins. Reinstallation retains earlier bundles and backs up the previous owned registration; unknown or modified packages are refused. Native path probes reject MSIX-redirection mistakes.
 
 Open Revit normally, load the owned add-in when prompted, then choose **RevitThyme → Foundation → Inspect View**. Open a project, select Refresh, edit the view name, and select Apply. Revit Undo reverses a successful rename. A stale capture is rejected; refresh before another edit. The tool never saves or syncs the project.
 
@@ -30,5 +30,7 @@ For scripts, use the printed `revitthyme.exe` path:
 ```
 
 Set `$cli` to that executable, `$session` to the absolute session file shown by `sessions`, and `$capture` to a private absolute JSON file. Choose the intended process explicitly. Each capture records its document, view, revision and previous value. After renaming, inspect again before another edit. Exit codes: `0` successful/unchanged, `1` rejected/rolled back/unconfirmed operation, `2` invalid command or connection. An unconfirmed edit needs native inspection before another edit.
+
+Connect external Codex using the printed MCP executable and [MCP setup](MCP.md). The add-in, CLI and MCP now share protocol version 2; old Foundation bindings cannot connect. Upgrade them together. Native utilities and built-in Agent remain deferred.
 
 To unregister, close Revit normally and run the installed or packaged `uninstall.ps1`. It backs up the exact verified owned registration and removes that one file. Bundles, sessions, fixtures and other add-ins remain recoverable. Restore the saved registration only after verifying its referenced bundle.

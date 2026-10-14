@@ -29,6 +29,11 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            if (request.Query is not null || request.ElementIds is not null || request.Edits is not null || request.OperationId is not null || request.ParameterOffset != 0)
+            {
+                if (request.Operation is OperationKind.Inspect or OperationKind.RenameView)
+                    return OperationResult.Reject(request, "invalid_request", "Unexpected arguments for this operation.");
+            }
             var before = model.Capture();
             return request.Operation switch
             {
@@ -36,7 +41,7 @@ public sealed class OperationExecutor
                     new(request.Id, Outcome.Inspected, "inspected", "Active document and view inspected.", before),
                 OperationKind.Inspect => OperationResult.Reject(request, "invalid_request", "Inspection takes no edit arguments."),
                 OperationKind.RenameView => Rename(model, request, before),
-                _ => OperationResult.Reject(request, "unknown_operation", "Operation is not part of Foundation.")
+                _ => GenericExecutor.Execute(model, request, before)
             };
         }
         catch (OperationException error) { return OperationResult.Reject(request, error.Code, error.Message); }

@@ -18,7 +18,7 @@ public static class Program
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
             await output.WriteLineAsync("""
-                RevitThyme Foundation
+                RevitThyme
                 revitthyme sessions [--directory ABSOLUTE_PATH] [--json]
                 revitthyme inspect --session ABSOLUTE_FILE [--json]
                 revitthyme rename-view --session ABSOLUTE_FILE --capture ABSOLUTE_FILE --name NAME [--json]
@@ -27,7 +27,7 @@ public static class Program
                 Capture files contain document paths; keep them private. No model save or sync occurs.
                 """); return 0;
         }
-        if (args is ["--version"]) { await output.WriteLineAsync("0.4.0-foundation"); return 0; }
+        if (args is ["--version"]) { await output.WriteLineAsync("0.5.0-mcp"); return 0; }
         var options = Parse(args[1..]);
         string command = args[0];
         string[] allowed = command switch

@@ -1,4 +1,4 @@
-name: Foundation CLI artifact
+name: C# CLI and MCP artifacts
 on:
   workflow_dispatch:
 permissions:
@@ -19,7 +19,11 @@ jobs:
         run: .\project.cmd check -Portable
       - name: Publish framework-dependent CLI artifact
         run: dotnet publish src/RevitThyme.Cli -c Release --no-self-contained -o artifacts/cli
+      - name: Publish framework-dependent MCP artifact
+        run: dotnet publish src/RevitThyme.Mcp -c Release --no-self-contained -o artifacts/mcp-release
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: foundation-cli
-          path: artifacts/cli/
+          name: csharp-cli-mcp
+          path: |
+            artifacts/cli/
+            artifacts/mcp-release/

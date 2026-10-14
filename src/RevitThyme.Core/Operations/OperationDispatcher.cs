@@ -3,7 +3,7 @@ namespace RevitThyme.Core;
 // Queue contains data only. The host drains it from ExternalEvent.Execute on Revit's thread.
 public sealed class OperationDispatcher : IOperationClient
 {
-    private sealed record Pending(OperationRequest Request, TaskCompletionSource<OperationResult> Completion);
+    private sealed record Pending(OperationRequest Request, TaskCompletionSource<OperationResult> Completion, CancellationToken Cancellation);
     private readonly object gate = new();
     private readonly Queue<Pending> queue = new();
     private readonly Dictionary<Guid, Pending> history = [];
@@ -17,15 +17,26 @@ public sealed class OperationDispatcher : IOperationClient
         lock (gate)
         {
             if (stopped) return Task.FromResult(OperationResult.Reject(request, "host_stopped", "RevitThyme is stopped."));
+            if (request.Id == Guid.Empty) return Task.FromResult(OperationResult.Reject(request, "invalid_id", "A non-empty request ID is required."));
+            if (request.Operation == OperationKind.GetOperation)
+            {
+                if (request.OperationId is not { } id || request.Target is not null || request.Name is not null || request.ExpectedName is not null
+                    || request.Query is not null || request.ElementIds is not null || request.Edits is not null || request.ParameterOffset != 0)
+                    return Task.FromResult(OperationResult.Reject(request, "invalid_request", "Only operationId is accepted."));
+                return Task.FromResult(history.TryGetValue(id, out var retained)
+                    ? retained.Completion.Task.IsCompletedSuccessfully ? retained.Completion.Task.Result
+                        : OperationResult.Reject(request, "pending", "Request is queued or running. Poll its ID; do not submit a new edit.")
+                    : OperationResult.Reject(request, "not_found", "Request ID is not retained in this session."));
+            }
             if (cancellationToken.IsCancellationRequested)
                 return Task.FromResult(OperationResult.Reject(request, "cancelled", "Request cancelled before queueing."));
             if (history.TryGetValue(request.Id, out var previous))
-                return previous.Request == request ? previous.Completion.Task :
+                return previous.Request.EquivalentTo(request) ? previous.Completion.Task :
                     Task.FromResult(OperationResult.Reject(request, "id_conflict", "Request ID was already used with different arguments."));
             // Retain outcomes for this entire session; never evict an edit and execute it twice.
             if (queue.Count >= 32 || history.Count >= 4096)
                 return Task.FromResult(OperationResult.Reject(request, "queue_full", "Session request capacity reached."));
-            pending = new(request, new(TaskCreationOptions.RunContinuationsAsynchronously));
+            pending = new(request, new(TaskCreationOptions.RunContinuationsAsynchronously), cancellationToken);
             history.Add(request.Id, pending); queue.Enqueue(pending);
         }
         try { Schedule?.Invoke(); }
@@ -36,7 +47,9 @@ public sealed class OperationDispatcher : IOperationClient
     {
         Pending? pending;
         lock (gate) { pending = queue.Count == 0 ? null : queue.Dequeue(); }
-        if (pending is not null) pending.Completion.TrySetResult(executor.Execute(model, pending.Request));
+        if (pending is not null) pending.Completion.TrySetResult(pending.Cancellation.IsCancellationRequested
+            ? OperationResult.Reject(pending.Request, "cancelled", "Request cancelled before Revit execution.")
+            : executor.Execute(model, pending.Request));
     }
     public void RejectPending(string code, string message)
     {

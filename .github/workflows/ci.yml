@@ -1,4 +1,4 @@
-name: C# Foundation
+name: C# Foundation and MCP
 on:
   push:
     branches: [master]
@@ -24,5 +24,5 @@ jobs:
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
-          name: foundation-offline-evidence
-          path: artifacts/foundation/checks/
+          name: csharp-mcp-offline-evidence
+          path: artifacts/mcp/checks/

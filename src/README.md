@@ -1,3 +1,3 @@
 # Active implementation
 
-Only Foundation is implemented: `RevitThyme.Core`, `RevitThyme.Addin`, `RevitThyme.UI` and `RevitThyme.Cli`. See [architecture](../docs/ARCHITECTURE.md). MCP and Codex projects are reserved for later stages and are not executable placeholders.
+Foundation and MCP are implemented: `RevitThyme.Core`, `RevitThyme.Addin`, `RevitThyme.UI`, `RevitThyme.Cli` and `RevitThyme.Mcp`. See [architecture](../docs/ARCHITECTURE.md) and [MCP](../docs/MCP.md). The built-in Codex project and subsequent stages remain deferred.

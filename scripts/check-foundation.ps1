@@ -1,13 +1,17 @@
 param([switch]$Portable)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
-$report = Join-Path $root 'artifacts\foundation\checks'
+$report = Join-Path $root 'artifacts\mcp\checks'
 New-Item -ItemType Directory -Path $report -Force | Out-Null
 $solution = if($Portable){'RevitThyme.Portable.slnf'}else{'RevitThyme.sln'}
+dotnet restore (Join-Path $root 'src\RevitThyme.Mcp') --locked-mode --nologo
+if ($LASTEXITCODE) { throw 'Pinned MCP dependency restore failed.' }
 dotnet build (Join-Path $root $solution) -c Release --nologo -warnaserror
 if ($LASTEXITCODE) { throw 'Foundation build failed.' }
 dotnet run --project (Join-Path $root 'tests\Unit') -c Release --no-build | Tee-Object -FilePath (Join-Path $report 'unit.txt')
 if ($LASTEXITCODE) { throw 'Foundation unit checks failed.' }
+dotnet run --project (Join-Path $root 'tests\Mcp') -c Release --no-build | Tee-Object -FilePath (Join-Path $report 'mcp.txt')
+if ($LASTEXITCODE) { throw 'MCP protocol and operation checks failed.' }
 $assemblyPaths = @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Filter 'RevitAPI*.dll')
 if ($assemblyPaths.Count) { throw 'Autodesk binaries were copied into the source/build tree.' }
 $scriptPaths = @(Get-ChildItem -LiteralPath (Join-Path $root 'scripts') -File -Filter '*.ps1') + @(Get-ChildItem -LiteralPath (Join-Path $root 'installer') -File -Filter '*.ps1')
@@ -17,7 +21,7 @@ foreach ($file in $scriptPaths) {
     if ($errors.Count) { throw "PowerShell syntax failed: $($file.FullName): $errors" }
 }
 $projects = Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Filter '*.csproj'
-if ($projects.Count -ne 4 -or @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Include '*.rs','*.tsx','*.py').Count) { throw 'Active product must contain only Foundation C# projects.' }
+if ($projects.Count -ne 5 -or @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Include '*.rs','*.tsx','*.py').Count) { throw 'Active product must contain only Foundation and MCP C# projects.' }
 $migration = Join-Path $root 'artifacts\foundation\migration.json'
 if (Test-Path -LiteralPath $migration) {
     $record = Get-Content -LiteralPath $migration -Raw | ConvertFrom-Json
@@ -27,4 +31,4 @@ if (Test-Path -LiteralPath $migration) {
 }
 @{passed=$true;portable=[bool]$Portable;source_revision=(git -C $root rev-parse HEAD);dirty=[bool](git -C $root status --porcelain);build=$solution;unit='unit.txt';native_evidence='Separate live run required'} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $report 'result.json') -Encoding utf8
-Write-Output 'Foundation build, unit, script syntax, architecture and preservation checks passed.'
+Write-Output 'Foundation and MCP build, unit/protocol, script syntax, architecture and preservation checks passed.'

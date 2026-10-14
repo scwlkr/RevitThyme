@@ -2,9 +2,9 @@
 
 ![RevitThyme](assets/branding/revitthyme-logo.svg)
 
-RevitThyme is an open-source native Revit toolkit. Its C# operation layer serves a WPF interface and CLI; AI interfaces are optional later stages.
+RevitThyme is an open-source native Revit toolkit. Its shared C# operation layer serves WPF, CLI and an optional external AI interface through MCP.
 
-This checkout implements **Foundation only** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). The native **Inspect View** tool reads the active document/view and renames the captured view through a verified, undoable transaction. WPF and CLI use the same operations. No AI account, Rust, Electron or pyRevit is required.
+This checkout implements **Foundation and MCP** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). **Inspect View** reads and renames the captured native view. The official C# MCP server exposes 12 generic tools for session discovery, document/view context, paged element/parameter inspection, selection, view renaming, atomic typed parameter editing and retained outcomes. Native tools work without an AI account, Rust, Electron or pyRevit.
 
 ![Native WPF Inspect View](docs/images/foundation-wpf.png)
 
@@ -28,15 +28,17 @@ For CLI automation, inspect a chosen session into a private JSON capture, review
 flowchart TD
     WPF[WPF tool] --> Core[C# operation dispatcher]
     CLI[C# CLI] --> Bridge[Local named pipe]
+    MCP[Official C# stdio MCP] --> Bridge
+    Codex[External Codex] --> MCP
     Bridge --> Core
     Core --> Host[ExternalEvent execution host]
     Host --> Operations[Shared C# operations]
     Operations --> Revit[Revit API and transactions]
 ```
 
-See [architecture](docs/ARCHITECTURE.md), [Foundation acceptance](docs/FOUNDATION.md) and [verification](verification/foundation.md). Hosted CI builds the portable C#/WPF solution and runs offline checks. Real Revit tests use a new, pinned disposable process and fixture.
+See [architecture](docs/ARCHITECTURE.md), [MCP tools and Codex setup](docs/MCP.md), [Foundation evidence](verification/foundation.md) and [MCP verification](verification/mcp.md). Hosted CI builds the portable C#/WPF/MCP solution and runs offline checks. Real Revit and Codex tests use a new, pinned disposable process and populated fixture.
 
-MCP, full View Range/Room Dimensions migration, dynamic C#, Cabin Eval, Codex Agent and exploration remain [later stages](docs/ROADMAP.md). Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
+Full View Range/Room Dimensions migration, dynamic C#, Cabin Eval, built-in Codex Agent and exploration remain [later stages](docs/ROADMAP.md). Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
 
 ## Contribute
 

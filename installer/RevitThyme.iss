@@ -47,6 +47,9 @@ Source: "{#PackageDirectory}\uninstall.ps1"; DestDir: "{app}"; Flags: ignorevers
 Source: "{#PackageDirectory}\common.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDirectory}\prerequisites.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDirectory}\mcp-files.ps1"; DestDir: "{app}"; Flags: ignoreversion
+#if FileExists(PackageDirectory + "\agent-files.ps1")
+Source: "{#PackageDirectory}\agent-files.ps1"; DestDir: "{app}"; Flags: ignoreversion
+#endif
 Source: "{#PackageDirectory}\host-path.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Code]

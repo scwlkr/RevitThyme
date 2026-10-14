@@ -37,6 +37,11 @@ $cliHelp = & $receipt.cli --help
 Check 'installed CLI executes' ($LASTEXITCODE -eq 0 -and ($cliHelp -join '') -match 'revitthyme sessions')
 $mcpVersion = & $receipt.mcp --version
 Check 'installed MCP executes' ($LASTEXITCODE -eq 0 -and $mcpVersion -eq $receipt.version)
+if ($receipt.version -eq '0.9.0-agent') {
+    Check 'setup retains Agent validation helper for uninstall' (Test-Path (Join-Path $setup 'agent-files.ps1'))
+    $runtime = & (Join-Path $receipt.installed 'codex\codex.exe') --version
+    Check 'setup installs runnable pinned Codex runtime' ($LASTEXITCODE -eq 0 -and $runtime -eq 'codex-cli 0.162.1')
+}
 $registrationHash = (Get-FileHash $registration).Hash
 Check 'setup reinstall preserves registration' ((Setup 'repeat-install') -eq 0 -and (Get-FileHash $registration).Hash -eq $registrationHash)
 $foreign = '<RevitAddIns><AddIn Type="Application"><AddInId>unknown</AddInId></AddIn></RevitAddIns>'

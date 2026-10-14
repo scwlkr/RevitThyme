@@ -29,8 +29,11 @@ $exe = Join-Path $output $name
 if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) { throw "Compiler did not produce the expected setup: $exe" }
 $bootstrapTarget = Join-Path $output 'install-revitthyme.ps1'
 Copy-Item -LiteralPath $bootstrap -Destination $bootstrapTarget
+. (Join-Path $PSScriptRoot 'pinned-bootstrap.ps1')
+$pinnedTarget = Join-Path $output 'install.ps1'
+[IO.File]::WriteAllText($pinnedTarget,(Get-PinnedBootstrap -Version '0.8.1'))
 $hashes = @{}
-foreach ($file in @($exe,$bootstrapTarget)) {
+foreach ($file in @($exe,$bootstrapTarget,$pinnedTarget)) {
     $hash = (Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant()
     $leaf = Split-Path $file -Leaf
     $hashes[$leaf] = $hash

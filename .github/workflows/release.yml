@@ -93,12 +93,12 @@ jobs:
           gh run download $env:GITHUB_RUN_ID --repo $env:GITHUB_REPOSITORY --name revitthyme-release-candidate --dir $download
           if ($LASTEXITCODE) { throw 'Could not download the reviewed release candidate.' }
           $metadata = Get-Content -LiteralPath (Join-Path $download 'release.json') -Raw | ConvertFrom-Json
-          $expected = @('RevitThyme-0.8.1-win-x64.exe','RevitThyme-0.8.1-win-x64.exe.sha256','install-revitthyme.ps1','install-revitthyme.ps1.sha256','release.json')
+          $expected = @('RevitThyme-0.8.1-win-x64.exe','RevitThyme-0.8.1-win-x64.exe.sha256','install-revitthyme.ps1','install-revitthyme.ps1.sha256','install.ps1','install.ps1.sha256','release.json')
           $actual = @(Get-ChildItem -LiteralPath $download -File | Select-Object -ExpandProperty Name)
           if ((($actual | Sort-Object) -join '|') -ne (($expected | Sort-Object) -join '|')) { throw 'Release asset allowlist differs.' }
           if ($metadata.isolated_build -or $metadata.source_dirty -or $metadata.version -ne '0.8.1' -or $metadata.source_revision -ne $env:GITHUB_SHA -or $metadata.package_version -ne '0.8.0-install') { throw 'Release metadata does not identify the tagged production build.' }
-          if (@($metadata.files.PSObject.Properties).Count -ne 2) { throw 'Expected checksums for setup and bootstrapper.' }
-          foreach ($name in @('RevitThyme-0.8.1-win-x64.exe','install-revitthyme.ps1')) {
+          if (@($metadata.files.PSObject.Properties).Count -ne 3) { throw 'Expected checksums for setup and both bootstrappers.' }
+          foreach ($name in @('RevitThyme-0.8.1-win-x64.exe','install-revitthyme.ps1','install.ps1')) {
             $hash = (Get-FileHash -LiteralPath (Join-Path $download $name) -Algorithm SHA256).Hash.ToLowerInvariant()
             if ($hash -ne $metadata.files.$name -or (Get-Content -LiteralPath (Join-Path $download ($name+'.sha256')) -Raw).Trim() -ne ($hash+'  '+$name)) { throw "Release checksum mismatch: $name" }
           }

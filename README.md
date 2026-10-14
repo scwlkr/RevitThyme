@@ -11,9 +11,19 @@ This checkout implements **Foundation, MCP, Native utilities and Dynamic executi
 ![Native WPF View Range](docs/images/native-view-range.png)
 ![Native WPF Room Dimensions](docs/images/native-room-dimensions.png)
 
-## Install or build
+## Install
 
-Download the [Windows installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe.sha256), or use the [verified PowerShell bootstrap](docs/INSTALLATION.md). It bundles the add-in, CLI and MCP and detects supported Revit installations. Only full Revit 2027 is supported by this build. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned.
+Close Revit normally, preserving unsaved work, then run this in PowerShell to install the latest stable release:
+
+```powershell
+irm https://revitthyme.wlkrlabs.com/install | iex
+```
+
+To install **v0.8.1** specifically, use `irm https://revitthyme.wlkrlabs.com/install-0.8.1 | iex`.
+
+The bootstrap downloads and verifies the Windows installer before running it. It bundles the add-in, CLI and MCP and detects supported Revit installations. Only full Revit 2027 is supported by this build. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned. Piping to `iex` trusts the script served by this domain and its GitHub release source; you can inspect it first or download the [v0.8.1 installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.8.1/RevitThyme-0.8.1-win-x64.exe.sha256) directly. See [installation and recovery](docs/INSTALLATION.md).
+
+## Build
 
 Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The current native target is Revit **27.3.0.28**; other releases and another computer need qualification. Revit supplies its proprietary API assemblies locally.
 

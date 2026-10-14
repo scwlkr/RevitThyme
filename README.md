@@ -10,6 +10,7 @@ This checkout implements **Foundation, MCP, Native utilities, Dynamic execution 
 
 ![Native WPF View Range](docs/images/native-view-range.png)
 ![Native WPF Room Dimensions](docs/images/native-room-dimensions.png)
+![Native docked Codex Agent](docs/images/native-agent.png)
 
 ## Install
 

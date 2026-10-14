@@ -21,7 +21,7 @@ foreach ($file in $scriptPaths) {
     if ($errors.Count) { throw "PowerShell syntax failed: $($file.FullName): $errors" }
 }
 $projects = Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Filter '*.csproj'
-if ($projects.Count -ne 5 -or @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Include '*.rs','*.tsx','*.py').Count) { throw 'Active product must contain only Foundation and MCP C# projects.' }
+if ($projects.Count -ne 5 -or @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Include '*.rs','*.tsx','*.py').Count) { throw 'Active product must contain only the five C# toolkit projects.' }
 $migration = Join-Path $root 'artifacts\foundation\migration.json'
 if (Test-Path -LiteralPath $migration) {
     $record = Get-Content -LiteralPath $migration -Raw | ConvertFrom-Json
@@ -31,4 +31,4 @@ if (Test-Path -LiteralPath $migration) {
 }
 @{passed=$true;portable=[bool]$Portable;source_revision=(git -C $root rev-parse HEAD);dirty=[bool](git -C $root status --porcelain);build=$solution;unit='unit.txt';native_evidence='Separate live run required'} |
     ConvertTo-Json | Set-Content -LiteralPath (Join-Path $report 'result.json') -Encoding utf8
-Write-Output 'Foundation and MCP build, unit/protocol, script syntax, architecture and preservation checks passed.'
+Write-Output 'Foundation, MCP and Native utilities build, unit/protocol, script syntax, architecture and preservation checks passed.'

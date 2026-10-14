@@ -15,5 +15,7 @@
 | MCP | Official C# stdio adapter for external agents using the shared native operation layer |
 | Capture ID | Connection-local token referring to captured document/view/revision; refreshed after model changes |
 | Request ID | Caller-supplied GUID for a new write; native session retains its result and rejects conflicting reuse |
+| View Range | Four native plan planes with level references and offsets in feet; validated by Revit |
+| Room dimension preview | Read-only plan containing native finish-face references, dimension lines, tag clearance and existing IDs; recomputed before creation |
 
 Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

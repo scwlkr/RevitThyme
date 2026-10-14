@@ -15,6 +15,7 @@ internal static class Program
         try
         {
             if (args is ["--live", var folder]) await Live.Run(folder);
+            else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
             else { await Generic(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }
@@ -78,7 +79,9 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 12-tool discovery", tools.Count == 12);
+        Check("official SDK stdio initialization and 16-tool discovery", tools.Count == 16);
+        Check("native utility tools expose structured schemas", tools.Single(t => t.Name == "create_room_dimensions").JsonSchema.ToString().Contains("fingerprint", StringComparison.OrdinalIgnoreCase)
+            && tools.Single(t => t.Name == "set_view_range").JsonSchema.ToString().Contains("offsetFeet", StringComparison.OrdinalIgnoreCase));
         Check("write tools annotated", tools.Single(t => t.Name == "set_parameters").ProtocolTool.Annotations?.ReadOnlyHint == false);
         Check("parameter batch schema exposes typed fields", tools.Single(t => t.Name == "set_parameters").JsonSchema.ToString().Contains("expected", StringComparison.OrdinalIgnoreCase));
         var sessions = await Call(client, "list_sessions"); Check("empty discovery succeeds offline", sessions.Data.GetArrayLength() == 0);

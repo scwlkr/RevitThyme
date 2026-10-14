@@ -29,6 +29,10 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            bool utility = request.Operation is OperationKind.GetViewRange or OperationKind.SetViewRange
+                or OperationKind.PreviewRoomDimensions or OperationKind.CreateRoomDimensions;
+            if (!utility && (request.ExpectedRange is not null || request.Range is not null || request.RoomOptions is not null || request.RoomPreview is not null))
+                return OperationResult.Reject(request, "invalid_request", "Unexpected utility arguments.");
             if (request.Query is not null || request.ElementIds is not null || request.Edits is not null || request.OperationId is not null || request.ParameterOffset != 0)
             {
                 if (request.Operation is OperationKind.Inspect or OperationKind.RenameView)
@@ -41,6 +45,7 @@ public sealed class OperationExecutor
                     new(request.Id, Outcome.Inspected, "inspected", "Active document and view inspected.", before),
                 OperationKind.Inspect => OperationResult.Reject(request, "invalid_request", "Inspection takes no edit arguments."),
                 OperationKind.RenameView => Rename(model, request, before),
+                _ when utility => UtilityExecutor.Execute(model, request, before),
                 _ => GenericExecutor.Execute(model, request, before)
             };
         }

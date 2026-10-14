@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — C# Native utilities — 2026-10-14
+
+- Add native WPF View Range and rectangular Room Dimensions ribbon tools with shared C# operations exposed through CLI and four additional official-SDK MCP tools. Preserve the completed Foundation/MCP implementation.
+- Validate exact prior ranges and reviewed room plans, use native finish-face references and tag bounds, avoid duplicate dimension pairs, verify native readback/rollback and group each edit into one Revit Undo item. Upgrade clients/add-in together to bridge protocol 3.
+- Share an existing View Tools ribbon panel using distinct command IDs, preserve legacy installations and provide isolated native ribbon/WPF/MCP/CLI qualification plus an allowlisted local utilities package. See [Native utilities evidence](verification/native-utilities.md). Dynamic execution, Cabin Eval, built-in Agent and Exploration remain deferred.
+
 ## Unreleased — C# MCP Development — 2026-10-14
 
 - Add official C# SDK stdio MCP with 12 generic tools and external Codex support, sharing the Foundation operation layer and native pipe. Add paged native inspection, selection, atomic typed parameter edits, retained outcomes, value-based replay, cancellation and protocol-2 guards.

@@ -21,7 +21,8 @@ public sealed class OperationDispatcher : IOperationClient
             if (request.Operation == OperationKind.GetOperation)
             {
                 if (request.OperationId is not { } id || request.Target is not null || request.Name is not null || request.ExpectedName is not null
-                    || request.Query is not null || request.ElementIds is not null || request.Edits is not null || request.ParameterOffset != 0)
+                    || request.Query is not null || request.ElementIds is not null || request.Edits is not null || request.ParameterOffset != 0
+                    || request.ExpectedRange is not null || request.Range is not null || request.RoomOptions is not null || request.RoomPreview is not null)
                     return Task.FromResult(OperationResult.Reject(request, "invalid_request", "Only operationId is accepted."));
                 return Task.FromResult(history.TryGetValue(id, out var retained)
                     ? retained.Completion.Task.IsCompletedSuccessfully ? retained.Completion.Task.Result

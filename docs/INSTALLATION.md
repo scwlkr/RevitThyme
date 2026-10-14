@@ -1,4 +1,4 @@
-# Install RevitThyme Foundation and MCP
+# Install RevitThyme native toolkit
 
 This is a local development package for Revit 2027 on Windows, requiring .NET 10. It has no AI dependency. A production signed `.exe` installer and GitHub bootstrap remain distribution work.
 
@@ -19,7 +19,7 @@ Close Revit normally, preserving your unsaved work. In the extracted package fol
 
 The installer detects local Revit 2027, verifies the exact file allowlist and hashes, copies an immutable bundle under your physical `AppData\Local\RevitThyme\foundation` folder, and registers `RevitThyme.Foundation.addin` under the native per-user Revit 2027 Addins folder. The registration/storage names remain stable for reversible Foundation upgrades. It prints absolute CLI and MCP paths. It does not change PATH, Codex configuration or other add-ins. Reinstallation retains earlier bundles and backs up the previous owned registration; unknown or modified packages are refused. Native path probes reject MSIX-redirection mistakes.
 
-Open Revit normally, load the owned add-in when prompted, then choose **RevitThyme → Foundation → Inspect View**. Open a project, select Refresh, edit the view name, and select Apply. Revit Undo reverses a successful rename. A stale capture is rejected; refresh before another edit. The tool never saves or syncs the project.
+Open Revit normally and load the owned add-in when prompted. Choose **RevitThyme → View Tools → View Range** or **Room Dimensions**; see [utility usage and limits](NATIVE-UTILITIES.md). **Foundation → Inspect View** remains available for inspection and renaming. Revit Undo reverses a successful utility edit. A stale capture is rejected; refresh before another edit. No tool saves or syncs the project. The legacy Visual View Range registration remains intact; distinct command IDs let both tools share an existing View Tools panel.
 
 For scripts, use the printed `revitthyme.exe` path:
 
@@ -31,6 +31,6 @@ For scripts, use the printed `revitthyme.exe` path:
 
 Set `$cli` to that executable, `$session` to the absolute session file shown by `sessions`, and `$capture` to a private absolute JSON file. Choose the intended process explicitly. Each capture records its document, view, revision and previous value. After renaming, inspect again before another edit. Exit codes: `0` successful/unchanged, `1` rejected/rolled back/unconfirmed operation, `2` invalid command or connection. An unconfirmed edit needs native inspection before another edit.
 
-Connect external Codex using the printed MCP executable and [MCP setup](MCP.md). The add-in, CLI and MCP now share protocol version 2; old Foundation bindings cannot connect. Upgrade them together. Native utilities and built-in Agent remain deferred.
+Connect external Codex using the printed MCP executable and [MCP setup](MCP.md). The add-in, CLI and MCP share protocol version 3; old Foundation/MCP bindings cannot connect. Upgrade them together. Dynamic execution, built-in Agent and Exploration remain deferred.
 
 To unregister, close Revit normally and run the installed or packaged `uninstall.ps1`. It backs up the exact verified owned registration and removes that one file. Bundles, sessions, fixtures and other add-ins remain recoverable. Restore the saved registration only after verifying its referenced bundle.

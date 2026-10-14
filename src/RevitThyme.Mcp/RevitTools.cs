@@ -27,6 +27,8 @@ public sealed class RevitTools(RevitConnection connection)
         operations = Enum.GetNames<OperationKind>(), protocolVersion = Protocol.Version,
         limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100 },
         parameterUnits = "Double values use Revit internal units (length feet, angles radians). dataType is the native Forge type ID. ElementId parameters are inspection-only.",
+        utilityUnits = "Range offsets, room inset/clearance and dimensions use feet. Range levels: Current, Above, Below, Unlimited, or native Level UniqueId. Native Revit validates floor/ceiling plane order.",
+        roomDimensions = "Preview one rectangular room on the active floor plan's level/phase, with four basic native wall finish faces. Send the exact returned preview and its options to create. Tags, existing dimensions and native references are rechecked. No linked/curved/separator/island boundaries.",
         writes = "Use get_context and native UniqueId/parameter Id. set_parameters requires exact Expected values. Supply a unique requestId per new write. Retry only the same ID/arguments; get_operation retrieves retained outcomes. Unconfirmed edits require polling and native inspection.",
         reversibility = "Rename and parameter batches create one Revit Undo item each. Selection is UI state and restored on failure. No implicit save/sync."
     });
@@ -59,6 +61,22 @@ public sealed class RevitTools(RevitConnection connection)
     [McpServerTool(Name = "set_parameters", ReadOnly = false, Destructive = false, Idempotent = true), Description("Atomically edit 1–20 parameters by UniqueId and numeric parameter Id. Each edit requires Expected and Value objects: Storage String/Integer/Double with Text/Integer/Number. Use native internal units. Verifies all values before and after; rolls back the whole batch on failure.")]
     public Task<CallToolResult> SetParameters(string captureId, string requestId, ParameterEdit[] edits, CancellationToken cancellationToken) =>
         Safe(() => Run(captureId, new(Id(requestId), OperationKind.SetParameters, Edits: edits), cancellationToken));
+
+    [McpServerTool(Name = "get_view_range", ReadOnly = true), Description("Read all four native plan range planes, level choices and template edit control. Offsets are feet. Requires a fresh captured active floor/ceiling/structural plan.")]
+    public Task<CallToolResult> GetViewRange(string captureId, CancellationToken cancellationToken) =>
+        Run(captureId, new(Guid.NewGuid(), OperationKind.GetViewRange), cancellationToken);
+
+    [McpServerTool(Name = "set_view_range", ReadOnly = false, Destructive = false, Idempotent = true), Description("Edit all four native range planes. Supply exact expectedRange from get_view_range and the desired range: top/cut/bottom/depth with level and offsetFeet. Revit validates levels/order, verifies readback, rolls back failures; one Undo item. Refresh afterwards.")]
+    public Task<CallToolResult> SetViewRange(string captureId, string requestId, ViewRangeSettings expectedRange, ViewRangeSettings range, CancellationToken cancellationToken) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.SetViewRange, ExpectedRange: expectedRange, Range: range), cancellationToken));
+
+    [McpServerTool(Name = "preview_room_dimensions", ReadOnly = true), Description("Plan width/depth dimensions for one rectangular native room. No model changes. Returns exact face references, lines, lengths, options and existing IDs. Requires an active same-level/phase floor plan; reserves tag space. Use the returned preview for create.")]
+    public Task<CallToolResult> PreviewRoomDimensions(string captureId, string roomId, double insetFeet = 1.5, double tagClearanceFeet = 1, CancellationToken cancellationToken = default) =>
+        Run(captureId, new(Guid.NewGuid(), OperationKind.PreviewRoomDimensions, ElementIds: [roomId], RoomOptions: new(insetFeet, tagClearanceFeet)), cancellationToken);
+
+    [McpServerTool(Name = "create_room_dimensions", ReadOnly = false, Destructive = false, Idempotent = true), Description("Create the two associative native dimensions from an exact preview_room_dimensions result. Recomputes native boundaries/tags/references, refuses stale previews and partial pairs, avoids duplicates, verifies dimension values/references; one Undo item. Supply a unique requestId.")]
+    public Task<CallToolResult> CreateRoomDimensions(string captureId, string requestId, RoomDimensionPreview preview, CancellationToken cancellationToken) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.CreateRoomDimensions, ElementIds: [preview.RoomId], RoomOptions: preview.Options, RoomPreview: preview), cancellationToken));
 
     [McpServerTool(Name = "get_operation", ReadOnly = true), Description("Recover a retained native result by write requestId. Returns pending/not_found or the original result and original request ID. Never submits the edit again.")]
     public Task<CallToolResult> GetOperation(string requestId, CancellationToken cancellationToken) => Safe(async () =>

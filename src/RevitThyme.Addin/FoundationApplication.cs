@@ -23,6 +23,8 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private ExternalEvent? externalEvent;
     private PipeServer? server;
     private InspectWindow? window;
+    public ViewRangeWindow? ViewRangeWindow { get; private set; }
+    public RoomDimensionsWindow? RoomDimensionsWindow { get; private set; }
     private string? bindingPath;
     private string? fixturePath;
     private string? fixtureDocumentId;
@@ -56,6 +58,13 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
             var button = (PushButton)panel.AddItem(new PushButtonData("RevitThyme.InspectView", "Inspect\nView",
                 Assembly.GetExecutingAssembly().Location, typeof(InspectCommand).FullName!));
             button.ToolTip = "Inspect the active document and view. Rename a view with verified readback and Revit Undo.";
+            var tools = app.GetRibbonPanels("RevitThyme").FirstOrDefault(p => p.Name == "View Tools") ?? app.CreateRibbonPanel("RevitThyme", "View Tools");
+            var rangeButton = (PushButton)tools.AddItem(new PushButtonData("RevitThyme.Native.ViewRange", "View\nRange",
+                Assembly.GetExecutingAssembly().Location, typeof(ViewRangeCommand).FullName!));
+            rangeButton.ToolTip = "Inspect and edit native plan view range with a section preview and one Revit Undo item.";
+            var roomButton = (PushButton)tools.AddItem(new PushButtonData("RevitThyme.Native.RoomDimensions", "Room\nDimensions",
+                Assembly.GetExecutingAssembly().Location, typeof(RoomDimensionsCommand).FullName!));
+            roomButton.ToolTip = "Preview and create width/depth dimensions for a rectangular room using native wall finish faces.";
             Instance = this; return Result.Succeeded;
         }
         catch (Exception error)
@@ -69,6 +78,18 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         window = new(Operations);
         new WindowInteropHelper(window) { Owner = app.MainWindowHandle };
         window.Closed += (_, _) => window = null; window.Show(); return window;
+    }
+    public ViewRangeWindow ShowViewRange(UIApplication app)
+    {
+        if (ViewRangeWindow is not null) { ViewRangeWindow.Activate(); return ViewRangeWindow; }
+        ViewRangeWindow = new(Operations); new WindowInteropHelper(ViewRangeWindow) { Owner = app.MainWindowHandle };
+        ViewRangeWindow.Closed += (_, _) => ViewRangeWindow = null; ViewRangeWindow.Show(); return ViewRangeWindow;
+    }
+    public RoomDimensionsWindow ShowRoomDimensions(UIApplication app)
+    {
+        if (RoomDimensionsWindow is not null) { RoomDimensionsWindow.Activate(); return RoomDimensionsWindow; }
+        RoomDimensionsWindow = new(Operations); new WindowInteropHelper(RoomDimensionsWindow) { Owner = app.MainWindowHandle };
+        RoomDimensionsWindow.Closed += (_, _) => RoomDimensionsWindow = null; RoomDimensionsWindow.Show(); return RoomDimensionsWindow;
     }
     public string DocumentId(Document document)
     {
@@ -116,7 +137,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private void Stop()
     {
         stopping = true; Instance = null; Operations.Stop();
-        window?.Close(); server?.Dispose(); externalEvent?.Dispose();
+        window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
         // Bindings are non-secret historical identities; exited processes fail client verification.
         documents.Clear();
     }

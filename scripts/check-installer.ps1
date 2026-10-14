@@ -19,7 +19,8 @@ $registration = Join-Path $addins 'RevitThyme.Foundation.addin'
 Check 'registers the exact native assembly' (([xml](Get-Content $registration -Raw)).RevitAddIns.AddIn.Assembly -eq (Join-Path $first.installed 'RevitThyme.Addin.dll'))
 if ($first.mcp) {
     $version = & $first.mcp --version
-    Check 'installed MCP executable launches' ($LASTEXITCODE -eq 0 -and $version -eq '0.5.0-mcp')
+    $expectedVersion = (Get-Content -LiteralPath (Join-Path $PackageDirectory 'manifest.json') -Raw | ConvertFrom-Json).version
+    Check 'installed MCP executable launches' ($LASTEXITCODE -eq 0 -and $version -eq $expectedVersion)
     $sdk = Join-Path $first.installed 'mcp\ModelContextProtocol.dll'
     $sdkBytes = [IO.File]::ReadAllBytes($sdk)
     try {

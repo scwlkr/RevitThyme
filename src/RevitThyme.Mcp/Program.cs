@@ -13,7 +13,7 @@ public static class Program
         {
             Console.WriteLine("revitthyme-mcp [--session ABSOLUTE_FILE] [--sessions-directory ABSOLUTE_FOLDER]\nOfficial MCP stdio server. Explicit connect_session required unless --session pins startup. No save/sync or arbitrary code."); return 0;
         }
-        if (args is ["--version"]) { Console.WriteLine("0.5.0-mcp"); return 0; }
+        if (args is ["--version"]) { Console.WriteLine("0.6.0-utilities"); return 0; }
         try
         {
             var options = ServerSettings.Parse(args);

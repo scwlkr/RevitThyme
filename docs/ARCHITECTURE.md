@@ -1,10 +1,10 @@
-# C# Foundation and MCP
+# C# Native toolkit
 
-The accepted architecture is [the complete 2026-10-14 plan](../2026-10-14_NEW_PLAN.md). This implementation stops at its MCP row. Native tools work without an AI runtime.
+The accepted architecture is [the complete 2026-10-14 plan](../2026-10-14_NEW_PLAN.md). This implementation stops at its Native utilities row. Native tools work without an AI runtime.
 
 ```mermaid
 flowchart TD
-    UI[WPF Inspect View] --> Queue[Core operation dispatcher]
+    UI[WPF Inspect View / View Range / Room Dimensions] --> Queue[Core operation dispatcher]
     CLI[C# CLI] --> Pipe[Local Windows named pipe]
     Codex[External Codex] --> MCP[Official C# stdio MCP]
     MCP --> Pipe
@@ -19,12 +19,14 @@ flowchart TD
 
 `RevitThyme.Mcp` adapts the official SDK's stdio transport and schemas to those same Core requests. It serializes connection changes/calls and issues bounded, connection-local capture IDs. A rename requires captured process/start, session, open document identity, view UniqueId, revision and previous name. Generic reads and writes validate the same target. Revit events invalidate captures; reopening creates a new document identity. Parameter edits require exact prior raw values and parameter IDs, and share the native transaction wrapper with rename. Before/after native readback precedes group assimilation into one Undo item. Failures roll back; uncertain completion reports an unconfirmed outcome. Selection is separately verified UI state.
 
-The bridge uses a session-specific Windows named pipe restricted to the current user's SID, rejects remote clients, verifies the server's OS process ID and uses size-bounded framed JSON. Protocol version 2 separates the expanded contracts from Foundation version 1; upgrade add-in/CLI/MCP together. Requests contain data. The dispatcher retains up to 4,096 outcomes per session, compares replay arguments by value and rejects conflicting IDs. `get_operation` can read retained results without waiting for an API callback. Cancellation prevents queued work from executing; running work finishes and retains its outcome. All model access runs in Revit API callbacks. No model is implicitly saved or synchronized.
+The bridge uses a session-specific Windows named pipe restricted to the current user's SID, rejects remote clients, verifies the server's OS process ID and uses size-bounded framed JSON. Protocol version 3 separates utility contracts from prior Foundation/MCP versions; upgrade add-in/CLI/MCP together. Requests contain data. The dispatcher retains up to 4,096 outcomes per session, compares replay arguments by value and rejects conflicting IDs. `get_operation` can read retained results without waiting for an API callback. Cancellation prevents queued work from executing; running work finishes and retains its outcome. All model access runs in Revit API callbacks. No model is implicitly saved or synchronized.
+
+Utilities implement `IUtilityModel` and `IUtilityChange`: Core checks captured identity, expected native range/room preview and transaction outcomes; Addin resolves Revit planes, finish-face references, tag bounds and native dimensions. Room plans are recomputed and compared by value before any write. The WPF/CLI/MCP adapters contain no duplicate model-editing implementation. Existing legacy ribbon panels are reused with distinct native command IDs.
 
 ## Scope and compatibility
 
 The first build targets .NET 10 and Revit 2027. Revit 2027 uses [.NET 10](https://blog.autodesk.io/revit-2027-sdk-net-10-api-changes-and-additions/); a promise of Revit 2025+ support would need separate per-release builds and qualification. Local SDK references have CopyLocal disabled. Public builds never fetch or redistribute Autodesk binaries.
 
-The built-in Codex client, Room Dimensions, full View Range, Roslyn execution, Cabin Eval and planning graphics remain later stages. Empty projects and fake tools have not been added. External Codex launches the MCP directly; this stage does not implement App Server integration.
+The built-in Codex client, Roslyn execution, Cabin Eval and planning graphics remain later stages. Empty projects and fake tools have not been added. External Codex launches the MCP directly; this stage does not implement App Server integration.
 
 Superseded Rust, Electron and pyRevit implementation and earlier evidence live in `legacy/pre-foundation`. Existing installed bundles and private `artifacts` are preserved. That archive is outside the solution, CI and package allowlist; see [migration](MIGRATION.md).

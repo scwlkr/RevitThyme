@@ -9,13 +9,14 @@ function Get-FoundationRegistration([string]$Directory) {
 function Assert-FoundationPackage([string]$Folder) {
     $manifestPath = Join-Path $Folder 'manifest.json'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if ($manifest.version -notin @('0.4.0-foundation','0.5.0-mcp') -or $manifest.revit_year -ne '2027') { throw 'Unsupported RevitThyme package.' }
+    if ($manifest.version -notin @('0.4.0-foundation','0.5.0-mcp','0.6.0-utilities') -or $manifest.revit_year -ne '2027') { throw 'Unsupported RevitThyme package.' }
     $required = @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','cli/revitthyme.exe','cli/revitthyme.dll','cli/revitthyme.deps.json','cli/revitthyme.runtimeconfig.json','cli/RevitThyme.Core.dll','install.ps1','uninstall.ps1','common.ps1','host-path.ps1','LICENSE','README.md')
-    if ($manifest.version -eq '0.5.0-mcp') {
+    if ($manifest.version -in @('0.5.0-mcp','0.6.0-utilities')) {
         . (Join-Path $PSScriptRoot 'mcp-files.ps1')
         $required += @('mcp-files.ps1','THIRD-PARTY-NOTICES.md','MCP.md','notices/MCP-LICENSE.txt','notices/DOTNET-LICENSE.txt')
         $required += @(Get-McpPackageFiles | ForEach-Object { 'mcp/'+$_ })
     }
+    if ($manifest.version -eq '0.6.0-utilities') { $required += 'NATIVE-UTILITIES.md' }
     $names = @($manifest.files.PSObject.Properties.Name)
     if ((($names | Sort-Object) -join '|') -ne (($required | Sort-Object) -join '|')) { throw 'Package file allowlist changed.' }
     $actual = @(Get-ChildItem -LiteralPath $Folder -File -Recurse | ForEach-Object { $_.FullName.Substring($Folder.Length+1).Replace('\','/') } | Where-Object {$_ -ne 'manifest.json'})

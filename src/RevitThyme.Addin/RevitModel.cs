@@ -4,7 +4,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel
+public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel
 {
     private Document Document => app.ActiveUIDocument?.Document
         ?? throw new OperationException("no_document", "Open a Revit project and refresh.");
@@ -64,4 +64,14 @@ public sealed class RevitModel(UIApplication app, FoundationApplication host) : 
         if (!Capture().CanModify) throw new OperationException("write_blocked", "Document cannot be edited.");
         return new RevitChange(Document, Document.ActiveView, "RevitThyme Set Parameters");
     }
+    public ViewRangeInfo ReadViewRange() { host.AssertDocument(Document); return NativeViewRange.Read(Document); }
+    public RoomDimensionPreview PlanRoomDimensions(string roomId, RoomDimensionOptions options)
+    { host.AssertDocument(Document); return NativeRoomDimensions.Plan(Document, roomId, options); }
+    public IUtilityChange BeginUtilityChange(string label)
+    {
+        if (!Capture().CanModify) throw new OperationException("write_blocked", "Document cannot be edited.");
+        return new RevitChange(Document, Document.ActiveView, label);
+    }
+    public bool VerifyDimensions(long[] ids, RoomDimensionPreview preview) => NativeRoomDimensions.Verify(Document, ids, preview);
+    public bool ElementsAbsent(long[] ids) => ids.All(id => Document.GetElement(new ElementId(id)) is null);
 }

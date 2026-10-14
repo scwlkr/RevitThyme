@@ -1,0 +1,38 @@
+# C# Native utilities — 2026-10-14
+
+**View Range and rectangular Room Dimensions work by native ribbon button and MCP on Revit 27.3.0.28.** This implements only the Native utilities row of the complete `2026-10-14_NEW_PLAN.md`, building on the completed C# Foundation/MCP. Maintainer tracking: [WLK-246](https://linear.app/wlkr-labs/issue/WLK-246/complete-the-c-native-utilities-stage-view-range-and-room-dimensions). Dynamic execution, Cabin Eval, built-in Agent and Exploration remain deferred.
+
+## Source and offline checks
+
+The five existing C# product projects remain the active toolkit. Typed utility contracts and transaction orchestration live in Core, native API implementation in Addin, and WPF/CLI/official-SDK MCP use those same operations. MCP now has **16 tools**: the existing 12 generic tools plus four utility tools. Clients/add-in upgrade together to bridge protocol **3**.
+
+Full and portable solutions build using .NET SDK 10.0.400 with zero warnings/errors. **80 unit checks and 34 MCP checks pass**. Coverage includes exact prior range/stale target checks, invalid/nonfinite inputs, controlled ranges, no-op transactions, rollback after setter/commit/readback/assimilation faults, uncertain rollback, forged/stale room previews, partial/existing dimension pairs, rollback after the second dimension fails, architectural eighth-inch and metric parsing, and official stdio schemas. Existing Foundation/MCP checks remain passing. `project.cmd check` also verifies scripts, the C# stage boundary, no copied Autodesk binaries and the legacy preservation inventory.
+
+## Actual Revit
+
+Expanded successful run: `artifacts/utilities/live/af2aaf08-1622-422b-be2f-ebe530926d2a`, owned PID **35800**, start **639275934892486955**, session **1a8a73c7-27e4-470a-a833-d0a543e21976**, Revit **27.3.0.28**. Its independent evaluator passed **39 direct Revit checks**; the official-SDK stdio/CLI client passed **40 live checks**.
+
+- The evaluator posted the actual registered custom ribbon commands, opened the native modeless WPF windows and exercised their shared Apply/Create paths through ExternalEvent. Captured WPF images are in the run and `docs/images/native-{view-range,room-dimensions}.png`.
+- View Range read all four planes, applied an exact eighth-inch offset, verified native values, performed one Undo/Redo and restored the original. Invalid ordering rolled back. A template-controlled range blocked edits. A reflected ceiling edit moved its coincident Cut/Bottom planes together and one Undo restored the complete native range.
+- Room Dimensions previewed without mutation, matched finish width × depth to actual room area, created two unlocked associative native dimensions, and performed one Undo/Redo for the pair. A temporary one-foot wall-face move changed its native dimension value by one foot; group rollback restored the dimension and room. Rotated rectangles worked; the L-shaped fixture was refused.
+- Native guards refused tag collision, excessive inset, hidden dimension category and a partial pair. Individually hidden existing dimensions were still discovered and prevented duplication. All diagnostic changes rolled back.
+- MCP exercised all four utility tools, exact range readback, expected-value/stale capture rejection, invalid native ordering/rollback, restoration, forged preview rejection, native creation, request replay, retained outcome recovery and duplicate no-op. CLI ran against the native pipe for range inspection/no-op set and room preview. The evaluator independently checked the two MCP dimension values against the fixture's interior wall-face dimensions and undid the pair in one step.
+- The final model returned to **2,534 elements**, zero dimensions and the original floor/ceiling ranges. Saved fixture SHA-256 stayed **817D2BD258AC9A509BBD1379EA693D3BCD0F3E193078EFA766A237AFCE6A769F**. No test edits were saved over the fixture.
+
+Reports: `plan.json`, `launch.json`, `ready.json`, `mcp-checks.txt`, `utilities-mcp-complete.json`, `native-result.json` and `cleanup.json`. The host was pinned to this process/session/document/fixture, with no working-model or legacy-bridge fallback.
+
+Final committed-source run: **b01aba9ac19dddb6dab5e1303e4e4c18c916bb5b** on `codex/wlk-246-native-utilities`, `artifacts/utilities/live/f3a411a5-b126-4319-96ee-52414ace9df4`. This repeated the entire suite with **40 direct native checks and 40 live MCP/CLI checks**, adding a real Unicode level-name case proving bounded display labels. Owned PID **14568**, start **639275937813947009**, session **8095129e-aea3-47fb-b074-24e998d64b1c**, protocol **3**. All **2,535 elements** and original ranges were restored; saved hash remained **6EABFE133E074A42DD43065F615A069069F7F2A19C36B5E9A41FC3BFB6317FD4**. Cleanup removed the owned process/registration and verified prior process/start and registration hashes. Full checks passed at the committed source with zero warnings/errors. A subsequent evidence-only commit records this result without changing product source.
+
+## Packaging and preservation
+
+The local **0.6.0-utilities** package contains Addin/Core/UI, framework-dependent CLI/MCP, pinned SDK dependencies/notices and the utility guide. It excludes Autodesk DLLs, test loaders, models and legacy runtimes. **11 isolated installer/upgrade checks passed** at `artifacts/foundation/install-test/a0310a1c-929a-474c-9eb2-501fe6109c34`, including MCP startup, modified dependency/native bundle rejection, immutable reinstall, reversible unregister/recovery and upgrade preserving the prior MCP bundle/registration. Existing production registrations were untouched.
+
+The new ribbon shares an existing View Tools panel using distinct command IDs; installed legacy View Range remains intact. Test cleanup addresses only the owned PID/start and exact hash-verified qualification registration, verifies pre-existing process/start and registration hashes, and retains every fixture and failed run. Local source/package delivery only; no push, public publication or production installation was requested.
+
+Final package: `packages/RevitThyme-0.6.0-utilities-571327b11fc948e79e9d4363668bd8fe`, adjacent ZIP/SHA-256. Addin/Core/UI and CLI/MCP product binary hashes match the final committed-source native bundle. The ZIP checksum was read back and verified. **11 isolated installer/upgrade checks passed again** at `artifacts/foundation/install-test/345dbad7-3032-45f1-a544-b1703a2d3ef6`. Private delivery receipt: `artifacts/utilities/delivery.json`. The tracked checkout is clean; the pre-existing untracked logo is preserved.
+
+## Repairs and limits
+
+Retained failed runs exposed the existing legacy ribbon panel, Revit's special collector rules for Rooms/RoomTags, a test count including the tag type, an invalid ceiling test that separated coincident planes, and a test race that checked Undo before its posted command ran. The successful run includes those repairs. Failures are retained and not counted as passing.
+
+Room scope is deliberately bounded to four straight basic native wall finish faces, one level/phase and no islands. Linked/separator/curved/split/irregular boundaries are refused. Active crops must be rectangular, unsplit and contain the room; the Dimensions category must be visible. View Range targets native floor/ceiling/structural plans, with at most 100 levels; level display labels are bounded to 64 characters for IPC. Plan regions, production worksharing/large projects, other releases and another machine remain unqualified. The utility MCP was tested with the official SDK client; previous external Codex qualification belongs to the completed MCP stage and is not claimed as new utility-agent evidence. A production signed installer/bootstrap remains distribution work.

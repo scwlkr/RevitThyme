@@ -1,4 +1,4 @@
-name: C# Foundation and MCP
+name: C# Native toolkit
 on:
   push:
     branches: [master]

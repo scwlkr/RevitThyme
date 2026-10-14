@@ -4,9 +4,12 @@
 
 RevitThyme is an open-source native Revit toolkit. Its shared C# operation layer serves WPF, CLI and an optional external AI interface through MCP.
 
-This checkout implements **Foundation and MCP** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). **Inspect View** reads and renames the captured native view. The official C# MCP server exposes 12 generic tools for session discovery, document/view context, paged element/parameter inspection, selection, view renaming, atomic typed parameter editing and retained outcomes. Native tools work without an AI account, Rust, Electron or pyRevit.
+This checkout implements **Foundation, MCP and Native utilities** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). **View Range** edits the four native plan planes with a section preview. **Room Dimensions** creates an associative width/depth pair for rectangular rooms, leaving room for tags. Both work through native ribbon buttons, CLI and MCP using shared C# operations and one Revit Undo item per edit. The official C# MCP server exposes 12 generic tools plus four utility tools. Native tools work without an AI account, Rust, Electron or pyRevit.
 
 ![Native WPF Inspect View](docs/images/foundation-wpf.png)
+
+![Native WPF View Range](docs/images/native-view-range.png)
+![Native WPF Room Dimensions](docs/images/native-room-dimensions.png)
 
 ## Build and install
 
@@ -18,7 +21,7 @@ Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The curren
 .\project.cmd package
 ```
 
-The last command prints a package folder and checksum. Close Revit normally and run `install.ps1` in that folder, then open **RevitThyme → Foundation → Inspect View**. See [installation and recovery](docs/INSTALLATION.md). This foundation has a reversible local installer; a signed production `.exe` and release bootstrap remain distribution work.
+The last command prints a package folder and checksum. Close Revit normally and run `install.ps1` in that folder, then open **RevitThyme → View Tools → View Range / Room Dimensions**. See [utility usage and limits](docs/NATIVE-UTILITIES.md) and [installation and recovery](docs/INSTALLATION.md). The toolkit has a reversible local installer; a signed production `.exe` and release bootstrap remain distribution work.
 
 For CLI automation, inspect a chosen session into a private JSON capture, review it, then rename the exact captured view. See `project.cmd cli --help`. A successful rename creates one Revit Undo item; the tool never saves or syncs a project.
 
@@ -36,9 +39,9 @@ flowchart TD
     Operations --> Revit[Revit API and transactions]
 ```
 
-See [architecture](docs/ARCHITECTURE.md), [MCP tools and Codex setup](docs/MCP.md), [Foundation evidence](verification/foundation.md) and [MCP verification](verification/mcp.md). Hosted CI builds the portable C#/WPF/MCP solution and runs offline checks. Real Revit and Codex tests use a new, pinned disposable process and populated fixture.
+See [architecture](docs/ARCHITECTURE.md), [MCP tools and Codex setup](docs/MCP.md), [Foundation evidence](verification/foundation.md), [MCP verification](verification/mcp.md) and [Native utilities verification](verification/native-utilities.md). Hosted CI builds the portable C#/WPF/MCP solution and runs offline checks. Real Revit tests use a new, pinned disposable process and populated fixture.
 
-Full View Range/Room Dimensions migration, dynamic C#, Cabin Eval, built-in Codex Agent and exploration remain [later stages](docs/ROADMAP.md). Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
+Dynamic C#, Cabin Eval, built-in Codex Agent and exploration remain [later stages](docs/ROADMAP.md). Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
 
 ## Contribute
 

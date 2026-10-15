@@ -19,4 +19,4 @@
 | Updates | Quiet daily native check, manual ribbon/CLI check, registered-installation comparison, verified installer download and close-Revit installation |
 | Verification | Portable unit/stdio checks, pinned actual-Revit and three external Codex rounds |
 
-Version 0.9.0 includes the completed Built-in Agent stage and the requested [release checker](docs/UPDATES.md), using the existing installer. The installer is unsigned and supports full Revit 2027. Exploration remains deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.
+Version 0.9.2 adds the native ribbon layout, SVG icon family, and reusable [ribbon standards](docs/RIBBON.md). It includes the Built-in Agent and [release checker](docs/UPDATES.md), using the existing installer. The installer is unsigned and supports full Revit 2027. Exploration remains deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.

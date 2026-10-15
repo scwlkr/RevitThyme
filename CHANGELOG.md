@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.2 — Native ribbon and SVG icons — 2026-10-15
+
+- Organize the ribbon into Views, Annotation and RevitThyme panels. Keep View Range, Inspect View, Room Dimensions and Open Agent directly accessible; place Check for Updates in the toolkit slide-out.
+- Add original SVG optical icon masters with light/dark and display-density exports, native theme refresh, clearer labels, extended tooltips, command help and appropriate context availability.
+- Establish reusable ribbon organization and SVG design standards, with a one-line skill pointer for future ribbon work. Preserve existing modeling workflows and installer/update behavior.
+- Panel moves change Revit-generated command paths; existing custom keyboard shortcuts or Quick Access entries may need reassignment.
+
 ## 0.9.1 — Installed version reporting and global CLI — 2026-10-15
 
 - Show executing CLI, development checkout and registered RevitThyme versions separately. Verify registration, immutable bundle identity, relevant hashes and receipt agreement. Compare updates against the installed copy, so an up-to-date development CLI still upgrades an older Revit installation.

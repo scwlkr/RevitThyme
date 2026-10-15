@@ -17,12 +17,12 @@ A panel may start with one command when its purpose is distinct and useful. Add 
 | Views | View Range | Large push button, first | A direct task with its own editing workflow. |
 | Views | Inspect View | Large push button, second | Inspect active-view context and review a view-name edit. |
 | Annotation | Room Dimensions | Large push button | Creates view-owned dimensions; annotation is its task home. |
-| RevitThyme | Open Agent | Large push button | The visible entry to the optional dockable assistant. |
-| RevitThyme | Check for Updates | Push button in the panel slide-out | Infrequent maintenance, with background update checks already available. |
+| RevitThyme | Open Agent | Large push button | The visible entry to the optional dockable assistant; requires an open document. |
+| RevitThyme | Check for Updates | Push button in the panel slide-out | Infrequent maintenance, available without a document; background update checks already exist. |
 
 The **RevitThyme** panel is the toolkit's entry and maintenance area. Its broad name is deliberate at this scale. Revisit it if additional utilities need clearer task groups. The single Annotation command earns its panel through a different task purpose; this does not require every future command to have its own panel.
 
-**Open Agent** opens the pane. **Connect Codex** remains the connection action inside that pane. A ribbon label must describe what clicking it immediately does.
+**Open Agent** opens the pane. It is disabled on Revit Home because Revit creates the dockable pane only after a document opens. **Connect Codex** remains the connection action inside that pane. A ribbon label must describe what clicking it immediately does.
 
 ## Choose a control
 
@@ -41,7 +41,9 @@ Use separators only where they express a real subgroup. Let Revit manage panel s
 
 ## Labels, explanations, and availability
 
-Use familiar Revit nouns and short action phrases. Keep the full label meaningful without its icon or panel name. Prefer one or two readable lines; put intentional line breaks between words. User-facing labels describe the task rather than protocol, implementation language, or internal stage. Preserve internal command IDs when changing labels or panel placement so shortcuts and automation keep their identities.
+Use familiar Revit nouns and short action phrases. Keep the full label meaningful without its icon or panel name. Prefer one or two readable lines; put intentional line breaks between words. User-facing labels describe the task rather than protocol, implementation language, or internal stage.
+
+Preserve internal toolkit keys (`PushButtonData.Name`) when changing labels or panel placement so toolkit automation retains its command identities. Revit's generated native `CustomCtrl` command paths also include panel names: moving a button can change its native path even when its toolkit key stays the same. Assess keyboard shortcut and Quick Access Toolbar mappings whenever panels change, and document any needed reassignment. This layout moves existing commands between panels; users may need to reassign earlier shortcuts or Quick Access Toolbar entries.
 
 Every actionable command must have both:
 

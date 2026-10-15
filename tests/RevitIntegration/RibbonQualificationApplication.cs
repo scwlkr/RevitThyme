@@ -81,7 +81,15 @@ public sealed class RibbonQualificationApplication : IExternalApplication, IExte
                 case 1:
                     if (host.UpdateWindow is not { IsVisible: true }) return;
                     Check("Check for Updates opens native dialog with no document", true);
-                    host.UpdateWindow.Close(); Fixture.Create(app, fixture); stage++; break;
+                    host.UpdateWindow.Close(); Fixture.Create(app, fixture);
+                    var created = app.ActiveUIDocument!.Document;
+                    using (var transaction = new Transaction(created, "Create ribbon test view"))
+                    {
+                        transaction.Start();
+                        var type = new FilteredElementCollector(created).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>().First(t => t.ViewFamily == ViewFamily.ThreeDimensional);
+                        View3D.CreateIsometric(created, type.Id).Name = "Ribbon Test 3D"; transaction.Commit();
+                    }
+                    created.Save(); stage++; break;
                 case 2:
                     app.ActiveUIDocument!.RequestViewChange(new FilteredElementCollector(doc!).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().Single(v => v.Name == "Foundation Plan"));
                     stage++; break;
@@ -92,7 +100,8 @@ public sealed class RibbonQualificationApplication : IExternalApplication, IExte
                     Post(app, "RevitThyme.Agent"); stage++; break;
                 case 4:
                     var pane = app.GetDockablePane(new(new Guid("D988D5C7-B1BB-40CE-A636-48C344DA7E68")));
-                    Check("Open Agent opens dockable pane without connection", pane.IsShown() && host.AgentPanel?.Session is null);
+                    if (!pane.IsShown()) return; // PostCommand runs after Revit returns to its message loop.
+                    Check("Open Agent opens dockable pane without connection", host.AgentPanel?.Session is null);
                     pane.Hide(); Post(app, "RevitThyme.Native.ViewRange"); stage++; break;
                 case 5:
                     if (host.ViewRangeWindow is not { IsBusy: false, CurrentRange: not null }) return;
@@ -114,7 +123,7 @@ public sealed class RibbonQualificationApplication : IExternalApplication, IExte
                     Check("all icons change with native theme event", Buttons(app).All(b => !darkImages[b.Name].SequenceEqual(Pixels((BitmapSource)b.LargeImage))));
                     Check("light theme icons retain logical button sizes", Buttons(app).All(b => Math.Abs(b.Image.Width - 16) < 0.1 && Math.Abs(b.LargeImage.Width - 32) < 0.1));
                     UIThemeManager.CurrentTheme = originalTheme;
-                    app.ActiveUIDocument!.RequestViewChange(new FilteredElementCollector(doc!).OfClass(typeof(View)).Cast<View>().First(v => !v.IsTemplate && v.ViewType == ViewType.ThreeD));
+                    app.ActiveUIDocument!.RequestViewChange(new FilteredElementCollector(doc!).OfClass(typeof(View3D)).Cast<View3D>().Single(v => v.Name == "Ribbon Test 3D"));
                     stage++; break;
                 case 10:
                     if (doc!.ActiveView.ViewType != ViewType.ThreeD) return;

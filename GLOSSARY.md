@@ -20,6 +20,8 @@
 | Trusted submission | C# method body run with full Revit process permissions; host opt-in and caller acknowledgement required, no sandbox |
 | Rollback query | Trusted submission whose current-document transaction is always rolled back after serializing its JSON result |
 | Cooperative budget | Cancellation token and elapsed check after code returns; cannot interrupt blocked/infinite code |
+| Development signing | Persistent local code-signing certificate trusted by the current Windows user; signs staged RevitThyme binaries before package hashing |
+| Development run | One owned Revit process and one copied disposable fixture, with separate discovery, Agent state and retained request results |
 | Cabin Eval | Independent native 100-point model evaluator, including temporary global length change and verified rollback |
 
 Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

@@ -10,6 +10,7 @@
 | CLI | Native operations, separate CLI/development/registered versions, installed-copy updates and automatic global `rthyme` command with JSON/text and meaningful exits |
 | MCP | Official C# SDK stdio server, 18 tools, explicit connection and structured native results/errors |
 | Trusted C# | Opt-in Roslyn method bodies through MCP/CLI; rollback queries, atomic modifications, bounded JSON/diagnostics, native change IDs and retained recovery |
+| Development sessions | Local development signing and dedicated fixture-copy launches with process/session/document pinning; rerun C# method bodies in one Revit process. See [development setup](docs/DEVELOPMENT.md); native qualification follows the one-time signed installation. |
 | Cabin Eval | Independent 100-point native evaluator with temporary length probe and negative controls in a disposable fixture |
 | Generic inspection | Views, filtered/paged elements, paged typed parameters and native selection |
 | Parameter editing | Expected-value checks, verified atomic batches, whole-batch rollback and one Undo item |

@@ -1,6 +1,10 @@
-param([string]$OutputDirectory)
+param([string]$OutputDirectory, [switch]$DevelopmentSigning, [string]$DevelopmentSigningConfigPath)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+if ($DevelopmentSigning) {
+    $signing = & (Join-Path $root 'scripts\dev-signing.ps1') -Action Status -ConfigPath $DevelopmentSigningConfigPath | ConvertFrom-Json
+    if (-not $signing.ready) { throw 'Development signing is not ready. Run explicit dev-signing.ps1 -Action Setup first.' }
+}
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'packages' }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 & (Join-Path $root 'project.cmd') build
@@ -39,6 +43,11 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'notices') -Destination (Join-Pa
 Copy-Item -LiteralPath (Join-Path $root 'scripts\host-path.ps1') -Destination (Join-Path $folder 'host-path.ps1')
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $folder 'LICENSE')
 Copy-Item -LiteralPath (Join-Path $root 'docs\INSTALLATION.md') -Destination (Join-Path $folder 'README.md')
+if ($DevelopmentSigning) {
+    # Authenticode changes PE bytes: sign and verify before computing integrity hashes.
+    $signing = & (Join-Path $root 'scripts\dev-signing.ps1') -Action Sign -ConfigPath $DevelopmentSigningConfigPath -PackageDirectory $folder | ConvertFrom-Json
+    if (-not $signing.ready -or @($signing.files | Where-Object { -not $_.verified }).Count) { throw 'Development package signing failed.' }
+}
 $files = @{}; Get-ChildItem -LiteralPath $folder -File -Recurse | ForEach-Object {
     $relative = $_.FullName.Substring($folder.Length+1).Replace('\','/')
     if ($_.Name -match '^(RevitAPI|RevitAPIUI|RevitThyme.RevitIntegration)' -or $_.Extension -in '.rvt','.rfa','.rte') { throw 'Proprietary/test/model artifact in package.' }

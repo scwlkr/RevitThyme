@@ -1,4 +1,4 @@
-param([string]$Action, $Plan, $Launch, [string]$Binding, [string]$Source, [Guid]$RequestId, [int]$BudgetMilliseconds)
+param([string]$Action, $Plan, $Launch, [string]$Binding, [string]$Source, [Guid]$RequestId=[Guid]::Empty, [int]$BudgetMilliseconds)
 . (Join-Path $PSScriptRoot 'dev-common.ps1')
 $pendingPath = Join-Path $Plan.folder 'pending.json'
 if ($Action -eq 'outcome') {

@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory)][ValidateSet('prepare','start','status','query','modify','outcome','mcp','stop')][string]$Action,
     [string]$RunFolder, [string]$FixtureSource, [string]$PackageDirectory, [string]$SigningConfigPath,
-    [string]$Source, [Guid]$RequestId, [ValidateRange(100,30000)][int]$BudgetMilliseconds=10000
+    [string]$Source, [Guid]$RequestId=[Guid]::Empty, [ValidateRange(100,30000)][int]$BudgetMilliseconds=10000
 )
 . (Join-Path $PSScriptRoot 'dev-common.ps1')
 if (-not $SigningConfigPath) {

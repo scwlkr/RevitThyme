@@ -14,20 +14,30 @@ Parameter inspection/readback now includes native shared status, nullable shared
 
 These are contract/client regressions with an offline model adapter. They do not establish actual Revit behavior. Older version-4 clients receive the original parameter JSON unless they opt into identity metadata on the existing bridge envelope. Updated clients require the matching updated host; install Addin, CLI and MCP together.
 
-## Native acceptance pending
+## Native acceptance passed — 2026-10-15
 
-The installed executable/SDK on the implementation machine reports Revit 2027.3, file build `27.3.0.28`. This is an environment inventory, not a candidate test result. No candidate native fixture was run. The active working Revit session and installed registration were preserved. Compiled Addin/Core changes require the installation window described in [development setup](../docs/DEVELOPMENT.md); script execution against the older installed host cannot qualify this candidate.
+The exact product revision loaded and tested in actual Revit was **`2a880cfcbb61ee008a9aa5db7c43fc12771a328b`**. Revit reported `Application.VersionNumber = 2027`, `VersionBuild = 27.3.0.28` and executable file build `27.3.0.28`. Loaded Addin/Core assembly informational versions both contained that SHA; their hashes matched the prepared signed candidate:
 
-Before native sign-off, install the exact signed candidate with Revit closed normally, then use `project.cmd dev-start` with one known disposable, nonworkshared fixture. Retain its exact run/process/start/session/document identity and verify the loaded candidate hashes. Record the exact tested Git SHA and native `Application.VersionNumber`, `VersionBuild` and executable file build in private evidence.
+| Identity | SHA-256 |
+| --- | --- |
+| Package manifest | `53d5f765d5723f5b42104530bec4e5af99a44e401c6ded196932515c710db293` |
+| Addin | `36357c1ce11152a28866da4fb471e0b7045b7c520d0ca375cbe6039753ddc560` |
+| Core | `684dec907993d69212c08e1da7a044dc050b451d87732da22ee1d73d919a1195` |
 
-Complete this checklist in that one disposable fixture, keeping working models separate:
+Installation followed an explicitly agreed close-Revit window and retained recoverable registration/receipt backups. `dev-start` opened one copied, nonworkshared baseline in a separate process with exact process/start/session/document pinning. The [fixture helpers](../tests/ParameterIdentity/README.md) created one synthetic Generic Model instance and independently read its API properties. The installed candidate's CLI executable and official-SDK MCP server supplied the actual inspection/edit results; the oracle did not call the candidate reader.
 
-- [ ] Include one same-name built-in/shared pair and two same-name shared definitions with different known GUIDs. Compare inspector identities with direct API `InternalDefinition.BuiltInParameter`, `IsShared` and guarded `GUID`, retaining the exact local IDs.
-- [ ] Include an ordinary nonshared, non-built-in field. Verify both nullable identities are null and inspection does not access its inapplicable GUID.
-- [ ] Include assigned, unassigned, zero and empty-string cases. Compare each returned `hasValue` with direct native `Parameter.HasValue`, without deriving it from the raw value.
-- [ ] Inspect through the existing CLI and MCP paths; include duplicate fields across one pagination boundary. Iterate returned offsets and compare every ID, raw value, data type, read-only and truncation flag against native API observations. Check a long string remains clipped to 512 and blocked from edits. Check representative maximum pages remain within the existing response bound.
-- [ ] Before and after inspection, verify unchanged revision, document modified state, element count, field values and fixture file hash. No inspection transaction, save or sync.
-- [ ] Use the existing exact-ID edit with the chosen field's exact expected raw value. Verify only that same-name field changes, the other IDs/values remain intact, stale expected values are refused and one native Undo restores the edit. Readback must retain identity metadata.
-- [ ] Retain the actual fixture/build/SHA, client results and direct native comparisons. Preserve the baseline fixture, working processes and installed registration; retain failures as well as passes.
+| Acceptance | Observed result |
+| --- | --- |
+| Same-name built-in/shared identity | Native Comments `-1010106` returned `ALL_MODEL_INSTANCE_COMMENTS`, false shared status and null GUID. Two shared Comments fields had distinct known GUIDs ending `000000000001` and `000000000002`, exact local IDs, and null built-in identities. CLI/MCP matched direct API observations. |
+| Ordinary nonshared field | Native family parameter `PI Ordinary` returned false shared status and both nullable identities null; no inapplicable GUID access or exception. |
+| Native HasValue | Designated assigned text: true. Unassigned Integer with raw zero: false. Explicitly assigned Integer zero: true. Explicitly assigned empty String: true. Every inspected flag matched the direct native API, independently of raw values. |
+| Pagination, values and truncation | All 58 parameters matched native IDs, raw values, data types, read-only/truncation and identity fields through both clients at offsets 0, 20 and 40. Same-name shared fields were at native indices 29 and 52, on different pages. Long text was clipped to 512 and refused for editing. Largest observed operation JSON was 7,047 bytes; largest MCP text-plus-structured response was 18,653 bytes, within existing bounds. |
+| Read-only inspection | Native before/after raw digest, all parameter IDs, revision 5, modified state, element count 2,515 and saved fixture hash were unchanged. Typed inspection opens no transaction. Independent evaluator queries used their existing rollback wrapper. No project save/sync occurred. |
+| Exact-ID edit and safeguards | Only selected shared parameter ID `3646` changed to the reviewed value. Native post-edit oracle confirmed every other field unchanged. Read-only/truncated and stale expected-value edits were rejected; an old capture was rejected after the edit. |
+| Native Undo | Exactly one posted Undo produced a native `TransactionUndone` event for `RevitThyme Set Parameters`. Direct API digest and all typed values/identities returned to baseline, with unchanged count and saved hash. |
 
-Merge and release remain pending review and native acceptance. No version bump or release is part of this change.
+Native harness stages passed **54 inspection + 67 edit + 28 post-Undo checks** (149 total), with direct native oracle snapshots before/after inspection, after the edit and after Undo. These checks concern this one fixture and supported build; they do not expand supported Revit versions or claim broader model qualification.
+
+After evidence capture, one further native Undo removed fixture preparation, restoring the original 2,425-element baseline with `IsModified = false`. Only the owned development process was closed normally. Both the copied RVT and original baseline retained SHA-256 `cf84cc50d691d3bc81ad5c04351b9abf531a56725950f8c5e92803ed378ede2e`. Scratch family/shared definitions, scripts, source hashes, complete client results, native comparisons, loaded binary hashes and installation/cleanup receipts remain in private ignored artifacts.
+
+The follow-up changes add only qualification helpers and evidence; product source remains identical to the exact native-tested revision above. PM/maintainer review remains required. The PR is unmerged and unreleased; no tag or version change was made.

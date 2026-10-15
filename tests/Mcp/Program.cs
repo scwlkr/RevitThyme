@@ -17,6 +17,7 @@ internal static class Program
             if (args is ["--live", var folder]) await Live.Run(folder);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
             else if (args is ["--dynamic-live", var dynamicFolder]) await DynamicLive.Run(dynamicFolder);
+            else if (args is ["--parameter-identity-live", var identityFolder, var identityStage]) await ParameterIdentityLive.Run(identityFolder, identityStage);
             else { await Generic(); await ParameterIdentity.Run(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }

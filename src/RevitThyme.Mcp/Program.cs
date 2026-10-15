@@ -13,7 +13,7 @@ public static class Program
         {
             Console.WriteLine("revitthyme-mcp [--session ABSOLUTE_FILE] [--sessions-directory ABSOLUTE_FOLDER]\nOfficial MCP stdio server. Explicit connection. Trusted C# requires host opt-in; see DYNAMIC-EXECUTION.md."); return 0;
         }
-        if (args is ["--version"]) { Console.WriteLine("0.9.0-agent"); return 0; }
+        if (args is ["--version"]) { Console.WriteLine("0.9.1-cli"); return 0; }
         try
         {
             var options = ServerSettings.Parse(args);

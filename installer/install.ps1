@@ -1,6 +1,7 @@
 param([string]$PackageDirectory, [string]$InstallDirectory, [string]$AddinsDirectory, [switch]$Isolated, [switch]$CheckOnly, [string]$ReceiptPath)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
+. (Join-Path $PSScriptRoot 'global-command.ps1')
 if ($Isolated) { $isolatedRoot = Assert-IsolatedInstallTest $InstallDirectory $AddinsDirectory }
 elseif (Get-Process Revit -ErrorAction SilentlyContinue) { throw 'Close Revit normally before installing. Preserve unsaved models.' }
 if (-not $PackageDirectory) { $PackageDirectory = $PSScriptRoot }
@@ -16,7 +17,9 @@ Assert-ToolkitRuntime
 $old = $null
 if (Test-Path -LiteralPath $registration) {
     $oldFolder = Read-FoundationRegistration $registration
+    if ((Split-Path $oldFolder -Parent) -ne $install -or (Split-Path $oldFolder -Leaf) -cnotmatch '^[a-f0-9]{64}$') { throw 'Registration belongs to a different installation. Preserve it.' }
     $null = Assert-FoundationPackage $oldFolder
+    if ((Get-FileHash -LiteralPath (Join-Path $oldFolder 'manifest.json')).Hash.ToLowerInvariant() -cne (Split-Path $oldFolder -Leaf)) { throw 'Registered immutable bundle identity differs. Preserve it.' }
     $old = [IO.File]::ReadAllText($registration)
 }
 $oldReceipt = $null
@@ -36,6 +39,8 @@ if (Test-Path -LiteralPath $target) {
     if ((Get-FileHash -LiteralPath (Join-Path $target 'manifest.json')).Hash.ToLowerInvariant() -ne $identity) { throw 'Existing immutable bundle differs.' }
 }
 $result = @{installed=$target;registration=$registration;cli=(Join-Path $target 'cli\revitthyme.exe');mcp=$(if($manifest.version -ne '0.4.0-foundation'){Join-Path $target 'mcp\revitthyme-mcp.exe'}else{$null});detected_revit=$detected;version=$manifest.version}
+$commandPlan = New-CommandPlan $install $target $manifest $isolatedRoot $oldFolder
+$result.global_command = $(if($commandPlan.result){$commandPlan.result.path}else{$null})
 if ($CheckOnly) { $result | ConvertTo-Json -Depth 4; return }
 if (-not (Test-Path -LiteralPath $target)) {
     $staging = Join-Path $install ('.pending-'+[Guid]::NewGuid().ToString('N'))
@@ -78,6 +83,7 @@ try {
     $written = $true
     $null = Assert-NativeHostPath $registration
     if ([IO.File]::ReadAllText($registration) -ne $xml) { throw 'Registration readback failed.' }
+    Apply-CommandPlan $commandPlan
     if ($ReceiptPath) {
         $temporaryReceipt = Join-Path (Split-Path $ReceiptPath -Parent) ('.receipt-'+[Guid]::NewGuid().ToString('N')+'.tmp')
         [IO.File]::WriteAllText($temporaryReceipt,$json)
@@ -87,6 +93,7 @@ try {
         if ([IO.File]::ReadAllText($ReceiptPath) -ne $json) { throw 'Receipt readback failed.' }
     }
 } catch {
+    try { Undo-CommandPlan $commandPlan } catch { Write-Warning ('Global command rollback failed: '+$_.Exception.Message) }
     if ($written -and (Test-Path -LiteralPath $registration) -and [IO.File]::ReadAllText($registration) -eq $xml) {
         if ($old) { [IO.File]::WriteAllText($registration, $old) }
         else { Remove-Item -LiteralPath $registration }

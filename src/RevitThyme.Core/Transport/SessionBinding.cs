@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace RevitThyme.Core;
 
@@ -25,4 +26,5 @@ public sealed record SessionBinding(int ProtocolVersion, int ProcessId, string P
             throw new InvalidDataException("Revit process changed or exited. Select a current session.");
     }
 }
-public sealed record BridgeRequest(int ProtocolVersion, string SessionId, OperationRequest Request);
+public sealed record BridgeRequest(int ProtocolVersion, string SessionId, OperationRequest Request,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool IncludeParameterIdentity = false);

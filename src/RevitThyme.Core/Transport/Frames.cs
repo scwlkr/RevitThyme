@@ -5,9 +5,9 @@ namespace RevitThyme.Core;
 
 public static class Frames
 {
-    public static async Task WriteAsync<T>(Stream stream, T value, CancellationToken token)
+    public static async Task WriteAsync<T>(Stream stream, T value, CancellationToken token, JsonSerializerOptions? options = null)
     {
-        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(value, Protocol.Json);
+        byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(value, options ?? Protocol.Json);
         if (bytes.Length > Protocol.MaxBytes) throw new InvalidDataException("Frame too large.");
         byte[] header = new byte[4]; BinaryPrimitives.WriteInt32LittleEndian(header, bytes.Length);
         await stream.WriteAsync(header, token); await stream.WriteAsync(bytes, token); await stream.FlushAsync(token);

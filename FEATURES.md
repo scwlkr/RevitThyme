@@ -12,7 +12,7 @@
 | Trusted C# | Opt-in Roslyn method bodies through MCP/CLI; rollback queries, atomic modifications, bounded JSON/diagnostics, native change IDs and retained recovery |
 | Development sessions | Local signing and fixture-copy launches with process/session/document pinning; prompt-free startup, revised C# in one process, native modification and Undo qualified on Revit 2027.3. See [development setup](docs/DEVELOPMENT.md) and [native evidence](verification/development-signing.md). |
 | Cabin Eval | Independent 100-point native evaluator with temporary length probe and negative controls in a disposable fixture |
-| Generic inspection | Views, filtered/paged elements, paged typed parameters and native selection |
+| Generic inspection | Views, filtered/paged elements, native selection and paged typed parameters with shared GUID, built-in identity and native assigned-value state through MCP and CLI `inspect-elements` |
 | Parameter editing | Expected-value checks, verified atomic batches, whole-batch rollback and one Undo item |
 | Outcome recovery | Session-retained request IDs, value-based replay, conflict rejection and queued cancellation |
 | Installation | Single per-user Windows setup and verified GitHub bootstrap; Revit 2027/runtime detection, bundled add-in/CLI/MCP/Agent/Codex, owned user PATH entry for `rthyme`, immutable upgrades and recoverable uninstall |

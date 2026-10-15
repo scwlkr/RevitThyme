@@ -7,7 +7,8 @@ public sealed record ElementInfo(string UniqueId, long Id, string Name, string C
 public sealed record ElementPage(ElementInfo[] Items, int? NextOffset);
 public sealed record ParameterValue(string Storage, string? Text = null, long? Integer = null, double? Number = null);
 public sealed record ParameterInfo(string Id, string Name, string DataType, bool IsReadOnly,
-    ParameterValue Value, bool Truncated = false);
+    ParameterValue Value, bool Truncated = false, bool IsShared = false, Guid? SharedGuid = null,
+    string? BuiltInParameter = null, bool HasValue = false);
 public sealed record ElementDetail(ElementInfo Element, ParameterInfo[] Parameters, int? NextParameterOffset);
 public sealed record ParameterEdit(string ElementId, string ParameterId, ParameterValue Expected, ParameterValue Value);
 

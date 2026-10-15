@@ -26,6 +26,7 @@ public static class Program
                 revitthyme update install [--version VERSION]
                 revitthyme sessions [--directory ABSOLUTE_PATH] [--json]
                 revitthyme inspect --session ABSOLUTE_FILE [--json]
+                revitthyme inspect-elements --session ABSOLUTE_FILE --element UNIQUE_ID [--capture PREVIOUS_RESULT --parameter-offset OFFSET] [--json]
                 revitthyme rename-view --session ABSOLUTE_FILE --capture ABSOLUTE_FILE --name NAME [--json]
                 revitthyme view-range get --session ABSOLUTE_FILE --json
                 revitthyme view-range set --session ABSOLUTE_FILE --capture RANGE_RESULT --range SETTINGS_FILE --json
@@ -39,6 +40,8 @@ public static class Program
 
                 Write inspection JSON to a capture file, review it, then rename that exact view.
                 Capture files contain document paths; keep them private. No model save or sync occurs.
+                inspect-elements returns parameter IDs, raw values, isShared, sharedGuid, builtInParameter and native hasValue.
+                Continue with --capture and nextParameterOffset until null; HasValue means assigned in Revit, even for zero/empty values.
                 """); return 0;
         }
         if (args[0] is "--version" or "version" or "update") return await UpdateCli.Run(args, output);
@@ -49,6 +52,7 @@ public static class Program
         string[] allowed = command switch
         {
             "sessions" => ["--directory", "--json"], "inspect" => ["--session", "--json"],
+            "inspect-elements" => ["--session", "--element", "--capture", "--parameter-offset", "--json"],
             "rename-view" => ["--session", "--capture", "--name", "--json"],
             "view-range-get" => ["--session", "--json"],
             "view-range-set" => ["--session", "--capture", "--range", "--json"],
@@ -74,6 +78,20 @@ public static class Program
         var client = clientFactory?.Invoke(binding) ?? new PipeClient(binding);
         OperationRequest request;
         if (command == "inspect") request = new(Guid.NewGuid(), OperationKind.Inspect);
+        else if (command == "inspect-elements")
+        {
+            int offset = int.Parse(options.GetValueOrDefault("--parameter-offset") ?? "0", CultureInfo.InvariantCulture);
+            OperationResult context;
+            if (options.ContainsKey("--capture")) context = ReadCapture(Required(options, "--capture"), binding);
+            else
+            {
+                if (offset != 0) throw new ArgumentException("Use --capture with the previous result to continue parameter pages at the same revision.");
+                context = await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect));
+            }
+            if (!context.Succeeded) { await output.WriteLineAsync(JsonSerializer.Serialize(context, Protocol.Json)); return 1; }
+            request = new(Guid.NewGuid(), OperationKind.InspectElements, context.Snapshot!.Target,
+                ElementIds: [Required(options, "--element")], ParameterOffset: offset);
+        }
         else if (command is "view-range-get" or "room-dimensions-preview")
         {
             var context = await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect));
@@ -85,15 +103,8 @@ public static class Program
         }
         else
         {
-            string capturePath = Required(options, "--capture");
-            if (!Path.IsPathFullyQualified(capturePath) || new FileInfo(capturePath).Length > Protocol.MaxBytes)
-                throw new ArgumentException("Use an absolute inspection capture file (maximum 64 KiB).");
-            var capture = JsonSerializer.Deserialize<OperationResult>(File.ReadAllText(capturePath), Protocol.Json);
-            if (capture?.Succeeded != true || capture.Snapshot is not { } snapshot)
-                throw new ArgumentException("Capture must contain a successful inspection result.");
-            if (snapshot.Target.ProcessId != binding.ProcessId || snapshot.Target.ProcessStart != binding.ProcessStart
-                || snapshot.Target.SessionId != binding.SessionId)
-                throw new ArgumentException("Capture belongs to a different Revit session.");
+            var capture = ReadCapture(Required(options, "--capture"), binding);
+            var snapshot = capture.Snapshot!;
             request = command switch
             {
                 "rename-view" => new(Guid.NewGuid(), OperationKind.RenameView, snapshot.Target, snapshot.ViewName, Required(options, "--name")),
@@ -111,9 +122,23 @@ public static class Program
             await output.WriteLineAsync($"{result.Code}: {result.Message}");
             if (result.Snapshot is { } s)
                 await output.WriteLineAsync($"{s.DocumentTitle} / {s.ViewName} ({s.ViewType}, view {s.ViewElementId.ToString(CultureInfo.InvariantCulture)})");
+            if (result.Details is { } details)
+                await output.WriteLineAsync(JsonSerializer.Serialize(details, Protocol.Json));
         }
         if (!result.Succeeded) { await error.WriteLineAsync(result.Message); return 1; }
         return 0;
+    }
+    private static OperationResult ReadCapture(string path, SessionBinding binding)
+    {
+        if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > Protocol.MaxBytes)
+            throw new ArgumentException("Use an absolute inspection capture file (maximum 64 KiB).");
+        var capture = JsonSerializer.Deserialize<OperationResult>(File.ReadAllText(path), Protocol.Json);
+        if (capture?.Succeeded != true || capture.Snapshot is not { } snapshot)
+            throw new ArgumentException("Capture must contain a successful inspection result.");
+        if (snapshot.Target.ProcessId != binding.ProcessId || snapshot.Target.ProcessStart != binding.ProcessStart
+            || snapshot.Target.SessionId != binding.SessionId)
+            throw new ArgumentException("Capture belongs to a different Revit session.");
+        return capture;
     }
     private static ViewRangeSettings ReadRange(string path)
     {

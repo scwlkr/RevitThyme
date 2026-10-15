@@ -51,20 +51,23 @@ internal static class Updates
             var output = new StringWriter(); string? invokedVersion = null;
             Task<string> Download(string version, string? destination, bool install) { invokedVersion = version; return Task.FromResult(Path.Combine(destination!, "setup.exe")); }
             Task<UpdateResult> Available(string? version) => checker.CheckAsync(version: version);
-            await UpdateCli.Run(["update", "download", "--destination", directory], output, Available, Download);
+            ToolkitInventory Inventory() => new(new(ProductVersion.Current, ProductVersion.Build, directory), null,
+                new("installed", ProductVersion.Current, ProductVersion.Build, "0.9.0-agent", directory, "fixture.addin", ""));
+            await UpdateCli.Run(["update", "download", "--destination", directory], output, Available, Download, Inventory);
             check("CLI download pins the checked release", invokedVersion == "99.0.0" && output.ToString().Contains("Verified installer:", StringComparison.Ordinal));
             invokedVersion = null; handler.Version = "0.8.1";
-            await UpdateCli.Run(["update", "download", "--destination", directory], new StringWriter(), Available, Download);
+            await UpdateCli.Run(["update", "download", "--destination", directory], new StringWriter(), Available, Download, Inventory);
             check("CLI latest update does not downgrade", invokedVersion is null);
-            await UpdateCli.Run(["update", "download", "--destination", directory, "--version", "0.8.1"], new StringWriter(), Available, Download);
+            await UpdateCli.Run(["update", "download", "--destination", directory, "--version", "0.8.1"], new StringWriter(), Available, Download, Inventory);
             check("CLI explicit version supports deliberate download", invokedVersion == "0.8.1");
-            output = new(); await UpdateCli.Run(["update", "check", "--json"], output, Available);
+            output = new(); await UpdateCli.Run(["update", "check", "--json"], output, Available, inventory: Inventory);
             check("CLI check returns structured version and state", JsonDocument.Parse(output.ToString()).RootElement.GetProperty("status").GetString() == "ahead");
             output = new(); await ProgramVersion(output);
-            check("CLI version uses actual assembly build", output.ToString().Trim() == ProductVersion.Build && ProductVersion.Current == "0.9.0");
+            check("CLI version distinguishes executing and installed builds", output.ToString().Contains("CLI: " + ProductVersion.Build, StringComparison.Ordinal)
+                && output.ToString().Contains("Development:", StringComparison.Ordinal) && output.ToString().Contains("Installed RevitThyme", StringComparison.Ordinal));
             foreach (string[] args in new[] { new[] { "update", "download" }, new[] { "update", "check", "--json", "--json" }, new[] { "update", "check", "--source", "http://other" } })
             {
-                try { await UpdateCli.Run(args, new StringWriter(), Available); check("CLI malformed update refused", false); }
+                try { await UpdateCli.Run(args, new StringWriter(), Available, inventory: Inventory); check("CLI malformed update refused", false); }
                 catch (ArgumentException) { check("CLI malformed update refused", true); }
             }
         }

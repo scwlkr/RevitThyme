@@ -8,6 +8,7 @@ public static class Program
 {
     public static async Task<int> Main(string[] args)
     {
+        Console.OutputEncoding = new System.Text.UTF8Encoding(false);
         try { return await RunAsync(args, Console.Out, Console.Error); }
         catch (Exception error) when (error is IOException or InvalidDataException or ArgumentException or JsonException or InvalidOperationException or FormatException or OverflowException or System.ComponentModel.Win32Exception or HttpRequestException or OperationCanceledException or KeyNotFoundException)
         { Console.Error.WriteLine(error.Message); return 2; }
@@ -18,7 +19,7 @@ public static class Program
         if (args.Length == 0 || args is ["--help"] or ["help"])
         {
             await output.WriteLineAsync("""
-                RevitThyme
+                RevitThyme (also available as rthyme)
                 revitthyme --version | version [--json]
                 revitthyme update check [--json] [--version VERSION]
                 revitthyme update download --destination ABSOLUTE_FOLDER [--version VERSION]
@@ -33,12 +34,14 @@ public static class Program
                 revitthyme run-query|run-modify --session ABSOLUTE_FILE --capture INSPECTION --source CS_BODY_FILE --trusted true --request-id GUID [--budget-ms 10000] --json
                 revitthyme get-operation --session ABSOLUTE_FILE --request-id GUID --json
 
+                Version reports distinguish the CLI/development build from installed RevitThyme.
+                Update commands target the registered RevitThyme installation. Close Revit before installing.
+
                 Write inspection JSON to a capture file, review it, then rename that exact view.
                 Capture files contain document paths; keep them private. No model save or sync occurs.
                 """); return 0;
         }
-        if (args is ["--version"]) { await output.WriteLineAsync(ProductVersion.Build); return 0; }
-        if (args[0] is "version" or "update") return await UpdateCli.Run(args, output);
+        if (args[0] is "--version" or "version" or "update") return await UpdateCli.Run(args, output);
         if (args[0] is "run-query" or "run-modify" or "get-operation") return await DynamicCli.Run(args, output, error, clientFactory);
         if (args.Length >= 2 && args[0] is "view-range" or "room-dimensions") args = [args[0] + "-" + args[1], .. args[2..]];
         var options = Parse(args[1..]);

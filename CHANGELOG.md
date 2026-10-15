@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Installed version reporting and global CLI — 2026-10-15
+
+- Show executing CLI, development checkout and registered RevitThyme versions separately. Verify registration, immutable bundle identity, relevant hashes and receipt agreement. Compare updates against the installed copy, so an up-to-date development CLI still upgrades an older Revit installation.
+- Add the native global `rthyme` command through standard .NET tool packaging and `project.cmd cli-install`, using a local feed. Keep normal installed/toolkit packages, Revit-open guards, no-downgrade behavior, argument forwarding and exit codes.
+- Record explicit product versions in future package manifests; older bundles fall back to assembly product metadata rather than mistaking package suffixes for release versions. Public v0.9.0 assets remain unchanged.
+
 ## 0.9.0 — Built-in Agent and update checks — 2026-10-14
 
 - Add the dockable Codex Agent, ChatGPT sign-in, streamed conversations, native approvals, interruption, saved session resume and ordinary skills. Bundle the pinned official Codex CLI 0.162.1 with the add-in, CLI and MCP. See [actual Revit Agent qualification](verification/agent.md).

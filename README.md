@@ -26,6 +26,8 @@ The bootstrap downloads and verifies the Windows installer before running it. Ve
 
 RevitThyme checks for updates once a day in the background. **Check for Updates** on the ribbon checks immediately and can download a verified installer. During development, use `project.cmd cli --version`, `project.cmd cli update check --json`, or `project.cmd cli update install` with Revit closed. See [update commands](docs/UPDATES.md).
 
+Install the global developer command with `project.cmd cli-install`, then use `rthyme --version`, `rthyme update check` and `rthyme update install` from any folder. Version output separates the executing CLI, development checkout and registered RevitThyme installation; updates target the installed copy. This source fix follows public 0.9.0 and needs the current checkout/.NET SDK 10.
+
 ## Build
 
 Use Windows, PowerShell 7, .NET SDK 10.0.400 and licensed Revit 2027. The current native target is Revit **27.3.0.28**; other releases and another computer need qualification. Revit supplies its proprietary API assemblies locally.

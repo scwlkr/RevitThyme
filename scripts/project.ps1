@@ -11,6 +11,8 @@ try {
             Write-Output 'project.cmd doctor | build | test | check | package | install | uninstall'
             Write-Output 'project.cmd cli <arguments> | live-prepare | live-start <run> | live-check <run> | live-cleanup <run>'
             Write-Output 'project.cmd cli --version | cli version --json | cli update check --json | cli update download --destination ABSOLUTE_FOLDER | cli update install'
+            Write-Output 'project.cmd cli-install [-ToolPath ABSOLUTE_TEST_DIRECTORY] installs the global rthyme command from this checkout'
+            Write-Output 'project.cmd check-cli-tool -Executable ABSOLUTE_RTHYME_EXE checks the native global CLI'
             Write-Output 'project.cmd check-installer -PackageDirectory ABSOLUTE_PACKAGE'
             Write-Output 'project.cmd setup -PackageDirectory ABSOLUTE_PACKAGE | check-bootstrap | check-setup -PackageDirectory ABSOLUTE_PACKAGE -SetupExecutable ISOLATED_EXE'
             Write-Output 'project.cmd mcp <server-options> | test-mcp | mcp-prepare | mcp-start <run> | mcp-check <run> | mcp-codex <run> | mcp-cleanup <run>'
@@ -28,6 +30,8 @@ try {
         'build' { dotnet build RevitThyme.sln -c Release --nologo @Rest; exit $LASTEXITCODE }
         'test' { dotnet run --project tests/Unit -c Release @Rest; exit $LASTEXITCODE }
         'cli' { dotnet run --project src/RevitThyme.Cli -c Release -- @Rest; exit $LASTEXITCODE }
+        'cli-install' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'install-cli.ps1') @Rest; exit $LASTEXITCODE }
+        'check-cli-tool' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-cli-tool.ps1') @Rest; exit $LASTEXITCODE }
         'mcp' {
             # stdout must contain only JSON-RPC, never dotnet build messages.
             dotnet build src/RevitThyme.Mcp -c Release --nologo | ForEach-Object { [Console]::Error.WriteLine($_) }

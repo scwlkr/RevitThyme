@@ -8,7 +8,8 @@ internal static class Program
     private static int failed;
     public static async Task<int> Main()
     {
-        await Operations(); await Boundaries.Run(Check); Utilities.Run(Check); await Dynamic.Run(Check); await Updates.Run(Check); await InstalledCli.Run(Check);
+        await Operations(); await Boundaries.Run(Check); await ParameterInspectionCli.Run(Check); await ParameterResponseCompatibility.Run(Check);
+        Utilities.Run(Check); await Dynamic.Run(Check); await Updates.Run(Check); await InstalledCli.Run(Check);
         Console.WriteLine($"Foundation unit checks: {passed} passed, {failed} failed."); return failed == 0 ? 0 : 1;
     }
     internal static void Check(string name, bool condition)

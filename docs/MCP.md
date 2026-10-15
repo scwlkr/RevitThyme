@@ -27,6 +27,28 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
 
+## Parameter identity
+
+`inspect_elements` returns each field's exact document-local `id`, existing name/data type/raw value and read-only/truncation flags, plus:
+
+| Field | Meaning |
+| --- | --- |
+| `isShared` | Native Revit shared-parameter status |
+| `sharedGuid` | Native shared GUID, or explicit null for nonshared fields; GUID access is guarded by `IsShared` |
+| `builtInParameter` | Native `BuiltInParameter` enum name, or explicit null when not applicable (`INVALID`) |
+| `hasValue` | Native Revit `HasValue`, independent of the raw value; assigned does not mean nonempty, useful or safe to delete |
+
+The CLI exposes the same typed operation and JSON with no trusted-code opt-in:
+
+```powershell
+rthyme inspect-elements --session C:\absolute\session.json --element ELEMENT_UNIQUE_ID --json > C:\absolute\page1.json
+rthyme inspect-elements --session C:\absolute\session.json --element ELEMENT_UNIQUE_ID --capture C:\absolute\page1.json --parameter-offset 20 --json
+```
+
+Use the returned `nextParameterOffset` for the next call (it may be less than 20). The CLI captures context on the first page and requires `--capture` for continuation pages; MCP uses the supplied `captureId`. Both paths reject stale captured revisions. Capture files contain model paths; keep them private. Inspection opens no model transaction and neither path saves the model.
+
+For example, two fields named **Comments** can have `id: "-1010106"`, `builtInParameter: "ALL_MODEL_INSTANCE_COMMENTS"`, `isShared: false`, `sharedGuid: null` and `id: "123456"`, `builtInParameter: null`, `isShared: true`, `sharedGuid: "87a96cdc-7f6a-44b6-b0a7-fd5faecfcb22"`. IDs and GUIDs here are illustrative. Compare the coordinator's GUID with the returned shared field, then use that field's exact local `id` in the existing `set_parameters` edit with its exact raw `expected` value. Two shared fields with the same name and different GUIDs remain separate, even across pages. Ordinary nonshared project fields have neither identity. Inspection does not automatically enumerate absent type fields or choose a field for you. IDs stay document-local; GUIDs do not authorize model-wide edits.
+
 ## External Codex setup
 
 Install the local package with Revit closed normally. The installer prints `mcp`, the absolute framework-dependent server executable. Configure that executable directly, keeping build logs off MCP stdout:

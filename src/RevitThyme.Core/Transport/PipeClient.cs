@@ -11,7 +11,7 @@ public sealed class PipeClient(SessionBinding binding) : IOperationClient
     {
         if (!OperatingSystem.IsWindows()) throw new PlatformNotSupportedException("The Revit bridge runs on Windows.");
         binding.AssertProcess();
-        var envelope = new BridgeRequest(Protocol.Version, binding.SessionId, request);
+        var envelope = new BridgeRequest(Protocol.Version, binding.SessionId, request, IncludeParameterIdentity: true);
         if (JsonSerializer.SerializeToUtf8Bytes(envelope, Protocol.Json).Length > Protocol.MaxBytes)
             return OperationResult.Reject(request, "request_too_large", "Request exceeds the 64 KiB bridge limit; nothing was submitted.");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

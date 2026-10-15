@@ -29,7 +29,9 @@ internal static class ElementInspection
         };
         return new(p.Id.Value.ToString(CultureInfo.InvariantCulture), Clip(p.Definition.Name, 100),
             p.Definition.GetDataType().TypeId, p.IsReadOnly || p.StorageType is StorageType.ElementId or StorageType.None,
-            value, raw?.Length > 512);
+            value, raw?.Length > 512, p.IsShared, p.IsShared ? p.GUID : null,
+            p.Definition is InternalDefinition definition && definition.BuiltInParameter != BuiltInParameter.INVALID
+                ? definition.BuiltInParameter.ToString() : null, p.HasValue);
     }
     public static ElementDetail Detail(Document doc, string id, int offset)
     {

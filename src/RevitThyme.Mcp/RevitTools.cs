@@ -29,6 +29,7 @@ public sealed partial class RevitTools(RevitConnection connection)
         limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100,
             sourceBytes = DynamicExecutor.MaxSourceBytes, resultBytes = DynamicExecutor.MaxValueBytes, changedIds = DynamicExecutor.MaxChangedIds },
         parameterUnits = "Double values use Revit internal units (length feet, angles radians). dataType is the native Forge type ID. ElementId parameters are inspection-only.",
+        parameterIdentity = "id is the exact document-local edit target. isShared gates sharedGuid; builtInParameter is the native enum name or null. hasValue is native assigned-value state, not a nonempty or cleanup judgment. Compare same-name fields by identity; never edit by name or GUID alone.",
         utilityUnits = "Range offsets, room inset/clearance and dimensions use feet. Range levels: Current, Above, Below, Unlimited, or native Level UniqueId. Native Revit validates floor/ceiling plane order.",
         roomDimensions = "Preview one rectangular room on the active floor plan's level/phase, with four basic native wall finish faces. Send the exact returned preview and its options to create. Tags, existing dimensions and native references are rechecked. No linked/curved/separator/island boundaries.",
         writes = "Use get_context and native UniqueId/parameter Id. set_parameters requires exact Expected values. Supply a unique requestId per new write. Retry only the same ID/arguments; get_operation retrieves retained outcomes. Unconfirmed edits require polling and native inspection.",
@@ -44,7 +45,7 @@ public sealed partial class RevitTools(RevitConnection connection)
         bool includeTypes = false, int offset = 0, int limit = 50, CancellationToken cancellationToken = default) =>
         Run(captureId, new(Guid.NewGuid(), OperationKind.QueryElements, Query: new(categoryId, nameContains, includeTypes, offset, limit)), cancellationToken);
 
-    [McpServerTool(Name = "inspect_elements", ReadOnly = true), Description("Inspect 1–5 native UniqueIds. Page 20 parameters per element including numeric parameter Id, typed raw value, dataType and read-only/truncation flags.")]
+    [McpServerTool(Name = "inspect_elements", ReadOnly = true), Description("Inspect 1–5 native UniqueIds. Page up to 20 parameters per element with exact local Id, typed raw value, dataType, read-only/truncation flags, isShared, nullable sharedGuid/builtInParameter and native hasValue (assigned, not necessarily nonempty). Follow nextParameterOffset until null.")]
     public Task<CallToolResult> InspectElements(string captureId, string[] elementIds, int parameterOffset = 0, CancellationToken cancellationToken = default) =>
         Run(captureId, new(Guid.NewGuid(), OperationKind.InspectElements, ElementIds: elementIds, ParameterOffset: parameterOffset), cancellationToken);
 

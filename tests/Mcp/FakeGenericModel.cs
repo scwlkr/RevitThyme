@@ -6,6 +6,7 @@ internal sealed class FakeGenericModel : IGenericModel
 {
     public Target Target { get; set; } = new(1, "start", "session", "doc", "view", 1);
     public Dictionary<string, ParameterValue> Values { get; } = new() { ["1"] = new("String", Text: "original"), ["2"] = new("Double", Number: 9) };
+    public Dictionary<string, ParameterInfo> Parameters { get; } = [];
     public string Name { get; set; } = "Plan";
     public string[] Selection { get; set; } = [];
     public int Transactions { get; set; }
@@ -21,11 +22,19 @@ internal sealed class FakeGenericModel : IGenericModel
     public IParameterChange BeginParameterChange() => new Change(this);
     public ElementPage ListViews(ElementQuery query) => QueryElements(query);
     public ElementPage QueryElements(ElementQuery query) => new([Info("element")], null);
-    public ElementDetail[] InspectElements(string[] ids, int parameterOffset) => ids.Select(id => new ElementDetail(Info(id), [], null)).ToArray();
+    public ElementDetail[] InspectElements(string[] ids, int parameterOffset) => ids.Select(id =>
+    {
+        var page = Parameters.Keys.OrderBy(long.Parse).Skip(parameterOffset).Take(21).Select(p => ReadParameter(id, p)).ToArray();
+        return new ElementDetail(Info(id), page.Take(20).ToArray(), page.Length > 20 ? parameterOffset + 20 : null);
+    }).ToArray();
     public string[] GetSelection() => Selection;
     public void SetSelection(string[] ids) => Selection = ids;
-    public ParameterInfo ReadParameter(string elementId, string parameterId) => new(parameterId, "Parameter", "data", ReadOnly,
-        WrongReadback && Writes > 0 ? new("String", Text: "wrong") : Values[parameterId]);
+    public ParameterInfo ReadParameter(string elementId, string parameterId)
+    {
+        var parameter = Parameters.GetValueOrDefault(parameterId) ?? new(parameterId, "Parameter", "data", ReadOnly, Values[parameterId]);
+        return parameter with { IsReadOnly = parameter.IsReadOnly || ReadOnly,
+            Value = WrongReadback && Writes > 0 ? new("String", Text: "wrong") : Values[parameterId] };
+    }
     private static ElementInfo Info(string id) => new(id, 42, "Element", "Walls", "-2000011", "Wall", false);
     private sealed class Change(FakeGenericModel model) : IParameterChange
     {

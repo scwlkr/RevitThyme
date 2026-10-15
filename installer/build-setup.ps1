@@ -9,8 +9,9 @@ $root = Split-Path $PSScriptRoot -Parent
 . (Join-Path $PSScriptRoot 'common.ps1')
 $package = Assert-NativeHostPath $PackageDirectory
 $manifest = Assert-FoundationPackage $package
-if ($manifest.version -notin @('0.8.0-install','0.9.0-agent')) { throw 'Setup requires a complete installer package.' }
-$productVersion = if ($manifest.version -eq '0.9.0-agent') { '0.9.0' } else { '0.8.1' }
+if ($manifest.version -notin @('0.8.0-install','0.9.0-agent','0.9.1-cli')) { throw 'Setup requires a complete installer package.' }
+$productVersion = if ($manifest.product_version) { [string]$manifest.product_version } elseif ($manifest.version -eq '0.9.0-agent') { '0.9.0' } else { '0.8.1' }
+if ($productVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'Setup requires a stable product version.' }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root ('artifacts\installer\'+[Guid]::NewGuid().ToString('N')) }
 $output = Assert-NativeHostPath $OutputDirectory
 if (Test-Path -LiteralPath $output) { throw "Setup output must be a fresh directory; preserve existing output: $output" }

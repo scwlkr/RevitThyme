@@ -24,13 +24,7 @@ Add `--version 0.9.0` to check, download or install a particular stable release.
 
 ## Global rthyme command
 
-With .NET SDK 10 installed, run this once from the checkout to install the developer CLI for your Windows user:
-
-```powershell
-.\project.cmd cli-install
-```
-
-Then use it from any folder:
+Version 0.9.1 setup adds the bundled native `rthyme.exe` to your Windows user PATH. No SDK or administrator permission is needed. Open a new PowerShell window after installation, then use it from any folder:
 
 ```powershell
 rthyme --version
@@ -40,19 +34,19 @@ rthyme update download --destination C:\Revit\Downloads
 rthyme update install
 ```
 
-The command uses standard [.NET global-tool installation](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-install), with a local package feed. It requires no administrator permission and preserves native argument quoting and exit codes. If a terminal cannot find it, open a new PowerShell window to load the standard `%USERPROFILE%\.dotnet\tools` PATH entry.
+Setup puts the current immutable bundle's CLI directory before other user PATH entries. Upgrades replace only the entry setup owns; uninstall removes only an entry setup added. Other commands, developer tools and PATH entries remain intact. A PowerShell alias, function or command earlier in the machine PATH can still take precedence; `Get-Command rthyme -All` shows what will run.
 
-The global CLI is a snapshot of this checkout. Run `project.cmd cli-install` again after pulling CLI changes to refresh it. Its private development-link configuration records the checkout so version reporting can find it from another folder. A checkout's `project.cmd cli` always builds/runs its current source. This optional developer tool is separate from the runtime-only Revit installer; it does not replace loaded add-in files. Remove the global command with `dotnet tool uninstall --global RevitThyme.Cli`.
+An existing terminal retains its earlier PATH until reopened and may run an older CLI. Version output identifies that executing build separately from the registered installation. Update decisions still use the registered copy. Earlier bundles remain intact, so `rthyme update install` can finish while its original CLI process is running. Revit itself must be closed before a needed installation.
 
-For the CLI bundled with the Revit installation, get its executable from the installation receipt; the Revit installer does not change PATH:
+To select the installed command explicitly, use the physical installation receipt:
 
 ```powershell
-$receipt = Get-Content "$env:LOCALAPPDATA\RevitThyme\setup\receipt.json" -Raw | ConvertFrom-Json
-& $receipt.cli version --json
-& $receipt.cli update check
-& $receipt.cli update install
+$receipt = Get-Content "$env:USERPROFILE\AppData\Local\RevitThyme\setup\receipt.json" -Raw | ConvertFrom-Json
+& $receipt.global_command --version
+& $receipt.global_command update check
+& $receipt.global_command update install
 ```
 
-Public 0.9.0 predates the separate installed/development version report. Use the current checkout or global developer CLI for that fix until a later toolkit release includes it.
+For source development, `project.cmd cli` builds and runs the current checkout. The optional `project.cmd cli-install` route still creates a separate [.NET global tool](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-tool-install) snapshot with SDK 10. Run it again after pulling CLI changes to refresh that developer tool and its checkout link. Setup preserves it; the installed toolkit's PATH entry takes precedence in new terminals. Use `project.cmd cli` to select source behavior explicitly. Remove only the developer tool with `dotnet tool uninstall --global RevitThyme.Cli`; Windows Installed apps owns the toolkit command.
 
 Checks use the official GitHub release API and bounded HTTPS metadata downloads. Downloads invoke the packaged PowerShell bootstrap pinned to the checked version, verifying its installer SHA-256 and available GitHub asset digests. The installer remains unsigned. This is a release checker and the existing installer flow; no background service or separate package manager is installed.

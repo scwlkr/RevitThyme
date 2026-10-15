@@ -33,6 +33,7 @@ WizardStyle=modern
 LicenseFile={#PackageDirectory}\LICENSE
 CloseApplications=no
 RestartApplications=no
+ChangesEnvironment=yes
 UninstallDisplayName=RevitThyme
 UninstallFilesDir={app}
 #if IsolatedBuild
@@ -45,6 +46,7 @@ Source: "{#PackageDirectory}\*"; DestDir: "{tmp}\payload"; Flags: recursesubdirs
 Source: "{#PackageDirectory}\setup-entry.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDirectory}\uninstall.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDirectory}\common.ps1"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#PackageDirectory}\global-command.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDirectory}\prerequisites.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#PackageDirectory}\mcp-files.ps1"; DestDir: "{app}"; Flags: ignoreversion
 #if FileExists(PackageDirectory + "\agent-files.ps1")

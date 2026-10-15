@@ -5,7 +5,7 @@ if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'packages' }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 & (Join-Path $root 'project.cmd') build
 if ($LASTEXITCODE) { throw 'Native build failed.' }
-$name = 'RevitThyme-0.9.0-agent-' + [Guid]::NewGuid().ToString('N')
+$name = 'RevitThyme-0.9.1-cli-' + [Guid]::NewGuid().ToString('N')
 $folder = Join-Path $output $name
 New-Item -ItemType Directory -Path (Join-Path $folder 'cli') -Force | Out-Null
 $native = Join-Path $root 'src\RevitThyme.Addin\bin\Release\net10.0-windows'
@@ -18,13 +18,14 @@ if ($LASTEXITCODE) { throw 'CLI publish failed.' }
 foreach ($file in @('revitthyme.exe','revitthyme.dll','revitthyme.deps.json','revitthyme.runtimeconfig.json','RevitThyme.Core.dll','update.ps1')) {
     Copy-Item -LiteralPath (Join-Path $publish $file) -Destination (Join-Path (Join-Path $folder 'cli') $file)
 }
+Copy-Item -LiteralPath (Join-Path $publish 'revitthyme.exe') -Destination (Join-Path $folder 'cli\rthyme.exe')
 $mcpPublish = Join-Path $root ('artifacts\mcp\publish-'+[Guid]::NewGuid().ToString('N'))
 dotnet publish (Join-Path $root 'src\RevitThyme.Mcp') -c Release --no-self-contained -o $mcpPublish --nologo
 if ($LASTEXITCODE) { throw 'MCP publish failed.' }
 . (Join-Path $PSScriptRoot 'mcp-files.ps1')
 New-Item -ItemType Directory -Path (Join-Path $folder 'mcp') -Force | Out-Null
 foreach ($file in Get-McpPackageFiles) { Copy-Item -LiteralPath (Join-Path $mcpPublish $file) -Destination (Join-Path (Join-Path $folder 'mcp') $file) }
-foreach ($file in @('install.ps1','uninstall.ps1','common.ps1','mcp-files.ps1','agent-files.ps1','prerequisites.ps1','setup-entry.ps1')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $folder $file) }
+foreach ($file in @('install.ps1','uninstall.ps1','common.ps1','global-command.ps1','mcp-files.ps1','agent-files.ps1','prerequisites.ps1','setup-entry.ps1')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $folder $file) }
 & (Join-Path $PSScriptRoot 'codex-runtime.ps1') -Destination (Join-Path $folder 'codex')
 Copy-Item -LiteralPath (Join-Path $root 'skills') -Destination (Join-Path $folder 'skills') -Recurse
 Copy-Item -LiteralPath (Join-Path $root 'docs\AGENT.md') -Destination (Join-Path $folder 'AGENT.md')
@@ -44,7 +45,7 @@ $files = @{}; Get-ChildItem -LiteralPath $folder -File -Recurse | ForEach-Object
     $files[$relative] = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()
 }
 [xml]$buildProperties = Get-Content -LiteralPath (Join-Path $root 'Directory.Build.props') -Raw
-@{version='0.9.0-agent';product_version=[string]$buildProperties.Project.PropertyGroup.Version;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$files} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
+@{version='0.9.1-cli';product_version=[string]$buildProperties.Project.PropertyGroup.Version;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$files} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
 $zip = $folder+'.zip'; Compress-Archive -LiteralPath $folder -DestinationPath $zip
 (Get-FileHash -LiteralPath $zip).Hash.ToLowerInvariant()+'  '+(Split-Path $zip -Leaf) | Set-Content -LiteralPath ($zip+'.sha256') -Encoding ascii
 Write-Output $folder

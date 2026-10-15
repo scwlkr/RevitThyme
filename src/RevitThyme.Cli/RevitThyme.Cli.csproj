@@ -1,4 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><OutputType>Exe</OutputType><AssemblyName>revitthyme</AssemblyName></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" /></ItemGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><AssemblyName>revitthyme</AssemblyName>
+    <PackAsTool>true</PackAsTool><ToolCommandName>rthyme</ToolCommandName><PackageId>RevitThyme.Cli</PackageId>
+    <Description>RevitThyme command line tools and installed toolkit updates.</Description>
+    <!-- The downloader is an explicitly invoked runtime asset, not a NuGet install hook. -->
+    <NoWarn>$(NoWarn);NU5111</NoWarn>
+    <PackageReadmeFile>README.md</PackageReadmeFile><PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" />
+    <None Include="../../docs/UPDATES.md" Pack="true" PackagePath="README.md" />
+  </ItemGroup>
 </Project>

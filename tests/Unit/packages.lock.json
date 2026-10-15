@@ -25,10 +25,10 @@
           "Microsoft.CodeAnalysis.Analyzers": "5.9.0-1.26328.17"
         }
       },
-      "revitthyme": {
+      "revitthyme.cli": {
         "type": "Project",
         "dependencies": {
-          "RevitThyme.Core": "[0.7.0, )"
+          "RevitThyme.Core": "[0.9.0, )"
         }
       },
       "revitthyme.core": {

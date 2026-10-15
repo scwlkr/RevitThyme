@@ -58,6 +58,22 @@ public sealed class UpdateChecker(HttpClient http)
         };
         return new(ProductVersion.Current, ProductVersion.Build, latest, status, message, new(latest, releaseUrl, years));
     }
+    public static UpdateResult ForInstalled(UpdateResult release, InstalledToolkit installed)
+    {
+        if (installed.Status == "invalid") throw new InvalidOperationException(installed.Message);
+        int comparison = installed.Version is null ? 1 : ProductVersion.ParseStable(release.LatestVersion).CompareTo(ProductVersion.ParseStable(installed.Version));
+        string status = !release.Release.SupportedRevitYears.Contains("2027") ? "incompatible" : installed.Status == "missing" ? "not_installed"
+            : comparison > 0 ? "available" : comparison < 0 ? "ahead" : "current";
+        string message = status switch
+        {
+            "not_installed" => $"RevitThyme is not installed. Stable release {release.LatestVersion} is available to install.",
+            "available" => $"Update available for installed RevitThyme: {installed.Version} → {release.LatestVersion}.",
+            "ahead" => $"Installed RevitThyme {installed.Version} is ahead of stable release {release.LatestVersion}; no automatic downgrade.",
+            "incompatible" => release.Message,
+            _ => $"Installed RevitThyme {installed.Version} is up to date."
+        };
+        return release with { CurrentVersion = installed.Version ?? "", Build = installed.Build ?? "", Status = status, Message = message };
+    }
     private static JsonElement Asset(JsonElement assets, string name, string tag)
     {
         var matches = assets.EnumerateArray().Where(x => x.GetProperty("name").GetString() == name).ToArray();

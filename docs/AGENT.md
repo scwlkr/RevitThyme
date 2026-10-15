@@ -5,7 +5,7 @@ The optional Agent panel runs the official local Codex App Server and talks to t
 ## Use
 
 1. Install the Agent package with Revit closed normally. It includes Codex CLI **0.162.1** for Windows x64, with its Apache-2.0 license and notices. No manual MCP JSON or API key is required.
-2. Open Revit and select **RevitThyme → Connect Codex**. In the dockable panel, select **Connect Codex**, then **Sign in** if needed. Codex owns the ChatGPT browser sign-in and callback. Return to the panel and select **Refresh** after completing consent. **Cancel sign-in** cancels a pending login.
+2. Open Revit and select **RevitThyme → RevitThyme → Open Agent**. In the dockable panel, select **Connect Codex**, then **Sign in** if needed. Codex owns the ChatGPT browser sign-in and callback. Return to the panel and select **Refresh** after completing consent. **Cancel sign-in** cancels a pending login.
 3. Start a conversation, choose a model from the runtime catalog, and enter your request. The document/view shown above the chat is refreshed before sending. A model catalog is not an entitlement guarantee; a completed turn confirms access for that request.
 4. Choose **Automatic** skill selection or an available skill. Replies stream into the panel. Expand a tool entry to inspect its native results. Approval and question requests appear inside the panel with Accept/Decline and ordinary input fields. Unsupported forms remain declined.
 5. Use **Stop** to interrupt an active turn. Review any unconfirmed Revit operation with `get_operation` before retrying. Use native **Undo** to reverse the resulting edit. Select a listed conversation and **Resume** to continue its saved history.

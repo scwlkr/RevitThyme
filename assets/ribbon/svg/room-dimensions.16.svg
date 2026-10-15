@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <title>Room Dimensions</title>
+  <desc>A rectangular room with horizontal and vertical architectural dimension ticks.</desc>
+  <rect x="5.5" y="2.5" width="8" height="8" fill="none" stroke="#52606D" stroke-width="1"/>
+  <path d="M5 13.5 H14 M5 14.5 L6 12.5 M13 14.5 L14 12.5 M2.5 2 V11 M1.5 3 L3.5 2 M1.5 11 L3.5 10" fill="none" stroke="#006EAF" stroke-width="1" stroke-linecap="round"/>
+</svg>

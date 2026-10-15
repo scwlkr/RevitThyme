@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <title>View Range</title>
+  <desc>A building section with top, cut, and bottom planes and a vertical range indicator.</desc>
+  <path d="M25 4 V28 M12 8 H29 M12 24 H29 M25 4 H29 M25 28 H29" fill="none" stroke="#52606D" stroke-width="1.5" stroke-linecap="square"/>
+  <path d="M12 16 H29 M6 8 V24 M3 11 L6 8 L9 11 M3 21 L6 24 L9 21" fill="none" stroke="#006EAF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

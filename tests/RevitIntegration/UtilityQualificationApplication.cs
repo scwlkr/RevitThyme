@@ -47,9 +47,10 @@ public sealed class UtilityQualificationApplication : IExternalApplication, IExt
     private void Undo(UIApplication app, bool redo = false) => app.PostCommand(RevitCommandId.LookupPostableCommandId(redo ? PostableCommand.Redo : PostableCommand.Undo));
     private void Button(UIApplication app, string name, string className)
     {
-        var button = app.GetRibbonPanels("RevitThyme").SelectMany(p => p.GetItems()).OfType<PushButton>().Single(b => b.Name == name);
+        var panel = app.GetRibbonPanels("RevitThyme").Single(p => p.GetItems().Any(b => b.Name == name));
+        var button = panel.GetItems().OfType<PushButton>().Single(b => b.Name == name);
         Check("ribbon command registered: " + name, button.ClassName == className && button.Enabled);
-        var id = RevitCommandId.LookupCommandId("CustomCtrl_%CustomCtrl_%RevitThyme%View Tools%" + name);
+        var id = RevitCommandId.LookupCommandId("CustomCtrl_%CustomCtrl_%RevitThyme%" + panel.Name + "%" + name);
         Check("ribbon command can post: " + name, id is not null && app.CanPostCommand(id)); app.PostCommand(id!);
     }
     private void Advance(UIApplication app)

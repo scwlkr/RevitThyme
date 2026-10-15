@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <title>View Range</title>
+  <desc>A section with three view planes and a vertical range indicator.</desc>
+  <path d="M12.5 2.5 V13.5 M6.5 4.5 H14 M6.5 12.5 H14" fill="none" stroke="#52606D" stroke-width="1" stroke-linecap="square"/>
+  <path d="M6.5 8.5 H14 M3 4 V13 M1.5 5.5 L3 4 L4.5 5.5 M1.5 11.5 L3 13 L4.5 11.5" fill="none" stroke="#006EAF" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

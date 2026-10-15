@@ -12,6 +12,8 @@ A panel may start with one command when its purpose is distinct and useful. Add 
 
 ### Current command map
 
+![Actual native RevitThyme ribbon](images/native-ribbon.png)
+
 | Panel | Command | Presentation | Reason |
 | --- | --- | --- | --- |
 | Views | View Range | Large push button, first | A direct task with its own editing workflow. |

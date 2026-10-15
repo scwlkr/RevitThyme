@@ -67,6 +67,8 @@ public sealed class RibbonQualificationApplication : IExternalApplication, IExte
             switch (stage)
             {
                 case 0:
+                    // Startup can precede Revit applying the user's saved frame theme.
+                    originalTheme = UIThemeManager.CurrentTheme;
                     Check("empty isolated Revit process", app.Application.Documents.Size == 0);
                     Check("task panels in reading order", app.GetRibbonPanels("RevitThyme").Select(p => p.Name).SequenceEqual(["Views", "Annotation", "RevitThyme"]));
                     var buttons = Buttons(app);

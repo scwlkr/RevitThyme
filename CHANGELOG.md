@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased — Installed version reporting and global CLI — 2026-10-15
+## 0.9.1 — Installed version reporting and global CLI — 2026-10-15
 
 - Show executing CLI, development checkout and registered RevitThyme versions separately. Verify registration, immutable bundle identity, relevant hashes and receipt agreement. Compare updates against the installed copy, so an up-to-date development CLI still upgrades an older Revit installation.
-- Add the native global `rthyme` command through standard .NET tool packaging and `project.cmd cli-install`, using a local feed. Keep normal installed/toolkit packages, Revit-open guards, no-downgrade behavior, argument forwarding and exit codes.
-- Record explicit product versions in future package manifests; older bundles fall back to assembly product metadata rather than mistaking package suffixes for release versions. Public v0.9.0 assets remain unchanged.
+- Automatically expose native `rthyme` through an owned Windows user PATH entry during setup, without an SDK or administrator. Upgrades switch to the new immutable bundle; uninstall and failed installs preserve unrelated PATH entries and developer tools. Keep the optional source snapshot through `project.cmd cli-install`.
+- Preserve Revit-open guards, no-downgrade behavior, native argument handling and exit codes. Record explicit product versions in package manifests; older bundles fall back to assembly product metadata rather than mistaking package suffixes for release versions.
 
 ## 0.9.0 — Built-in Agent and update checks — 2026-10-14
 

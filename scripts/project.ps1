@@ -14,6 +14,7 @@ try {
             Write-Output 'project.cmd cli-install [-ToolPath ABSOLUTE_TEST_DIRECTORY] installs the global rthyme command from this checkout'
             Write-Output 'project.cmd check-cli-tool -Executable ABSOLUTE_RTHYME_EXE checks the native global CLI'
             Write-Output 'project.cmd check-installer -PackageDirectory ABSOLUTE_PACKAGE'
+            Write-Output 'project.cmd check-global-command -PackageDirectory ABSOLUTE_PACKAGE checks isolated PATH ownership and global CLI upgrades'
             Write-Output 'project.cmd setup -PackageDirectory ABSOLUTE_PACKAGE | check-bootstrap | check-setup -PackageDirectory ABSOLUTE_PACKAGE -SetupExecutable ISOLATED_EXE'
             Write-Output 'project.cmd mcp <server-options> | test-mcp | mcp-prepare | mcp-start <run> | mcp-check <run> | mcp-codex <run> | mcp-cleanup <run>'
             Write-Output 'project.cmd utilities-prepare | utilities-start <run> | utilities-check <run> | utilities-cleanup <run>'
@@ -63,6 +64,7 @@ try {
         'agent-cleanup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-agent.ps1') -Action cleanup @Rest; exit $LASTEXITCODE }
         'check' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-foundation.ps1') @Rest; exit $LASTEXITCODE }
         'check-installer' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-installer.ps1') @Rest; exit $LASTEXITCODE }
+        'check-global-command' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-global-command.ps1') @Rest; exit $LASTEXITCODE }
         'check-bootstrap' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-bootstrap.ps1') @Rest; exit $LASTEXITCODE }
         'check-setup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-setup.ps1') @Rest; exit $LASTEXITCODE }
         'setup' { pwsh -NoProfile -File (Join-Path $root 'installer\build-setup.ps1') @Rest; exit $LASTEXITCODE }

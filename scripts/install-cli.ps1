@@ -24,7 +24,7 @@ if ($LASTEXITCODE) { throw 'CLI tool package failed.' }
 # This local feed is the only package source; do not resolve a similarly named public package.
 $config = Join-Path $feed 'NuGet.Config'
 [IO.File]::WriteAllText($config, '<configuration><packageSources><clear /></packageSources></configuration>')
-$location = if ($ToolPath) { @('--tool-path', [IO.Path]::GetFullPath($ToolPath)) } else { @('--global') }
+[string[]]$location = if ($ToolPath) { @('--tool-path', [IO.Path]::GetFullPath($ToolPath)) } else { @('--global') }
 dotnet tool update RevitThyme.Cli @location --version $packageVersion --add-source $feed --configfile $config --allow-downgrade
 if ($LASTEXITCODE) { throw 'CLI tool installation failed. Existing tool state is managed by dotnet tool.' }
 if (-not $ToolPath) {

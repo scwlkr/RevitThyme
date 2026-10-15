@@ -19,6 +19,11 @@ try {
             Write-Output 'project.cmd mcp <server-options> | test-mcp | mcp-prepare | mcp-start <run> | mcp-check <run> | mcp-codex <run> | mcp-cleanup <run>'
             Write-Output 'project.cmd utilities-prepare | utilities-start <run> | utilities-check <run> | utilities-cleanup <run>'
             Write-Output 'project.cmd dynamic-prepare | dynamic-start <run> | dynamic-check <run> | dynamic-cleanup <run>'
+            Write-Output 'project.cmd dev-signing -Action Setup|Status; package -DevelopmentSigning [-DevelopmentSigningConfigPath ABSOLUTE_JSON]'
+            Write-Output 'project.cmd dev-prepare -FixtureSource ABSOLUTE_RVT [-PackageDirectory SIGNED_PACKAGE] | dev-start [-RunFolder ABSOLUTE_RUN]'
+            Write-Output 'project.cmd dev-status|dev-stop|dev-mcp -RunFolder ABSOLUTE_RUN'
+            Write-Output 'project.cmd dev-query|dev-modify -RunFolder ABSOLUTE_RUN -Source ABSOLUTE_CSX | dev-outcome -RunFolder ABSOLUTE_RUN [-RequestId GUID]'
+            Write-Output 'project.cmd check-development | check-dev-signing [-WithSigningIdentity]'
             Write-Output 'project.cmd agent-prepare | agent-start <run> | agent-check <run> | agent-cleanup <run>'
             Write-Output 'project.cmd ribbon-prepare | ribbon-start <run> | ribbon-check <run> | ribbon-cleanup <run>'
             Write-Output 'Build accepts MSBuild arguments such as -p:RevitApiPath=ABSOLUTE_PATH.'
@@ -54,6 +59,12 @@ try {
         'dynamic-start' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action start @Rest; exit $LASTEXITCODE }
         'dynamic-check' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action check @Rest; exit $LASTEXITCODE }
         'dynamic-cleanup' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-dynamic.ps1') -Action cleanup @Rest; exit $LASTEXITCODE }
+        'dev-signing' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'dev-signing.ps1') @Rest; exit $LASTEXITCODE }
+        'check-dev-signing' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-dev-signing.ps1') @Rest; exit $LASTEXITCODE }
+        'check-development' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'check-development.ps1') @Rest; exit $LASTEXITCODE }
+        { $_ -in 'dev-prepare','dev-start','dev-status','dev-query','dev-modify','dev-outcome','dev-mcp','dev-stop' } {
+            pwsh -NoProfile -File (Join-Path $PSScriptRoot 'dev-session.ps1') -Action $Command.Substring(4) @Rest; exit $LASTEXITCODE
+        }
         'agent-prepare' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-agent.ps1') -Action prepare @Rest; exit $LASTEXITCODE }
         'ribbon-prepare' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-agent.ps1') -Action prepare -RibbonOnly @Rest; exit $LASTEXITCODE }
         'ribbon-start' { pwsh -NoProfile -File (Join-Path $PSScriptRoot 'live-agent.ps1') -Action start @Rest; exit $LASTEXITCODE }

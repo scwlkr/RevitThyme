@@ -29,6 +29,8 @@ foreach ($file in $scriptPaths) {
     [Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors) | Out-Null
     if ($errors.Count) { throw "PowerShell syntax failed: $($file.FullName): $errors" }
 }
+& (Join-Path $PSScriptRoot 'check-dev-signing.ps1')
+& (Join-Path $PSScriptRoot 'check-development.ps1')
 $projects = Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Filter '*.csproj'
 if ($projects.Count -ne 6 -or @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Include '*.rs','*.tsx','*.py').Count) { throw 'Active product must contain only the six C# toolkit projects.' }
 $migration = Join-Path $root 'artifacts\foundation\migration.json'

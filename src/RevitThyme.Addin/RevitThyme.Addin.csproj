@@ -5,6 +5,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
   <ItemGroup>
+    <EmbeddedResource Include="../../assets/ribbon/png/*.png" LogicalName="RevitThyme.Ribbon.%(Filename)%(Extension)" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />
     <ProjectReference Include="../RevitThyme.Core/RevitThyme.Core.csproj" />
     <ProjectReference Include="../RevitThyme.UI/RevitThyme.UI.csproj" />

@@ -2,6 +2,7 @@
 
 | Feature | Current behavior |
 | --- | --- |
+| Ribbon | Task panels, SVG-authored light/dark icons, context availability, extended tooltips and F1 help; updates in the toolkit slide-out. See [ribbon standards](docs/RIBBON.md). |
 | Inspect View | Native WPF inspection of active document, view identity, type and edit readiness |
 | Rename View | Shared C# operation with captured-target checks, verified native readback, rollback and one Undo item |
 | View Range | Native four-plane editor with WPF section preview, exact expected values, template guards and one Undo |

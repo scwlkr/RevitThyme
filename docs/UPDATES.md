@@ -2,7 +2,7 @@
 
 RevitThyme checks for a newer stable release after Revit first becomes idle, at most once every 24 hours per Windows user. The check runs in the background. Offline checks stay quiet and retry the next day. A newer release must support Revit 2027 before it is offered.
 
-Choose **RevitThyme → Foundation → Check for Updates** to check immediately. When an update is available, choose **Download update** or **Later**. The download saves the installer and its checksum under your Downloads folder and opens its location. Save your work and close every Revit window normally before running the installer. Setup updates the add-in, CLI, MCP and bundled Codex together; it preserves your Agent state and earlier bundles. It never closes Revit or restarts Windows.
+Expand the **RevitThyme** panel on the **RevitThyme** tab, then choose **Check for Updates** to check immediately. When an update is available, choose **Download update** or **Later**. The download saves the installer and its checksum under your Downloads folder and opens its location. Save your work and close every Revit window normally before running the installer. Setup updates the add-in, CLI, MCP and bundled Codex together; it preserves your Agent state and earlier bundles. It never closes Revit or restarts Windows.
 
 ## Command line
 

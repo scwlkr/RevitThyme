@@ -4,6 +4,7 @@ $root = Split-Path $PSScriptRoot -Parent
 $report = Join-Path $root 'artifacts\mcp\checks'
 New-Item -ItemType Directory -Path $report -Force | Out-Null
 $solution = if($Portable){'RevitThyme.Portable.slnf'}else{'RevitThyme.sln'}
+& (Join-Path $PSScriptRoot 'export-ribbon-icons.ps1') -Check
 dotnet restore (Join-Path $root 'src\RevitThyme.Mcp') --locked-mode --nologo
 if ($LASTEXITCODE) { throw 'Pinned MCP dependency restore failed.' }
 dotnet restore (Join-Path $root 'tests\Unit') --locked-mode --nologo

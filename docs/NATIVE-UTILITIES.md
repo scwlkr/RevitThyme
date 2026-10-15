@@ -4,7 +4,7 @@ This guide records **View Range and Room Dimensions** from the [2026-10-14 plan]
 
 ## View Range
 
-Open **RevitThyme → View Tools → View Range** in a floor, reflected ceiling or structural plan. Refresh captures the exact document/view/revision, four native planes and level choices. Choose a level and offset for Top, Cut plane, Bottom and View depth. The section shows their relative elevations; ceiling plans retain Revit's upward-looking range rules. Above/Below without a neighboring level cannot be plotted; Revit remains the validator of plane order and level choices.
+Open **RevitThyme → Views → View Range** in a floor, reflected ceiling or structural plan. Refresh captures the exact document/view/revision, four native planes and level choices. Choose a level and offset for Top, Cut plane, Bottom and View depth. The section shows their relative elevations; ceiling plans retain Revit's upward-looking range rules. Above/Below without a neighboring level cannot be plotted; Revit remains the validator of plane order and level choices.
 
 Offsets default to architectural feet/inches, displayed to the nearest 1/8 inch; Up/Down changes a field by 1/8 inch. Decimal feet and signed architectural entry are supported. Millimeters and meters are available. Unedited fields preserve their exact native values behind rounded text. The diagram is a preview and creates no model elements.
 
@@ -14,7 +14,7 @@ MCP flow: `get_context` → `get_view_range(captureId)` → `set_view_range(capt
 
 ## Room Dimensions
 
-Open **RevitThyme → View Tools → Room Dimensions** on a floor plan. Select a room, set the inset and room-tag clearance in feet/inches, then Preview. A single selected room is preferred when the window opens. The initial room chooser lists up to 100 document rooms; MCP/CLI can address other rooms by UniqueId.
+Open **RevitThyme → Annotation → Room Dimensions** on a floor plan. Select a room, set the inset and room-tag clearance in feet/inches, then Preview. A single selected room is preferred when the window opens. The initial room chooser lists up to 100 document rooms; MCP/CLI can address other rooms by UniqueId.
 
 The first implementation supports a placed, enclosed rectangle bounded by **four straight basic native walls**, on the active view's level and phase. Rotated rectangles are supported. Linked walls, room separators, curved boundaries, split/multiple boundary segments, islands, slanted finish faces and irregular rooms are refused with a reason. Dimensions must be visible, and an active crop must be unsplit, rectangular and fully contain the room. This is the plan's bounded rectangular-room milestone.
 

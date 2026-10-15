@@ -3,7 +3,8 @@ param(
     [Parameter(Position=1)][string]$RunFolder,
     [switch]$Abort,
     [switch]$ReuseCodexSignIn,
-    [switch]$UpdatesOnly
+    [switch]$UpdatesOnly,
+    [switch]$RibbonOnly
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
@@ -24,13 +25,15 @@ if ($Action -eq 'prepare') {
     foreach ($file in @('Microsoft.CodeAnalysis.dll','Microsoft.CodeAnalysis.CSharp.dll','RevitThyme.Addin.deps.json','update.ps1')) {
         Copy-Item -LiteralPath (Join-Path $root "src\RevitThyme.Addin\bin\Release\net10.0-windows\$file") -Destination (Join-Path $bundle $file)
     }
-    dotnet publish (Join-Path $root 'src\RevitThyme.Mcp') -c Release --no-self-contained -o (Join-Path $bundle 'mcp') --nologo
-    if ($LASTEXITCODE) { throw 'MCP publish failed.' }
-    Copy-Item -LiteralPath (Join-Path $root 'skills') -Destination (Join-Path $bundle 'skills') -Recurse
-    & (Join-Path $root 'installer\codex-runtime.ps1') -Destination (Join-Path $bundle 'codex')
+    if (-not $RibbonOnly) {
+        dotnet publish (Join-Path $root 'src\RevitThyme.Mcp') -c Release --no-self-contained -o (Join-Path $bundle 'mcp') --nologo
+        if ($LASTEXITCODE) { throw 'MCP publish failed.' }
+        Copy-Item -LiteralPath (Join-Path $root 'skills') -Destination (Join-Path $bundle 'skills') -Recurse
+        & (Join-Path $root 'installer\codex-runtime.ps1') -Destination (Join-Path $bundle 'codex')
+    }
     New-Item -ItemType Directory -Path (Join-Path $folder 'sessions') -Force | Out-Null
     $escaped = [Security.SecurityElement]::Escape($bundle)
-    $qualification = if ($UpdatesOnly) { 'UpdateQualificationApplication' } else { 'AgentQualificationApplication' }
+    $qualification = if ($RibbonOnly) { 'RibbonQualificationApplication' } elseif ($UpdatesOnly) { 'UpdateQualificationApplication' } else { 'AgentQualificationApplication' }
     $manifest = @"
 <?xml version="1.0" encoding="utf-8"?>
 <RevitAddIns>
@@ -40,7 +43,7 @@ if ($Action -eq 'prepare') {
 "@
     [IO.File]::WriteAllText((Join-Path $folder 'qualification.addin'), $manifest)
     $hashes = @{}; Get-ChildItem -LiteralPath $bundle -Recurse -File | ForEach-Object { $hashes[[IO.Path]::GetRelativePath($bundle,$_.FullName)] = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant() }
-    @{folder=$folder;updates_only=[bool]$UpdatesOnly;source_revision=(git -C $root rev-parse HEAD);hashes=$hashes;manifest_hash=(Get-FileHash (Join-Path $folder 'qualification.addin')).Hash;revit_build=(Get-Item 'C:\Program Files\Autodesk\Revit 2027\Revit.exe').VersionInfo.FileVersion} |
+    @{folder=$folder;updates_only=[bool]$UpdatesOnly;ribbon_only=[bool]$RibbonOnly;source_revision=(git -C $root rev-parse HEAD);hashes=$hashes;manifest_hash=(Get-FileHash (Join-Path $folder 'qualification.addin')).Hash;revit_build=(Get-Item 'C:\Program Files\Autodesk\Revit 2027\Revit.exe').VersionInfo.FileVersion} |
         ConvertTo-Json -Depth 4 | Set-Content (Join-Path $folder 'plan.json') -Encoding utf8
     Write-Output $folder; return
 }
@@ -77,6 +80,7 @@ if ($Action -eq 'start') {
         if ((Get-FileHash (Assert-NativeHostPath $registration)).Hash -ne $plan.manifest_hash) { throw 'Registration readback failed.' }
         $environment = @{REVITTHYME_AGENT_TEST_RUN=$folder;REVITTHYME_AGENT_HOME=(Join-Path $folder 'agent');REVITTHYME_FOUNDATION_FIXTURE=(Join-Path $folder 'Foundation-Test.rvt');REVITTHYME_FOUNDATION_SESSIONS=(Join-Path $folder 'sessions')}
         if ($plan.updates_only) { $environment.Remove('REVITTHYME_AGENT_TEST_RUN'); $environment['REVITTHYME_UPDATE_TEST_RUN']=$folder }
+        if ($plan.ribbon_only) { $environment.Remove('REVITTHYME_AGENT_TEST_RUN'); $environment['REVITTHYME_RIBBON_TEST_RUN']=$folder }
         $process = Start-Process -FilePath $exe -ArgumentList '/nosplash' -Environment $environment -PassThru -WindowStyle Hidden
         @{pid=$process.Id;start=$process.StartTime.ToUniversalTime().Ticks.ToString();existing_processes=$before;existing_registrations=$registrations;registration=$registration;production=$production;parked=$parked} |
             ConvertTo-Json -Depth 5 | Set-Content (Join-Path $folder 'launch.json') -Encoding utf8

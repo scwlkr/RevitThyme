@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.3 — Parameter identity — 2026-10-15
+
+- Add native shared status, nullable shared GUID, nullable built-in parameter identity and native `HasValue` to parameter inspection and readback through the existing CLI and MCP contract. Guard shared GUID access with `IsShared`.
+- Add CLI `inspect-elements` with parameter-page continuation. Preserve exact document-local parameter IDs, raw values, read-only behavior, pagination and expected-value edit safeguards.
+- Qualify same-name built-in/shared fields, distinct shared GUIDs, nonshared fields, assigned/unassigned/zero/empty values, pagination, inspection without model changes and exact-ID edits in a disposable Revit 2027 fixture. See [parameter identity verification](verification/parameter-identity.md).
+
 ## 0.9.2 — Native ribbon and SVG icons — 2026-10-15
 
 - Organize the ribbon into Views, Annotation and RevitThyme panels. Keep View Range, Inspect View, Room Dimensions and Open Agent directly accessible; place Check for Updates in the toolkit slide-out.

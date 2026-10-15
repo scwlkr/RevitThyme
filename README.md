@@ -6,6 +6,8 @@ RevitThyme is an open-source native Revit toolkit. Its shared C# operation layer
 
 This checkout implements **Foundation, MCP, Native utilities, Dynamic execution and Built-in Agent** from the [2026-10-14 plan](2026-10-14_NEW_PLAN.md). **View Range** edits the four native plan planes with a section preview. **Room Dimensions** creates an associative width/depth pair for rectangular rooms, leaving room for tags. Both work through native ribbon buttons, CLI and MCP using shared C# operations and one Revit Undo item per edit. The official C# MCP server exposes 18 tools, including opt-in trusted Roslyn C# query/modify. Native tools work without an AI account, Rust, Electron or pyRevit.
 
+Version **0.9.3** adds parameter identity to inspection and readback: shared status, shared GUID, built-in parameter identity and native assigned-value state. MCP and CLI `inspect-elements` use the same contract, preserving exact parameter IDs, raw values and paged inspection. Existing edits continue to target the captured parameter ID with expected-value checks. See [parameter inspection](docs/MCP.md#parameter-identity) and [native verification](verification/parameter-identity.md).
+
 ![Native WPF Inspect View](docs/images/foundation-wpf.png)
 
 ![Native WPF View Range](docs/images/native-view-range.png)
@@ -20,13 +22,13 @@ Close Revit normally, preserving unsaved work, then run this in PowerShell to in
 irm https://revitthyme.wlkrlabs.com/install | iex
 ```
 
-To install **v0.9.2** specifically, use `irm https://github.com/scwlkr/RevitThyme/releases/download/v0.9.2/install.ps1 | iex`. The older `/install-0.8.1` command remains pinned to 0.8.1.
+To install **v0.9.3** specifically, use `irm https://github.com/scwlkr/RevitThyme/releases/download/v0.9.3/install.ps1 | iex`. The older `/install-0.8.1` command remains pinned to 0.8.1.
 
-The bootstrap downloads and verifies the Windows installer before running it. Version 0.9.2 bundles the add-in, CLI, MCP and built-in Agent with the official Codex runtime. Only full Revit 2027 is supported. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned. Piping to `iex` trusts the script served by this domain and its GitHub release source; you can inspect it first or download the [v0.9.2 installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.9.2/RevitThyme-0.9.2-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.9.2/RevitThyme-0.9.2-win-x64.exe.sha256) directly. See [installation and recovery](docs/INSTALLATION.md).
+The bootstrap downloads and verifies the Windows installer before running it. Version 0.9.3 bundles the add-in, CLI, MCP and built-in Agent with the official Codex runtime. Only full Revit 2027 is supported. End users need its .NET 10 runtime and Windows PowerShell 5.1; installation requires no SDK or administrator permission. The installer is unsigned. Piping to `iex` trusts the script served by this domain and its GitHub release source; you can inspect it first or download the [v0.9.3 installer](https://github.com/scwlkr/RevitThyme/releases/download/v0.9.3/RevitThyme-0.9.3-win-x64.exe) and [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.9.3/RevitThyme-0.9.3-win-x64.exe.sha256) directly. See [installation and recovery](docs/INSTALLATION.md).
 
 RevitThyme checks for updates once a day in the background. **Check for Updates** on the ribbon checks immediately and can download a verified installer. During development, use `project.cmd cli --version`, `project.cmd cli update check --json`, or `project.cmd cli update install` with Revit closed. See [update commands](docs/UPDATES.md).
 
-Version 0.9.2 setup adds `rthyme` to your Windows user PATH automatically. Open a new PowerShell window, then use `rthyme --version`, `rthyme update check` and `rthyme update install` from any folder. Version output separates the executing CLI, development checkout and registered RevitThyme installation; updates target the installed copy. No SDK is needed. During development, `project.cmd cli` runs current source; the optional `project.cmd cli-install` developer snapshot remains available.
+Version 0.9.3 setup adds `rthyme` to your Windows user PATH automatically. Open a new PowerShell window, then use `rthyme --version`, `rthyme update check` and `rthyme update install` from any folder. Version output separates the executing CLI, development checkout and registered RevitThyme installation; updates target the installed copy. No SDK is needed. During development, `project.cmd cli` runs current source; the optional `project.cmd cli-install` developer snapshot remains available.
 
 ## Build
 
@@ -62,7 +64,7 @@ See [architecture](docs/ARCHITECTURE.md), [MCP tools and Codex setup](docs/MCP.m
 
 [Trusted C# execution](docs/DYNAMIC-EXECUTION.md) uses rollback queries, atomic modifications, structured diagnostics/results and retained request outcomes. It is disabled by default and runs with full process permissions. The independent [Cabin Eval](tests/CabinEval/README.md) scores actual native results, including a temporary 14-to-18-foot length probe, in a new disposable process/model. See [Dynamic execution verification](verification/dynamic-execution.md).
 
-The [built-in Agent](docs/AGENT.md) adds a dockable Codex chat panel, ChatGPT sign-in, saved conversations and ordinary skills, pinned to the current Revit process. The 0.9.2 installer bundles the official Codex runtime. See [Agent verification](verification/agent.md). Exploration remains deferred. Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
+The [built-in Agent](docs/AGENT.md) adds a dockable Codex chat panel, ChatGPT sign-in, saved conversations and ordinary skills, pinned to the current Revit process. The 0.9.3 installer bundles the official Codex runtime. See [Agent verification](verification/agent.md). Exploration remains deferred. Superseded source and evidence are preserved in [legacy/pre-foundation](legacy/README.md); earlier qualification does not certify this new product. Existing installed tools and external TimberFold remain preserved.
 
 ## Contribute
 

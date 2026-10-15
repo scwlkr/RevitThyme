@@ -9,7 +9,7 @@ if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'packages' }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 & (Join-Path $root 'project.cmd') build
 if ($LASTEXITCODE) { throw 'Native build failed.' }
-$name = 'RevitThyme-0.9.2-ribbon-' + [Guid]::NewGuid().ToString('N')
+$name = 'RevitThyme-0.9.3-identity-' + [Guid]::NewGuid().ToString('N')
 $folder = Join-Path $output $name
 New-Item -ItemType Directory -Path (Join-Path $folder 'cli') -Force | Out-Null
 $native = Join-Path $root 'src\RevitThyme.Addin\bin\Release\net10.0-windows'
@@ -54,7 +54,7 @@ $files = @{}; Get-ChildItem -LiteralPath $folder -File -Recurse | ForEach-Object
     $files[$relative] = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()
 }
 [xml]$buildProperties = Get-Content -LiteralPath (Join-Path $root 'Directory.Build.props') -Raw
-@{version='0.9.2-ribbon';product_version=[string]$buildProperties.Project.PropertyGroup.Version;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$files} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
+@{version='0.9.3-identity';product_version=[string]$buildProperties.Project.PropertyGroup.Version;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$files} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
 $zip = $folder+'.zip'; Compress-Archive -LiteralPath $folder -DestinationPath $zip
 (Get-FileHash -LiteralPath $zip).Hash.ToLowerInvariant()+'  '+(Split-Path $zip -Leaf) | Set-Content -LiteralPath ($zip+'.sha256') -Encoding ascii
 Write-Output $folder

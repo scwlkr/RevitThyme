@@ -35,22 +35,52 @@ import. Setup now imports public DER through a bounded owned certutil process
 and reopens the native certificate stores for exact readback. The same original
 nonexportable identity was retained throughout; setup itself returned ready.
 
-## Preserved working state
+## Preservation during readiness preparation
 
 The pre-existing Revit process/start identity, active document/view/revision and
 unsaved state were unchanged in native readbacks. All 86 tracked installation,
 registration and saved-model files matched the preservation baseline. No Revit
 process was launched, closed or restarted, and no model was saved or synchronized.
-The installed host, setup receipt and normal add-in registration remain unchanged.
+At that handoff, the installed host, setup receipt and normal add-in registration
+remained unchanged.
 
-## Remaining native acceptance
+## Native acceptance after the authorized installation
 
-The user requested a handoff before installation/restart. This readiness does
-not establish prompt-free Revit startup or qualify the new launch workflow live.
-After saving/closing Revit normally and installing the exact signed candidate,
-verify repeated prompt-free launches, revised C# in one process, native readback
-and one Undo, wrong-target rejection, normal-launch execution opt-out and graceful
-development shutdown. Follow [the development guide](../docs/DEVELOPMENT.md).
+The user saved and closed Revit, then authorized installation and native tests.
+The exact candidate above is now installed in its immutable manifest-hash folder.
+The prior installation is preserved, and registration/receipt backups match their
+pre-install SHA-256 values. The saved working model, original test baseline and
+development model files remained unchanged.
+
+Two new Revit 2027.3 processes opened their disposable models without any trust
+prompt or load approval. Both native journals identify `RevitThyme.Foundation.addin`
+with `AddInCodeSigningStatus: Signed` and `AddInLoadFailureMessage: NoError`.
+
+The development process retained its original PID/start/session/document identity
+while running two different C# bodies. Native modification renamed view 1972
+from `Level 1` to `Level 1 - Dev test`, reporting only that modified element ID.
+An independent query read the changed native name. One native Ctrl+Z restored
+`Level 1` and `IsModified=false`. All 2,425 element IDs matched the original hash,
+and the model still had zero warnings. The development session was left open.
+
+A second process with trusted execution unset rejected `run-query` with
+`trusted_code_disabled`, then closed normally with its saved fixture unchanged.
+No production model was opened for testing. Private native evidence is indexed
+by `artifacts/dev/delivery.json` and the run's `native-acceptance.json`.
+
+The first real wrapper call exposed an omitted optional GUID becoming null at
+the parent-to-child PowerShell boundary. Source commit
+`01d4aef92ee9067eea702f667f2d1b37e772a2ba` sets an explicit `Guid.Empty` default in
+both scripts. Three regressions exercise the real script parameter boundary and
+pending-ID recovery; all 46 offline development checks and the full toolkit gate
+pass. The repair required no host rebuild, reinstall or Revit restart. A diagnostic
+query missing a required collector filter also rolled back cleanly; its retained
+failure is separate from successful acceptance.
+
+This qualifies the requested startup, dynamic iteration, modification and Undo
+flow on this machine. Wrong-target/lifecycle guards retain their offline coverage;
+other machines and certificate renewal need separate validation. Follow
+[the development guide](../docs/DEVELOPMENT.md) for daily use.
 
 General compiled-assembly reload, untrusted-code isolation and public publisher
 signing are outside this change.

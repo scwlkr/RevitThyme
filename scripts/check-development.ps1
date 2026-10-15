@@ -287,6 +287,8 @@ Test-Case 'lost submission response preserves request ID and blocks another edit
     Assert-Check ($script:CliCalls.Count -eq $before) 'A lost response caused a second submission.'
 }
 
+. (Join-Path $PSScriptRoot 'check-development-defaults.ps1')
+
 $failed = @($script:Checks | Where-Object { -not $_.passed })
 $report = @{passed=($failed.Count -eq 0);checks=$script:Checks.Count;failed=$failed.Count;native_revit_tested=$false;
     scope='Offline production safety helpers and action control flow with check-local process/CLI mocks';

@@ -35,9 +35,9 @@ internal sealed class RevitThymeRibbon : IDisposable
             "inset and tag clearance. Create adds two associative dimensions in one Revit Undo item.", "NATIVE-UTILITIES.md#room-dimensions");
 
         var product = application.CreateRibbonPanel("RevitThyme", "RevitThyme");
-        Add<AgentCommand, ApplicationAvailability>(product, "RevitThyme.Agent", "Open\nAgent", "open-agent",
+        Add<AgentCommand, DocumentAvailability>(product, "RevitThyme.Agent", "Open\nAgent", "open-agent",
             "Opens the RevitThyme Agent panel for working with Codex.",
-            "Open the dockable panel, then connect Codex or sign in there. Opening the panel does not start a chat or change the model. " +
+            "Open a document, then open the dockable panel and connect Codex or sign in there. Opening the panel does not start a chat or change the model. " +
             "The Agent uses this Revit session when connected.", "AGENT.md");
         product.AddSlideOut();
         Add<UpdateCommand, ApplicationAvailability>(product, "RevitThyme.Updates", "Check for\nUpdates", "check-updates",

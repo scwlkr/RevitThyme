@@ -24,10 +24,12 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private ExternalEvent? externalEvent;
     private PipeServer? server;
     private InspectWindow? window;
+    public InspectWindow? InspectWindow => window;
     public ViewRangeWindow? ViewRangeWindow { get; private set; }
     public RoomDimensionsWindow? RoomDimensionsWindow { get; private set; }
     public AgentPanel? AgentPanel { get; private set; }
     private UpdateCoordinator? updates;
+    public UpdateWindow? UpdateWindow => updates?.Window;
     private RevitThymeRibbon? ribbon;
     private string? bindingPath;
     private string? fixturePath;

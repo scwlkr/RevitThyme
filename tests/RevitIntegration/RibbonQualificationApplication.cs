@@ -70,18 +70,18 @@ public sealed class RibbonQualificationApplication : IExternalApplication, IExte
                     Check("empty isolated Revit process", app.Application.Documents.Size == 0);
                     Check("task panels in reading order", app.GetRibbonPanels("RevitThyme").Select(p => p.Name).SequenceEqual(["Views", "Annotation", "RevitThyme"]));
                     var buttons = Buttons(app);
-                    Check("five original command identities retained", buttons.Select(b => b.Name).Order().SequenceEqual(new[] {
+                    Check("five original toolkit command keys retained", buttons.Select(b => b.Name).Order().SequenceEqual(new[] {
                         "RevitThyme.Native.ViewRange", "RevitThyme.InspectView", "RevitThyme.Native.RoomDimensions", "RevitThyme.Agent", "RevitThyme.Updates" }.Order()));
                     Check("every command has short and extended help", buttons.All(b => !string.IsNullOrWhiteSpace(b.ToolTip) && !string.IsNullOrWhiteSpace(b.LongDescription)));
                     Check("every command has small and large embedded icons", buttons.All(b => b.Image is BitmapSource { PixelWidth: > 0 } && b.LargeImage is BitmapSource { PixelWidth: > 0 }));
                     Check("model tools unavailable with no document", !new DocumentAvailability().IsCommandAvailable(app, new())
                         && !new ViewRangeAvailability().IsCommandAvailable(app, new()) && !new RoomDimensionsAvailability().IsCommandAvailable(app, new()));
-                    Check("application tools available with no document", new ApplicationAvailability().IsCommandAvailable(app, new()));
-                    Post(app, "RevitThyme.Agent"); stage++; break;
+                    Check("update command available with no document", new ApplicationAvailability().IsCommandAvailable(app, new()));
+                    Post(app, "RevitThyme.Updates"); stage++; break;
                 case 1:
-                    var pane = app.GetDockablePane(new(new Guid("D988D5C7-B1BB-40CE-A636-48C344DA7E68")));
-                    Check("Open Agent opens dockable pane without connection", pane.IsShown() && host.AgentPanel?.Session is null);
-                    pane.Hide(); Fixture.Create(app, fixture); stage++; break;
+                    if (host.UpdateWindow is not { IsVisible: true }) return;
+                    Check("Check for Updates opens native dialog with no document", true);
+                    host.UpdateWindow.Close(); Fixture.Create(app, fixture); stage++; break;
                 case 2:
                     app.ActiveUIDocument!.RequestViewChange(new FilteredElementCollector(doc!).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().Single(v => v.Name == "Foundation Plan"));
                     stage++; break;
@@ -89,37 +89,40 @@ public sealed class RibbonQualificationApplication : IExternalApplication, IExte
                     if (doc!.ActiveView.Name != "Foundation Plan") return;
                     savedHash = Hash(); count = new FilteredElementCollector(doc).GetElementCount();
                     Check("plan tools available in floor plan", new ViewRangeAvailability().IsCommandAvailable(app, new()) && new RoomDimensionsAvailability().IsCommandAvailable(app, new()));
-                    Post(app, "RevitThyme.Native.ViewRange"); stage++; break;
+                    Post(app, "RevitThyme.Agent"); stage++; break;
                 case 4:
+                    var pane = app.GetDockablePane(new(new Guid("D988D5C7-B1BB-40CE-A636-48C344DA7E68")));
+                    Check("Open Agent opens dockable pane without connection", pane.IsShown() && host.AgentPanel?.Session is null);
+                    pane.Hide(); Post(app, "RevitThyme.Native.ViewRange"); stage++; break;
+                case 5:
                     if (host.ViewRangeWindow is not { IsBusy: false, CurrentRange: not null }) return;
                     Check("View Range button opens populated native dialog", true); host.ViewRangeWindow.Close();
                     Post(app, "RevitThyme.Native.RoomDimensions"); stage++; break;
-                case 5:
+                case 6:
                     if (host.RoomDimensionsWindow is not { IsBusy: false }) return;
                     Check("Room Dimensions button opens native dialog", host.RoomDimensionsWindow.IsVisible); host.RoomDimensionsWindow.Close();
                     Post(app, "RevitThyme.InspectView"); stage++; break;
-                case 6:
-                    var inspect = host.Show(app);
-                    if (inspect.IsBusy || inspect.CurrentSnapshot is null) return;
+                case 7:
+                    if (host.InspectWindow is not { IsBusy: false, CurrentSnapshot: not null } inspect) return;
                     Check("Inspect View button captures active native view", inspect.CurrentSnapshot.ViewName == "Foundation Plan"); inspect.Close();
                     UIThemeManager.CurrentTheme = UITheme.Dark; stage++; break;
-                case 7:
+                case 8:
                     foreach (var button in Buttons(app)) darkImages.Add(button.Name, Pixels((BitmapSource)button.LargeImage));
                     Check("dark theme icons retain logical button sizes", Buttons(app).All(b => Math.Abs(b.Image.Width - 16) < 0.1 && Math.Abs(b.LargeImage.Width - 32) < 0.1));
                     UIThemeManager.CurrentTheme = UITheme.Light; stage++; break;
-                case 8:
+                case 9:
                     Check("all icons change with native theme event", Buttons(app).All(b => !darkImages[b.Name].SequenceEqual(Pixels((BitmapSource)b.LargeImage))));
                     Check("light theme icons retain logical button sizes", Buttons(app).All(b => Math.Abs(b.Image.Width - 16) < 0.1 && Math.Abs(b.LargeImage.Width - 32) < 0.1));
                     UIThemeManager.CurrentTheme = originalTheme;
                     app.ActiveUIDocument!.RequestViewChange(new FilteredElementCollector(doc!).OfClass(typeof(View)).Cast<View>().First(v => !v.IsTemplate && v.ViewType == ViewType.ThreeD));
                     stage++; break;
-                case 9:
+                case 10:
                     if (doc!.ActiveView.ViewType != ViewType.ThreeD) return;
                     Check("plan-only tools disabled in 3D", !new ViewRangeAvailability().IsCommandAvailable(app, new()) && !new RoomDimensionsAvailability().IsCommandAvailable(app, new()));
                     Check("inspection remains available in 3D", new DocumentAvailability().IsCommandAvailable(app, new()));
                     app.ActiveUIDocument!.RequestViewChange(new FilteredElementCollector(doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>().Single(v => v.Name == "Foundation Plan"));
                     stage++; break;
-                case 10:
+                case 11:
                     if (doc!.ActiveView.Name != "Foundation Plan") return;
                     Check("fixture elements preserved", new FilteredElementCollector(doc).GetElementCount() == count);
                     Check("fixture disk hash preserved", Hash() == savedHash);

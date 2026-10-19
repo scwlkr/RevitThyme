@@ -1,0 +1,68 @@
+# Original native TimberFold fixtures
+
+This test-only assembly procedurally authors native editable Revit 2027 RVTs and an original hosted two-pane RFA. It is excluded from the product and installer. Nothing is derived from Cedar Cottage, S1, downloaded families or Autodesk sample buildings. The installed Autodesk `Window.rft` supplies the wall-hosting infrastructure; all template openings/forms are replaced by explicit original geometry. The installed `C:\ProgramData\Autodesk\RVT 2027\Templates\Default_I_ENU.rte` supplies native wall/roof/view types and project phases. The builder rejects unexpected pre-existing model geometry in that template. It does not assume the no-template `NewProjectDocument(UnitSystem)` overload supplies roof types. The template/API binaries are prerequisites and are not redistributed.
+
+Current recipe: `original-shells-v2`. All stated building outlines are counterclockwise **exterior-face boundaries**. The wall centrelines are offset inward by half the native six-inch width, with adjacent orthogonal offsets intersected at corners. Native wall exterior orientations point outward. Roof footprints retain the stated exterior dimensions and cover the full wall thickness. Opening locations project onto their actual host lines while retaining their stated elevations. V1 outputs remain preserved as native regression evidence: they exposed inward exterior-side labels and roof attachment strips outside the roof footprint.
+
+Build against the local Revit API:
+
+```powershell
+dotnet build C:\Revit\RevitThyme\tests\TimberFold\RevitThyme.TimberFold.Fixtures.csproj --nologo
+```
+
+Use the [isolated development workflow](../../docs/DEVELOPMENT.md) to prepare a pinned disposable process. The builder requires trusted execution, exactly the pinned baseline document open, and a new absolute output directory. It creates, commits, saves and closes only new documents. It does not edit/save the active baseline, switch the active document, start/stop Revit or install/register an add-in.
+
+Run one fixture per request, using the actual run folder and a fresh destination:
+
+```powershell
+$run = 'C:\Revit\RevitThyme\artifacts\dev\ACTUAL_RUN_UUID'
+$output = 'C:\Revit\RevitThyme\artifacts\timberfold\original-fixtures\NEW_UUID\gable'
+pwsh -NoProfile -File C:\Revit\RevitThyme\tests\TimberFold\build-fixture.ps1 -RunFolder $run -Destination $output -Fixture gable
+```
+
+Repeat with new directories and `irregular`, `multistorey`, `flat`. A small generated reflection method body is retained under the development run; the complete builder is compiled, so it does not exceed the 24 KiB trusted source limit. Assembly bytes load without locking the build output. The runner verifies those exact bytes against the SHA-256 captured at preparation, and passes the verified hash and original file path to the builder. The builder verifies provenance again before opening documents or creating output; it never relies on `Assembly.Location` for a byte-loaded assembly. The native callback remains on the Revit API thread. Only one fixture request should run at a time.
+
+The wrapper uses the 30 s maximum cooperative request budget. A blocked Autodesk call cannot be forcibly interrupted. A timeout can occur after a new RVT has saved: inspect the original request via `project.cmd dev-outcome`, the new directory and its receipts before taking further action. Query rollback applies to the pinned current document; creation and saving of these explicitly authorized new documents are deliberate external effects. A failed build retains partial outputs and `fixture-failed.json`; retries require another fresh directory. Do not rename/open the baseline inside an existing development run. To qualify product operations on a produced model, launch a new development run with that RVT as `-FixtureSource`.
+
+| Fixture | Native walls | Roof elements | Hosted windows | Project openings | Analytic shell panels before joints |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `gable` | 4 | 1 | 2 | 1 | 6 |
+| `irregular` | 6 | 2 | 3 | 1 | 10 |
+| `multistorey` | 8 | 1 | 4 | 1 | 10 |
+| `flat` | 16 | 2 | 4 | 3 | 18 |
+
+The last column is a fixed analytic source expectation (one panel per wall exterior plus each roof top face). Intersections/joints can change connected part topology; the product must independently reconcile actual contours and every source face. These numbers must never be substituted for delivered part counts. Project opening counts exclude the opening embedded inside each hosted window family. Every ordinary window contains two separate native solids classified with a native `Glass` material. Native inspection checks counts and actual glass solids before the RVT saves; it does not infer panes from family names. The independent roof oracle inventories every actual solid face recursively, checks upward face count/planarity/opening loops and total area against the dimensioned recipe. An exact oriented line/circular-arc boundary integral checks planar face area against the recipe at 0.000001 ft². Native `Face.Area`, which the installed API explicitly documents as potentially estimated, is retained alongside that integral. The circular-roof gate uses the exact boundary integral against 64π; straight-roof native-area checks remain. Arc radii, centres, normals, parameter ranges and lengths are retained. `HostObjectUtils.GetTopFaces` reference counts and each resolved/unresolved reference are retained separately; a failed reference is never silently filtered out or mistaken for an absent physical face.
+
+The separate native wall oracle compares each role against literal approved exterior boundary planes, both `Wall.Orientation` and actual solid exterior faces. It tests every native wall-solid boundary vertex for coverage by an actual roof-bottom face and rejects any vertex above all covering undersides. Fitted wall exterior tops must match an actual native attached roof underside, including eave/ridge/step vertices; manually profiled walls without attachments must match an actual covering underside. Overlapping roofs can have different valid underside heights: the oracle retains every covering roof ID/height, the matched attachment and any gap to the highest envelope for later product fitting. This checks the complete solid thickness and catches orphan corner strips that source counts miss. Parapets retain outward checks and an explicit intentional above-roof exemption. `wall-shell-inspection.json` retains measured planes, orientations and vertex/roof comparisons, including failures. Roof heights come from actual native planar bottom faces, allowing differing gables and flat roofs.
+
+- `gable`: 24 × 16 ft, 10 ft eave, 6:12 native gable roof (14 ft ridge). Four native roof-attached walls, two 4 × 4 ft windows and one 3 × 7 ft door void.
+- `irregular`: L outline `(0,0),(24,0),(24,28),(12,28),(12,16),(0,16)` ft. A 24 × 16 ft main gable intersects a 12 × 20 ft perpendicular wing, with a deliberate 12 × 8 ft overlap. Both are 6:12 at 10 ft eave. Five wall segments have native roof attachments; the sixth has an explicit editable stepped/gabled profile spanning both roofs. Actual roof intersections must be resolved by the product. Three windows and a door void.
+- `multistorey`: 24 × 16 ft footprint; levels 0/10/18 ft and gable ridge 22 ft. Eight stacked wall segments with different top profiles, four windows aligned at x=6 ft and offset at x=18/17 ft, and a ground door void.
+- `flat`: 28 × 20 ft lower shell, terrace at 10 ft, setback upper shell `(8,5)` to `(20,15)` ft, upper roof at 18 ft. Terrace has a 12 × 10 ft opening for the upper shell; upper roof has a 4 × 4 ft skylight opening. Two-foot parapets on both storeys; four windows and a door void.
+
+All dimensions are native editable elements, family geometry, levels, sketches and profiles. Window frames and normal centre bars are 3 in in the building: exactly 0.0625 in at 1:48. Pane thickness is 0.25 in in the building. The builder source is the reproducible dimensional recipe; changing family width/height alone does not flex the fixed original forms. Edit the family forms or change/rebuild the recipe for alternate dimensions.
+
+Small original cases use the same command:
+
+| Fixture | Expected native inventory / purpose |
+| --- | --- |
+| `curved-wall` | One quarter-circle wall, radius 10 ft and height 10 ft; unsupported surface diagnostic |
+| `slanted-wall` | One 12 × 10 ft wall tilted 15°; unsupported surface diagnostic |
+| `oversized-wall` | One 120 × 10 ft wall; 30 in wide at 1:48 cannot fit nominal 24 in stock |
+| `ambiguous-glazing` | One wall and hosted window; zero glass solids, opaque pane material; blocking missing-glazing diagnostic |
+| `thin-bar` | One wall and two-pane window; 1.5 in model bar becomes 0.03125 in physically, below acceptance |
+| `arc-roof` | One circular flat roof, radius 8 ft, two half-circle arcs; top area analytic oracle 64π ft² |
+| `phase-scope` | Two walls, one created in earliest phase/demolished in latest and one created in latest; explicit phase inventory |
+| `performance-100` | 100 isolated 12 × 10 ft walls with 4 ft separation; timing/cancellation observation |
+
+The root qualification also creates real primary/alternative options through Revit's dialog, assigns an original isolated wall, exercises installed extraction and restores the setup with observed Undo items. This temporary native case is separate from the saved fixture recipes. Settings-only invalid stock/grain tests belong at the shared operation seam. Physical cutting, measured calibration and assembly remain outstanding.
+
+Each successful directory retains RVT SHA-256, builder assembly SHA-256, recipe version, dimensions, warnings, native element IDs/UniqueIds and role comments, native pane/count inspection, and a geometry fingerprint. Native inspection runs before saving; file hashing and successful receipts follow a verified `Close(false)` of each owned new document so Revit's live file handles cannot block readback. The fingerprint sorts world-coordinate tessellated triangles rounded to 8 decimal feet, so it omits random IDs, timestamps and document GUIDs; actual repeatability must still be verified on multiple native builds. It is evidence about fixture geometry, not the product's canonical contour hash. RVT hashes and UniqueIds are expected to differ across freshly authored documents. Template SHA-256 and generated RFA SHA-256 are retained separately. A receipt records the actual installed Revit build.
+
+Compilation verifies SDK/API compatibility only. Neither compilation nor the analytic expectations establish an actual-Revit pass. Run the builder and product qualification in pinned disposable hosts and retain their observed receipts.
+
+`NativeFailureQualification.Begin` registers a one-shot observer for a fresh planned generation ID and an explicit native target. It matches the real documentation commit event and full native ownership GUID/UID/view role before moving only the empty owned export directory, obstructing only the owned publication path, or requesting installed public cancellation. Expiry and unsubscription stay on the API thread. The caller drives actual public generation, locates the same byte-loaded assembly by MVID plus `HasObserver(token)`, checks definitive outcomes and calls `Stop` in a finally block. `CheckRollback` independently verifies the complete original catalog, modification/view/open-document state, saved bytes and absent additions for export/cancel cases. Publication commits require the independent native-document/DWG audits and a separate read-only reconciliation. These observers never load replacement product code.
+
+`NativeLinkedScope.Check` creates an actual loaded link to a different original RVT inside the caller's rollback query. It invokes installed public extraction and retains full default/excluded captures, binary provenance and saved-file hashes. Default extraction must block the exact link; explicit exclusion must preserve host faces/openings. After the query, independently check the complete original catalog, active/open documents, modification state and both saved RVTs. Do not call link Unload to clean up; it can clear Undo history. The actual linked-scope and fault passes are recorded separately in [qualification](../../docs/timberfold/qualification.md).
+
+`NativeExtractionResources.Check` is a regression against the installed public extraction boundary. Invoke the byte/hash-verified observer through `dev-query` in a pinned disposable project, supplying an existing retained generation directory for its profile and verified CUT input. It creates temporary material metadata, a native sheet and a view-only import inside the caller's rollback transaction. Metadata and documentation must leave source identities, fingerprint, faces and openings unchanged; the unowned import must still produce blocking unsupported-architecture diagnostics. Record the returned installed Addin hash, require `passed`, and independently confirm query rollback, unmodified source, original view and saved-file hash. This test does not commit documentation or establish completed-kit acceptance.

@@ -1,10 +1,10 @@
 # Project overview
 
-RevitThyme is an open-source native toolkit for full Revit 2027. Ribbon tools, CLI, an 18-tool MCP server and the optional built-in Agent share C# operations and a native execution host.
+RevitThyme is an open-source native toolkit for full Revit 2027. Ribbon tools, CLI, a 25-tool MCP server and the optional built-in Agent share C# operations and a native execution host. Version 0.10.0 uses protocol 8 and the qualified `0.10.0-timberfold.4` package.
 
 ## Current scope
 
-Available: view/element/parameter inspection, checked renaming, atomic parameter edits, View Range, rectangular Room Dimensions, opt-in trusted C#, dockable Codex Agent, per-user installation and update checks. See [features](FEATURES.md), [roadmap](docs/ROADMAP.md) and [changelog](CHANGELOG.md).
+Available: view/element/parameter inspection, checked renaming, atomic parameter edits, View Range, rectangular Room Dimensions, TimberFold cutting kits and native review documentation, opt-in trusted C#, dockable Codex Agent, per-user installation and update checks. TimberFold's seven shared controls include explicit read-only reconciliation. Its digital qualification is complete; physical fabrication remains outstanding and manufacturing readiness stays false. See [features](FEATURES.md), [roadmap](docs/ROADMAP.md) and [changelog](CHANGELOG.md).
 
 Six C#/.NET 10 product projects live under `src`, with WPF presentation and separate test projects. See [architecture](docs/ARCHITECTURE.md). Proprietary Autodesk binaries are supplied locally and excluded from distribution. Native tools need no Rust, Electron, pyRevit or AI account.
 

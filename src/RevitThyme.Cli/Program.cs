@@ -34,6 +34,12 @@ public static class Program
                 revitthyme room-dimensions create --session ABSOLUTE_FILE --capture PREVIEW_RESULT --json
                 revitthyme run-query|run-modify --session ABSOLUTE_FILE --capture INSPECTION --source CS_BODY_FILE --trusted true --request-id GUID [--budget-ms 10000] --json
                 revitthyme get-operation --session ABSOLUTE_FILE --request-id GUID --json
+                revitthyme timberfold inspect --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
+                revitthyme timberfold preview --run-id GUID --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
+                revitthyme timberfold generate --preview-run-id GUID --run-id GUID --session ABSOLUTE_FILE [--json]
+                revitthyme timberfold reconcile --generation-run-id GUID --run-id NEW_GUID --session ABSOLUTE_FILE [--json]
+                revitthyme timberfold verify --run-id GUID --session ABSOLUTE_FILE [--json]
+                revitthyme timberfold status|cancel --run-id GUID --session ABSOLUTE_FILE [--json]
 
                 Version reports distinguish the CLI/development build from installed RevitThyme.
                 Update commands target the registered RevitThyme installation. Close Revit before installing.
@@ -46,6 +52,7 @@ public static class Program
         }
         if (args[0] is "--version" or "version" or "update") return await UpdateCli.Run(args, output);
         if (args[0] is "run-query" or "run-modify" or "get-operation") return await DynamicCli.Run(args, output, error, clientFactory);
+        if (args[0] == "timberfold") return await TimberFoldCli.Run(args, output, error, clientFactory);
         if (args.Length >= 2 && args[0] is "view-range" or "room-dimensions") args = [args[0] + "-" + args[1], .. args[2..]];
         var options = Parse(args[1..]);
         string command = args[0];
@@ -145,7 +152,7 @@ public static class Program
         if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > Protocol.MaxBytes) throw new ArgumentException("Use an absolute range settings file (maximum 64 KiB).");
         return JsonSerializer.Deserialize<ViewRangeSettings>(File.ReadAllText(path), Protocol.Json) ?? throw new ArgumentException("Range settings required.");
     }
-    private static Dictionary<string, string?> Parse(string[] args)
+    internal static Dictionary<string, string?> Parse(string[] args)
     {
         var options = new Dictionary<string, string?>(StringComparer.Ordinal);
         for (int i = 0; i < args.Length; i++)
@@ -159,6 +166,6 @@ public static class Program
         }
         return options;
     }
-    private static string Required(Dictionary<string, string?> options, string name) =>
+    internal static string Required(Dictionary<string, string?> options, string name) =>
         options.TryGetValue(name, out var value) && !string.IsNullOrWhiteSpace(value) ? value : throw new ArgumentException("Required: " + name);
 }

@@ -21,6 +21,10 @@ dotnet run --project (Join-Path $root 'tests\Mcp') -c Release --no-build | Tee-O
 if ($LASTEXITCODE) { throw 'MCP protocol and operation checks failed.' }
 dotnet run --project (Join-Path $root 'tests\Agent') -c Release --no-build | Tee-Object -FilePath (Join-Path $report 'agent.txt')
 if ($LASTEXITCODE) { throw 'Agent protocol and lifecycle checks failed.' }
+if (-not $Portable) {
+    dotnet run --project (Join-Path $root 'tests\UI\RevitThyme.UiTests.csproj') -c Release --nologo | Tee-Object -FilePath (Join-Path $report 'ui.txt')
+    if ($LASTEXITCODE) { throw 'Native window behavior checks failed.' }
+}
 $assemblyPaths = @(Get-ChildItem -LiteralPath (Join-Path $root 'src') -Recurse -File -Filter 'RevitAPI*.dll')
 if ($assemblyPaths.Count) { throw 'Autodesk binaries were copied into the source/build tree.' }
 $scriptPaths = @(Get-ChildItem -LiteralPath (Join-Path $root 'scripts') -File -Filter '*.ps1') + @(Get-ChildItem -LiteralPath (Join-Path $root 'installer') -File -Filter '*.ps1')

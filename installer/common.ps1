@@ -10,25 +10,28 @@ function Get-FoundationRegistration([string]$Directory) {
 function Assert-FoundationPackage([string]$Folder) {
     $manifestPath = Join-Path $Folder 'manifest.json'
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    if ($manifest.version -notin @('0.4.0-foundation','0.5.0-mcp','0.6.0-utilities','0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity') -or $manifest.revit_year -ne '2027') { throw 'Unsupported RevitThyme package.' }
+    if ($manifest.version -notin @('0.4.0-foundation','0.5.0-mcp','0.6.0-utilities','0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4') -or $manifest.revit_year -ne '2027') { throw 'Unsupported RevitThyme package.' }
     $required = @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','cli/revitthyme.exe','cli/revitthyme.dll','cli/revitthyme.deps.json','cli/revitthyme.runtimeconfig.json','cli/RevitThyme.Core.dll','install.ps1','uninstall.ps1','common.ps1','host-path.ps1','LICENSE','README.md')
-    if ($manifest.version -in @('0.5.0-mcp','0.6.0-utilities','0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity')) {
+    if ($manifest.version -in @('0.5.0-mcp','0.6.0-utilities','0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) {
         . (Join-Path $PSScriptRoot 'mcp-files.ps1')
         $required += @('mcp-files.ps1','THIRD-PARTY-NOTICES.md','MCP.md','notices/MCP-LICENSE.txt','notices/DOTNET-LICENSE.txt')
-        $required += @(Get-McpPackageFiles | ForEach-Object { 'mcp/'+$_ })
+        $required += @(Get-McpPackageFiles -TimberFold:($manifest.version -in @('0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) -Dxf:($manifest.version -in @('0.10.0-timberfold.3','0.10.0-timberfold.4')) | ForEach-Object { 'mcp/'+$_ })
     }
-    if ($manifest.version -in @('0.6.0-utilities','0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity')) { $required += 'NATIVE-UTILITIES.md' }
-    if ($manifest.version -in @('0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity')) { $required += @('RevitThyme.Addin.deps.json','Microsoft.CodeAnalysis.dll','Microsoft.CodeAnalysis.CSharp.dll','DYNAMIC-EXECUTION.md') }
-    if ($manifest.version -in @('0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity')) {
+    if ($manifest.version -in @('0.6.0-utilities','0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) { $required += 'NATIVE-UTILITIES.md' }
+    if ($manifest.version -in @('0.7.0-dynamic','0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) { $required += @('RevitThyme.Addin.deps.json','Microsoft.CodeAnalysis.dll','Microsoft.CodeAnalysis.CSharp.dll','DYNAMIC-EXECUTION.md') }
+    if ($manifest.version -in @('0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) {
         if ((@($manifest.supported_revit_years) -join '|') -ne '2027') { throw 'Unsupported Revit version matrix.' }
         $required += @('prerequisites.ps1','setup-entry.ps1')
     }
-    if ($manifest.version -in @('0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity')) {
+    if ($manifest.version -in @('0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) {
         . (Join-Path $PSScriptRoot 'agent-files.ps1')
         $required += Get-AgentPackageFiles
         if ($manifest.codex_version -ne '0.162.1') { throw 'Unsupported Codex runtime.' }
     }
-    if ($manifest.version -in @('0.9.1-cli','0.9.2-ribbon','0.9.3-identity')) { $required += @('global-command.ps1','cli/rthyme.exe') }
+    if ($manifest.version -in @('0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) { $required += @('global-command.ps1','cli/rthyme.exe') }
+    if ($manifest.version -in @('0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) { $required += 'TIMBERFOLD.md' }
+    if ($manifest.version -in @('0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4')) { $required += @('Clipper2Lib.dll','cli/Clipper2Lib.dll','notices/CLIPPER2-LICENSE.txt') }
+    if ($manifest.version -in @('0.10.0-timberfold.3','0.10.0-timberfold.4')) { $required += @('IxMilia.Dxf.dll','cli/IxMilia.Dxf.dll','notices/IXMILIA-DXF-LICENSE.txt') }
     $names = @($manifest.files.PSObject.Properties.Name)
     if ((($names | Sort-Object) -join '|') -ne (($required | Sort-Object) -join '|')) { throw 'Package file allowlist changed.' }
     $actual = @(Get-ChildItem -LiteralPath $Folder -File -Recurse | ForEach-Object { $_.FullName.Substring($Folder.Length+1).Replace('\','/') } | Where-Object {$_ -ne 'manifest.json'})

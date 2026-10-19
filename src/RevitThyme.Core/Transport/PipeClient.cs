@@ -16,7 +16,7 @@ public sealed class PipeClient(SessionBinding binding) : IOperationClient
             return OperationResult.Reject(request, "request_too_large", "Request exceeds the 64 KiB bridge limit; nothing was submitted.");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
-        await using var pipe = new NamedPipeClientStream(".", binding.PipeName, PipeDirection.InOut,
+        await using var pipe = new NamedPipeClientStream(".", binding.PipeFor(request.Operation), PipeDirection.InOut,
             PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
         bool sent = false;
         try

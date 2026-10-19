@@ -2,6 +2,8 @@
 
 Near the start of coding, run `2brain`; on Windows encoding errors use `$env:PYTHONUTF8='1'`. Current user instructions and [AGENTS.md](AGENTS.md) take precedence over historical guidance.
 
+Current authorized effort: publish v0.10.0 with [native C# TimberFold](docs/timberfold/spec.md), setup and a small calibration/gable physical-test ZIP; see [delivery status](docs/timberfold/progress.md). Use `ask-matt` before each task and its routed skills. The owner accepted the replacement and authorized push/merge/GitHub release publication. Both old active source checkouts and their installed launcher are retired after verified private archive/history backups. Preserve those recovery archives, models, distinct historical evidence and unrelated work. Physical qualification remains explicitly outstanding; `ManufacturingReady` stays false. Website hosting deployment remains a separate approval boundary.
+
 For architecture or scope changes, read [PROJECT.md](PROJECT.md) and the complete [2026-10-14 plan](2026-10-14_NEW_PLAN.md). The active architecture is C#/.NET 10/WPF; `legacy/pre-foundation` is preserved historical source. Implement only the authorized stage. [Features](FEATURES.md) and [terms](GLOSSARY.md) record current behavior.
 
 Use `project.cmd help` for supported development routes. Implement shared operations in Core and Autodesk access in Addin, under ExternalEvent/API callbacks. Each edit requires explicit captured identity and native before/after readback. Files should normally stay under 300 lines; split by responsibility when useful.
@@ -10,7 +12,7 @@ Before declaring an implementation complete, run `project.cmd check` and record 
 
 Keep focused local commits on `codex/<issue>-<purpose>` branches and preserve unrelated edits. Track maintainer implementation in WLKR LABS / RevitThyme. Issue Done requires verified acceptance and default-branch landing; pushing, public publication or model save/sync/close require applicable user authorization. Never change a working model as a fallback for a test failure.
 
-Installation/package changes follow [installation](docs/INSTALLATION.md): verify native physical paths, exact ownership, file hashes and recoverable registrations. Preserve private artifacts, existing installations, unpublished work and external TimberFold. Cleanup addresses only owned processes and exact reviewed targets.
+Installation/package changes follow [installation](docs/INSTALLATION.md): verify native physical paths, exact ownership, file hashes and recoverable registrations. Preserve private artifacts, recoverable installations, unpublished work and verified TimberFold backups. Cleanup addresses only owned processes and exact reviewed targets.
 
 For repeated trusted C# iteration, follow [development setup](docs/DEVELOPMENT.md). Build a signed package with the persistent local certificate, then install only during an agreed Revit-close window. `project.cmd dev-prepare` stages readiness without changing live registration; `dev-start` copies a known disposable nonworkshared fixture and sets opt-in only for its child process. Keep each run pinned to its exact process/session/document; no working-model fallback or registration swapping. Compiled host changes still require a restart. Pre-install package checks are separate from post-install native acceptance.
 

@@ -2,6 +2,8 @@
 
 The local stdio MCP server gives external clients structured access to shared native operations. It uses the official C# MCP SDK and explicitly connects to a matching RevitThyme add-in. No cloud Revit bridge or HTTP listener is required.
 
+Version 0.10.0 exposes 25 tools, including seven TimberFold controls, through protocol 8. Install matching add-in, CLI and MCP binaries together. The qualified package is `0.10.0-timberfold.4`.
+
 ## Choose a route
 
 | Need | Setup |
@@ -52,6 +54,12 @@ Suggested prompt:
 5. On connection loss, call `get_operation` with the original ID before retrying. Identical replay recovers the retained outcome; conflicting reuse is rejected.
 
 The [MCP reference](MCP.md) covers schemas, paging, internal units and recovery. Typed operations do not save or synchronize. Tests stay pinned to a separate disposable process/session/document; never use a working model as fallback.
+
+## TimberFold through MCP
+
+Use `timberfold_inspect`, `timberfold_preview`, `timberfold_generate`, `timberfold_status`, `timberfold_cancel`, `timberfold_verify` and `timberfold_reconcile`. Capture fresh context before inspection, preview or reconciliation; generation uses its retained preview. Starts return acceptance and a run ID, so poll status until terminal and retain exact request identities after uncertainty. Reconcile produces a separate read-only recovery run rather than recreating documentation. Status/cancel require no fresh capture.
+
+Generated native review sheets belong to one Undo group; cutting files remain retained after Undo. The feature never saves the source. Digital acceptance does not certify physical stock, kerf, joints or assembly; `ManufacturingReady` remains false. See [TimberFold](timberfold/README.md) for supported scope and physical-test instructions.
 
 ## Trust and private data
 

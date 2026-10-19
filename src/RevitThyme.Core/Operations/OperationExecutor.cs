@@ -29,6 +29,8 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            if (request.Operation == OperationKind.InspectTimberFold) return TimberFoldExecutor.Execute(model, request);
+            if (request.TimberFold is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected TimberFold arguments.");
             bool dynamic = request.Operation is OperationKind.RunQuery or OperationKind.RunModify;
             if (dynamic) return DynamicExecutor.Execute(model, request);
             if (request.Code is not null) return OperationResult.Reject(request, "invalid_request", "Code is accepted only by run_query/run_modify.");

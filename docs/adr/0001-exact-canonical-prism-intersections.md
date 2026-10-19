@@ -1,0 +1,3 @@
+# Exact intersections of canonical panel prisms
+
+TimberFold uses exact rational arithmetic for bounded convex prism clipping and per-panel-pair collision volumes because a useful complete floating-point error bound at the accepted `1e-6 in³` gate was not established. Convert finite binary coordinates, frame components and thickness before affine multiplication; compare the summed rational volume against exactly `1/1,000,000`, and report arithmetic/work/cancellation limits as unresolved. This precision describes the canonical affine panel geometry only: extraction, chord, grid and frame errors remain separate gates, and the measured performance target still applies.

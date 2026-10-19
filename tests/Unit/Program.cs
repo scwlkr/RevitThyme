@@ -10,6 +10,28 @@ internal static class Program
     {
         await Operations(); await Boundaries.Run(Check); await ParameterInspectionCli.Run(Check); await ParameterResponseCompatibility.Run(Check);
         Utilities.Run(Check); await Dynamic.Run(Check); await Updates.Run(Check); await InstalledCli.Run(Check);
+        TimberFoldOperations.Run(Check);
+        TimberFoldInspection.Run(Check);
+        TimberFoldFabrication.Run(Check);
+        TimberFoldJoints.Run(Check);
+        TimberFoldRoofs.Run(Check);
+        TimberFoldFragility.Run(Check);
+        TimberFoldGridPartition.Run(Check);
+        TimberFoldCollisions.Run(Check);
+        TimberFoldStock.Run(Check);
+        TimberFoldCutFiles.Run(Check);
+        TimberFoldNativeContours.Run(Check);
+        TimberFoldNativeReferences.Run(Check);
+        TimberFoldNativePreservation.Run(Check);
+        TimberFoldGuides.Run(Check);
+        await TimberFoldRuns.Run(Check);
+        await TimberFoldFinalization.Run(Check);
+        await TimberFoldReconciliationQueue.Run(Check);
+        await TimberFoldTransport.Run(Check);
+        await TimberFoldGeneration.Run(Check);
+        await TimberFoldReconciliation.Run(Check);
+        await TimberFoldOperations.Cli(Check);
+        await TimberFoldCliRuns.Run(Check);
         Console.WriteLine($"Foundation unit checks: {passed} passed, {failed} failed."); return failed == 0 ? 0 : 1;
     }
     internal static void Check(string name, bool condition)

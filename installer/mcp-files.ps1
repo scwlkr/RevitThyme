@@ -1,5 +1,5 @@
-function Get-McpPackageFiles {
-    return @(
+function Get-McpPackageFiles([switch]$TimberFold, [switch]$Dxf) {
+    $files = @(
         'Microsoft.Extensions.AI.Abstractions.dll',
         'Microsoft.Extensions.Caching.Abstractions.dll',
         'Microsoft.Extensions.Configuration.Abstractions.dll',
@@ -38,4 +38,7 @@ function Get-McpPackageFiles {
         'RevitThyme.Core.dll',
         'System.Diagnostics.EventLog.dll'
     )
+    if ($TimberFold) { $files += 'Clipper2Lib.dll' }
+    if ($Dxf) { $files += 'IxMilia.Dxf.dll' }
+    return $files
 }

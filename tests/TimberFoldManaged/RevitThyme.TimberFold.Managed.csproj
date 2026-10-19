@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <Target Name="RequireInstalledPayload" BeforeTargets="ResolveReferences">
+    <Error Condition="'$(ManagedPayloadDirectory)' == '' Or !Exists('$(ManagedPayloadDirectory)/RevitThyme.Core.dll')"
+           Text="Set ManagedPayloadDirectory to the exact installed signed payload; source project references are intentionally unsupported." />
+  </Target>
+  <ItemGroup>
+    <Reference Include="RevitThyme.Core"><HintPath>$(ManagedPayloadDirectory)/RevitThyme.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Clipper2Lib"><HintPath>$(ManagedPayloadDirectory)/Clipper2Lib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="IxMilia.Dxf"><HintPath>$(ManagedPayloadDirectory)/IxMilia.Dxf.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>

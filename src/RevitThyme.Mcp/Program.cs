@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.Server;
+using RevitThyme.Core;
 
 namespace RevitThyme.Mcp;
 
@@ -13,7 +14,7 @@ public static class Program
         {
             Console.WriteLine("revitthyme-mcp [--session ABSOLUTE_FILE] [--sessions-directory ABSOLUTE_FOLDER]\nOfficial MCP stdio server. Explicit connection. Trusted C# requires host opt-in; see DYNAMIC-EXECUTION.md."); return 0;
         }
-        if (args is ["--version"]) { Console.WriteLine("0.9.3-identity"); return 0; }
+        if (args is ["--version"]) { Console.WriteLine(ProductVersion.Stage); return 0; }
         try
         {
             var options = ServerSettings.Parse(args);

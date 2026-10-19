@@ -17,8 +17,10 @@ internal static class Program
             if (args is ["--live", var folder]) await Live.Run(folder);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
             else if (args is ["--dynamic-live", var dynamicFolder]) await DynamicLive.Run(dynamicFolder);
+            else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);
+            else if (args is ["--packaged-stdio", var bundle, var manifestSha256, var evidence]) await PackagedStdio.Run(bundle, manifestSha256, evidence);
             else if (args is ["--parameter-identity-live", var identityFolder, var identityStage]) await ParameterIdentityLive.Run(identityFolder, identityStage);
-            else { await Generic(); await ParameterIdentity.Run(); await Stdio(); }
+            else { await Generic(); await ParameterIdentity.Run(); await TimberFoldRuns.Run(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }
@@ -81,7 +83,34 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 18-tool discovery", tools.Count == 18);
+        Check("official SDK stdio initialization and 25-tool discovery", tools.Count == 25);
+        var reconcileTool = tools.Single(t => t.Name == "timberfold_reconcile");
+        Check("reconciliation advertises captured idempotent recovery evidence without geometry overrides", reconcileTool.ProtocolTool.Annotations is
+            { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true } &&
+            reconcileTool.JsonSchema.ToString().Contains("generationRunId", StringComparison.Ordinal) &&
+            reconcileTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal) &&
+            !reconcileTool.JsonSchema.ToString().Contains("directory", StringComparison.OrdinalIgnoreCase));
+        var previewTool = tools.Single(t => t.Name == "timberfold_preview");
+        var statusTool = tools.Single(t => t.Name == "timberfold_status");
+        var cancelTool = tools.Single(t => t.Name == "timberfold_cancel");
+        var generateTool = tools.Single(t => t.Name == "timberfold_generate");
+        var verifyTool = tools.Single(t => t.Name == "timberfold_verify");
+        Check("TimberFold generation advertises captured reversible writes and retained verification is read-only", generateTool.ProtocolTool.Annotations is
+            { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true } && verifyTool.ProtocolTool.Annotations?.ReadOnlyHint == true &&
+            generateTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal) &&
+            generateTool.JsonSchema.ToString().Contains("previewRunId", StringComparison.Ordinal) &&
+            !generateTool.JsonSchema.ToString().Contains("stockWidthInches", StringComparison.OrdinalIgnoreCase) &&
+            verifyTool.JsonSchema.ToString().Contains("runId", StringComparison.Ordinal) &&
+            !verifyTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal));
+        Check("TimberFold preview/cancel declare idempotent private writes and status is read-only", previewTool.ProtocolTool.Annotations is
+                { ReadOnlyHint: false, IdempotentHint: true } && cancelTool.ProtocolTool.Annotations is { ReadOnlyHint: false, IdempotentHint: true } &&
+            statusTool.ProtocolTool.Annotations?.ReadOnlyHint == true);
+        Check("TimberFold run schemas distinguish captured preview from direct status/cancellation", previewTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal) &&
+            previewTool.JsonSchema.ToString().Contains("requestId", StringComparison.Ordinal) && previewTool.JsonSchema.ToString().Contains("scaleDenominator", StringComparison.OrdinalIgnoreCase) &&
+            statusTool.JsonSchema.ToString().Contains("runId", StringComparison.Ordinal) && !statusTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal) &&
+            cancelTool.JsonSchema.ToString().Contains("runId", StringComparison.Ordinal) && !cancelTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal));
+        Check("TimberFold inspection declares private evidence writes and captured typed settings", tools.Single(t => t.Name == "timberfold_inspect").ProtocolTool.Annotations?.ReadOnlyHint == false
+            && tools.Single(t => t.Name == "timberfold_inspect").JsonSchema.ToString().Contains("stockWidthInches", StringComparison.OrdinalIgnoreCase));
         Check("trusted query is not advertised as sandboxed read-only", tools.Single(t => t.Name == "run_query").ProtocolTool.Annotations?.ReadOnlyHint == false
             && tools.Single(t => t.Name == "run_modify").JsonSchema.ToString().Contains("trusted"));
         Check("native utility tools expose structured schemas", tools.Single(t => t.Name == "create_room_dimensions").JsonSchema.ToString().Contains("fingerprint", StringComparison.OrdinalIgnoreCase)

@@ -33,6 +33,12 @@ export default function Download() {
             <Link href={`${product.assetBase}/install.ps1`}>Install script</Link> ·{' '}
             <Link href={product.releaseUrl}>Release notes</Link>
           </li>
+          <li>
+            <Link href={`${product.assetBase}/TimberFold-physical-test.zip`}>
+              Small TimberFold test pack
+            </Link>{' '}
+            · calibration cuts, six-panel gable kit and editable Revit example
+          </li>
         </ul>
         <p>
           Includes the add-in, CLI, MCP server and optional Codex Agent. No SDK or administrator
@@ -41,6 +47,10 @@ export default function Download() {
         <p>
           Pre-1.0. Revit LT and other years are unsupported. Native qualification: Revit 27.3.0.28
           on the recorded test host.
+        </p>
+        <p>
+          Physical fabrication remains outstanding. Measure stock and kerf, cut calibration pieces
+          first, then check joints, window bars and assembly before accepting a physical kit.
         </p>
         <p>
           <Link to="/docs/quick-start/">First steps</Link> ·{' '}

@@ -2,7 +2,7 @@
 
 ![RevitThyme](assets/branding/revitthyme-logo.svg)
 
-Open-source C# tools for Revit 2027. Use View Range and Room Dimensions from the ribbon, or shared operations through the CLI and MCP. The optional docked Agent uses Codex; native tools need no AI account.
+Open-source C# tools for Revit 2027. Use TimberFold, View Range and Room Dimensions from the ribbon, or shared operations through the CLI and MCP. The optional docked Agent uses Codex; native tools need no AI account.
 
 [![Toolkit checks](https://github.com/scwlkr/RevitThyme/actions/workflows/ci.yml/badge.svg)](https://github.com/scwlkr/RevitThyme/actions/workflows/ci.yml)
 [![Documentation checks](https://github.com/scwlkr/RevitThyme/actions/workflows/website.yml/badge.svg)](https://github.com/scwlkr/RevitThyme/actions/workflows/website.yml)
@@ -18,7 +18,8 @@ Open-source C# tools for Revit 2027. Use View Range and Room Dimensions from the
 | **View Range** | Edit four native plan planes with a section preview, feet/inches or metric entry, template guards and one Undo. |
 | **Room Dimensions** | Preview and create an associative width/depth pair for a rectangular room with native finish references and room-tag clearance. |
 | **Inspection and editing** | Inspect views, elements and typed parameters; rename views and apply expected-value parameter batches with verified native readback. |
-| **CLI and MCP** | Use shared operations through `rthyme` and an 18-tool local MCP server, with explicit session targeting and outcome recovery. |
+| **TimberFold** | Turn supported planar exterior walls and roofs into DWG/DXF cutting kits, source-mapped guides and native review sheets. Digital verification is complete; physical fabrication remains outstanding. |
+| **CLI and MCP** | Use shared operations through `rthyme` and a 25-tool local MCP server, including seven TimberFold controls, with explicit session targeting and outcome recovery. |
 | **Built-in Agent** | Work from an optional dockable Codex panel with ChatGPT sign-in, saved conversations, approvals and skills. |
 
 ![View Range: native plane settings and section preview](docs/images/native-view-range.png)
@@ -36,6 +37,8 @@ irm https://revitthyme.wlkrlabs.com/install | iex
 Requires **Windows x64, full Revit 2027 and .NET 10 runtimes**. No SDK or administrator permission is needed. Revit LT and other Revit years are unsupported. Open a new terminal after setup, run `rthyme --version`, then follow [first steps](docs/QUICK-START.md).
 
 The installer is **unsigned**. The bootstrap verifies downloaded installer checksums; piping to `iex` trusts the served script and GitHub release source. Inspect the script or manually download the installer and adjacent SHA-256 from [GitHub Releases](https://github.com/scwlkr/RevitThyme/releases/latest). See [installation and recovery](docs/INSTALLATION.md).
+
+For **v0.10.0**, download the [Windows setup](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/RevitThyme-0.10.0-win-x64.exe) and [small TimberFold physical-test kit](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip). The test ZIP includes calibration pieces, an original editable gable RVT, six-panel cutting files and guides. Read its instructions and [physical limits](docs/timberfold/delivery.md) before cutting; `ManufacturingReady` remains false.
 
 RevitThyme is **pre-1.0**. Native qualification targets Revit **27.3.0.28** on the recorded test host; other builds and computers need qualification. [Verification records](verification/README.md) distinguish offline, package and actual-Revit evidence.
 

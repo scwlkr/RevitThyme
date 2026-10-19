@@ -32,7 +32,7 @@ internal static class DynamicLive
         Dictionary<string, object?> Args(string capture, string source, bool trusted = true) => new() { ["captureId"] = capture, ["requestId"] = Guid.NewGuid().ToString(), ["source"] = source, ["trusted"] = trusted };
         try
         {
-            Program.Check("live official SDK exposes 18 tools", (await client.ListToolsAsync()).Count == 18);
+            Program.Check("live official SDK exposes 22 tools", (await client.ListToolsAsync()).Count == 22);
             string capture = await Context();
             await Call("run_query", Args(capture, "return doc.Title;", false), "trusted_code_disabled");
             var invalid = await Call("run_query", Args(capture, "return missing_symbol;"), "compile_error");

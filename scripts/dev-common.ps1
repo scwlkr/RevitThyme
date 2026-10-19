@@ -61,7 +61,7 @@ function Get-DevBinding($Plan, $Launch) {
         $binding = Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json
         if ($binding.processId -eq $Launch.pid -and $binding.processStart -eq $Launch.start) {
             $id = [Guid]::Empty
-            if ($binding.protocolVersion -ne 4 -or $binding.revitVersion -ne '2027' -or -not [Guid]::TryParseExact($binding.sessionId,'D',[ref]$id) -or
+            if ($binding.protocolVersion -ne 8 -or $binding.revitVersion -ne '2027' -or -not [Guid]::TryParseExact($binding.sessionId,'D',[ref]$id) -or
                 $binding.pipeName -ne "RevitThyme-Foundation-$($Launch.pid)-$($binding.sessionId)") { throw 'Invalid development session binding.' }
             @{path=$_.FullName;value=$binding}
         }

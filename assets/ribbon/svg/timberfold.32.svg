@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <title>TimberFold</title>
+  <desc>A planar house shell beside two stock cutting panels.</desc>
+  <path d="M2 14 L13 3 L24 14 M6 10 V28 H20 V10" fill="none" stroke="#52606D" stroke-width="2" stroke-linejoin="miter"/>
+  <path d="M10 28 V20 H16 V28 M25 17 H30 V28 H25 Z M7 15 H10 M16 15 H19" fill="none" stroke="#006EAF" stroke-width="2" stroke-linejoin="miter"/>
+</svg>

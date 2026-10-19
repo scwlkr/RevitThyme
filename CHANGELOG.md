@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add daily read-only checks of deployed website files and GitHub presentation against reviewed baselines. Report unpublished source separately; deployment and baseline approval remain maintainer actions.
+
 - Rebuild the project website with Docusaurus, native-tool screenshots, local search, accessible navigation and user/developer/agent entry points.
 - Refresh project and contribution guidance; add first steps, CLI, troubleshooting, agent integration, community and governance documentation.
 - Generate website content and agent indexes from canonical repository Markdown. Derive website release metadata and MCP inventory from source; add strict website CI and scheduled drift checks.

@@ -1,0 +1,20 @@
+{
+  "repository": "scwlkr/RevitThyme",
+  "description": "Open-source native Revit toolkit. Practical BIM tools, a shared C# operation layer, CLI, MCP and an optional built-in Agent.",
+  "homepage": "https://revitthyme.wlkrlabs.com",
+  "topics": [
+    "revit",
+    "bim",
+    "autodesk-revit",
+    "csharp",
+    "dotnet",
+    "wpf",
+    "mcp",
+    "revit-api",
+    "open-source"
+  ],
+  "socialImage": "https://repository-images.githubusercontent.com/1405821894/4e951707-4dbe-4dc3-9810-f3b1790a1f1f",
+  "has_issues": true,
+  "has_discussions": false,
+  "privateVulnerabilityReporting": true
+}

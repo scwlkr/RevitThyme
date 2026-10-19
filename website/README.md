@@ -16,3 +16,5 @@ npm run serve
 ```
 
 Edit canonical root/docs/verification Markdown. Generated files are ignored. Release metadata comes from `Directory.Build.props`; the MCP reference is checked against C# attributes. CI builds review artifacts only and never publishes.
+
+`npm run check:live` checks production files and managed GitHub settings against the reviewed baselines in `.github/`. `npm run test:publication` runs offline regression tests. The daily live workflow reports drift and source changes awaiting deployment review; it cannot publish or update the baseline. See the maintenance guide before recording a separately approved deployment.

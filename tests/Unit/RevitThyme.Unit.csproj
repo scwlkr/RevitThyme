@@ -9,6 +9,7 @@
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitContourCheck.cs" Link="NativeTimberKitContourCheck.cs" />
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitTopology.cs" Link="NativeTimberKitTopology.cs" />
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitCoverage.cs" Link="NativeTimberKitCoverage.cs" />
+    <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitSegmentIndex.cs" Link="NativeTimberKitSegmentIndex.cs" />
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitReferenceTransform.cs" Link="NativeTimberKitReferenceTransform.cs" />
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitPreservationCheck.cs" Link="NativeTimberKitPreservationCheck.cs" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.9.0" />

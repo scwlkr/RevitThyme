@@ -11,14 +11,16 @@ internal static class NativeTimberKitCoverage
     internal static bool Covers(IReadOnlyList<NativeTimberKitSegment> source, IReadOnlyList<NativeTimberKitSegment> target,
         CancellationToken ct, Action step)
     {
+        ct.ThrowIfCancellationRequested();
+        if (source.Count == 0) return true;
+        var index = new NativeTimberKitSegmentIndex(target, ct, step);
         foreach (var s in source)
         {
             ct.ThrowIfCancellationRequested(); double length = Length(s);
             if (length <= 1e-12) return false;
             var intervals = new List<(double Low, double High)>(); bool finiteCoverage = false;
-            foreach (var t in target)
+            foreach (var t in index.Candidates(s, BudgetInches))
             {
-                step();
                 // Distance to a finite segment is convex. If BOTH source endpoints
                 // lie in this segment's half-budget capsule, its entire edge does.
                 // This proves collapsed corners without accepting arbitrary tiny edges.

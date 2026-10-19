@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a resumable website publication workflow: prepare a pinned candidate, require owner approval for its source/digest/Site, publish through native Sites tools, verify all live files and managed GitHub settings, then merge a baseline-only PR after CI. Preserve operation receipts to reconcile interrupted deployments; read-only drift monitoring remains separate.
+
 ## 0.10.0 — TimberFold — 2026-10-19
 
 - Add native C# TimberFold inspection, retained previews, fitting, stock layout, inch-unit DWG/DXF cutting files, calibration coupons, source-mapped guides and annotation-only review sheets. Generation preserves source geometry and saved files, and groups native documentation into one Undo item.

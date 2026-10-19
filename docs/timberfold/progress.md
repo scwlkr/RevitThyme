@@ -25,7 +25,7 @@ The active goal is [the complete C# feature spec](spec.md), tracked in [Deliver 
 
 ## Implementation slices
 
-Native continuation is currently waiting on Autodesk authorization: a fresh disposable process exited at the overuse-limit dialog before opening its fixture or registering a native session. The fixture hash remained unchanged. Installed managed and transport verification has continued; this does not substitute for the outstanding native checks.
+Native continuation resumed after a later journal showed valid licensing and normal startup. The pinned protocol-8 gable run reached documentation/readback, then safely rolled back because a CAD-created `Material` was incorrectly counted as new source geometry. A native public-extraction regression reproduces that issue and preserves the unowned-import blocking gate. The narrow material-metadata correction is undergoing candidate qualification; complete native acceptance remains outstanding.
 
 The current full repository check passes 451 Unit, 68 MCP, 13 Agent, 6 WPF behavior and 46 development-safety checks with zero build warnings/errors. All four original managed output controls pass. Focused Standards/Spec reviews found and resolved completed-kit reconciliation, coordinator storage-lock responsiveness, ownership-tag content binding and ownership-scan cancellation issues. Actual native generation, recovery, Undo, full-output performance and complete-feature installation acceptance remain outstanding.
 

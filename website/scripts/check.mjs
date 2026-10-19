@@ -166,6 +166,10 @@ for (const [file, $] of cache) {
     if (seen.has(key)) continue;
     seen.add(key);
     const decoded = decodeURIComponent(url.pathname);
+    requireThat(
+      !/\.(png|svg|jpe?g|webp)\/$/i.test(decoded),
+      `${source} links to an image as a directory: ${decoded}`,
+    );
     let target = path.join(build, decoded);
     if (fs.existsSync(target) && fs.statSync(target).isDirectory())
       target = path.join(target, 'index.html');

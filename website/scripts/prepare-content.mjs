@@ -43,8 +43,12 @@ for (const file of files) {
     if (!fs.existsSync(path.join(root, resolved)))
       throw new Error(`Missing source link in ${file}: ${href}`);
     if (known.has(resolved)) return match;
-    if (resolved.startsWith('docs/images/'))
-      return `${prefix}/generated/images/${path.posix.basename(resolved)}${suffix}`;
+    if (resolved.startsWith('docs/images/')) {
+      const imagePath = `/generated/images/${path.posix.basename(resolved)}`;
+      // File links must bypass Docusaurus route normalization. A trailing slash
+      // on a PNG can appear valid on Windows but is a missing file on Linux.
+      return `${prefix}${prefix.startsWith('!') ? '' : 'pathname://'}${imagePath}${suffix}`;
+    }
     return `${prefix}${repository}/blob/master/${resolved}${anchor ? `#${anchor}` : ''}${suffix}`;
   });
   const frontmatter = `---\nslug: ${JSON.stringify(slug(file))}\ntitle: ${JSON.stringify(title)}\ndescription: ${JSON.stringify(description)}\n---\n\n`;
@@ -120,6 +124,10 @@ mkdirWrite(
 );
 // Keep curl/irm endpoints as PowerShell bytes, not framework HTML routes.
 fs.copyFileSync(path.join(root, 'installer/bootstrap.ps1'), path.join(website, 'static/install'));
+fs.copyFileSync(
+  path.join(root, 'installer/bootstrap.ps1'),
+  path.join(website, 'static/install.ps1'),
+);
 const bootstrap = fs.readFileSync(path.join(root, 'installer/bootstrap.ps1'), 'utf8');
 if (bootstrap.split('param([string]$Version,').length !== 2)
   throw new Error('Bootstrap version pin must be reviewed after parameter changes');

@@ -1,22 +1,11 @@
 # GitHub presentation
 
-Use these settings for the public repository. Keep them aligned with the product and website.
+[`repository-presentation.json`](repository-presentation.json) defines the managed repository settings: description, homepage, exact topic set, Issues/Discussions, private vulnerability reporting and social-preview URL. [`labels.json`](labels.json) defines managed labels; other labels are allowed. Keep these files aligned with reviewed product changes.
 
-| Setting | Value |
-| --- | --- |
-| Description | Open-source native Revit toolkit. Practical BIM tools, a shared C# operation layer, CLI, MCP and an optional built-in Agent. |
-| Website | `https://revitthyme.wlkrlabs.com` |
-| Topics | `revit`, `bim`, `autodesk-revit`, `csharp`, `dotnet`, `wpf`, `mcp`, `revit-api`, `open-source` |
-| Social preview | `website/static/img/social-card.png` (1200 × 630) |
+The read-only **Live publication drift** workflow compares GitHub against these files daily and after `master` pushes. It reports differences without repairing settings or deploying. See [live publication checks](../docs/WEBSITE.md#live-publication-checks) for failure handling and the separate deployment approval process.
 
-To apply the text and topic settings, a maintainer with GitHub CLI authentication can run:
+A maintainer applies intentional settings changes through GitHub or the authenticated GitHub CLI. Review the JSON change alongside that action. Upload the generated `website/static/img/social-card.png` under **Settings → General → Social preview**, then record its saved image URL in the JSON. Keep private vulnerability reporting enabled under **Settings → Advanced Security**. The security policy retains a profile-contact fallback.
 
-```powershell
-gh repo edit scwlkr/RevitThyme --description 'Open-source native Revit toolkit. Practical BIM tools, a shared C# operation layer, CLI, MCP and an optional built-in Agent.' --homepage 'https://revitthyme.wlkrlabs.com' --add-topic revit --add-topic bim --add-topic autodesk-revit --add-topic csharp --add-topic dotnet --add-topic wpf --add-topic mcp --add-topic revit-api --add-topic open-source
-```
+Apply declared labels before using them on issues. Do not create empty starter issues just to populate a board. `good first issue` should describe a bounded, reproducible task with acceptance. Issues remains the maintained support channel.
 
-Upload the social preview through **Settings → General → Social preview**. Keep private vulnerability reporting enabled in **Settings → Code security**. The security policy retains a profile-contact fallback.
-
-Issue labels are defined in `labels.json`; apply them before using those labels on issues. Do not create empty starter issues just to populate a board. `good first issue` should describe a bounded, reproducible task with acceptance. Discussions can remain disabled while Issues is the maintained support channel.
-
-Keep the public description and homepage aligned when product direction changes. The README, contributor guide, issue forms, PR template, governance and support files are source-controlled and reviewed alongside the code.
+The README, contributor guide, issue forms, PR template, governance and support files are source-controlled and reviewed alongside the code.

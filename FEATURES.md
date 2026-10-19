@@ -19,5 +19,6 @@
 | Built-in Agent | Dockable Codex chat, ChatGPT sign-in, streaming, approvals, interruption, saved sessions and ordinary skills, pinned to this Revit process |
 | Updates | Quiet daily native check, manual ribbon/CLI check, registered-installation comparison, verified installer download and close-Revit installation |
 | Verification | Portable unit/stdio checks, pinned actual-Revit and three external Codex rounds |
+| Documentation | Shared Markdown sources for GitHub, Docusaurus and agent indexes; source-contract checks and read-only live website/GitHub drift checks against a reviewed publication baseline. Deployment requires separate owner approval. See [website maintenance](docs/WEBSITE.md). |
 
 Version 0.9.3 adds shared status, nullable shared GUID, nullable built-in identity and native `HasValue` to parameter inspection/readback through CLI and MCP. Exact parameter IDs, raw values, pagination and expected-value edit safeguards remain in place. It includes the native ribbon, Built-in Agent and [release checker](docs/UPDATES.md), using the existing installer. The installer is unsigned and supports full Revit 2027. Exploration remains deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.

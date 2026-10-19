@@ -16,6 +16,9 @@
     "serve": "docusaurus serve --host 127.0.0.1 --port 3100 --no-open",
     "check": "node scripts/check.mjs",
     "check:release": "node scripts/check-release.mjs",
+    "check:live": "node scripts/check-live.mjs",
+    "test:publication": "node --test scripts/publication.test.mjs",
+    "record:publication": "node scripts/record-publication.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

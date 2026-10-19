@@ -57,6 +57,26 @@ Dependabot proposes weekly website dependency and GitHub Actions updates. Review
 
 No checker can establish that prose describes an implementation correctly. The PR template requires relevant docs and evidence updates. When adding an operation, update its guide and verification; when changing a command, update the CLI reference and help together. Do not rewrite historical verification records as though older checks covered new code.
 
+## Live publication checks
+
+`npm run check:live` reads production and GitHub without changing either. The **Live publication drift** workflow runs on pull requests, daily, after pushes to `master`, and on manual dispatch. Failures appear as failed Actions runs with the affected URLs/settings in the job summary. GitHub notification delivery follows each maintainer's Actions notification settings.
+
+The reviewed baseline is [`.github/website-publication.json`](../.github/website-publication.json): approved source commit, hosting source commit/version, review PR, and SHA-256 hashes for every deployed file. Checks cover pages, scripts, styles, images, search data, agent indexes, installer endpoints and source provenance. HTML comparison excludes only the exact Cloudflare security-script template observed on this host, allowing its changing ray/time tokens. Changed page content or other scripts still fail; an unfamiliar host transformation requires investigation. HTTP failures, redirects and access challenges fail verification rather than being treated as a match. The host's `/404.html` redirect is represented by its canonical `/404` URL.
+
+GitHub expectations live in [`.github/repository-presentation.json`](../.github/repository-presentation.json) and [`.github/labels.json`](../.github/labels.json). Checks compare the description, homepage, exact topic set, Issues/Discussions settings, private vulnerability reporting, social-preview URL and managed label descriptions/colors. Additional labels are allowed. These checks require no write token; CI uses read-only repository permissions. Public API access works locally without a token; `GITHUB_TOKEN` avoids GitHub API rate limits and is sent only to `api.github.com`.
+
+New source can merge while its deployment awaits approval. The live check lists changed publication inputs since the approved commit as pending review; it does **not** silently advance the baseline or fail merely because source is newer. A green result means production matches the last approved deployment, not that every merged change is deployed. Review the pending-source list during release approval.
+
+After a separately approved deployment, retain the exact deployed static directory, including `deployment-source.json` with its GitHub repository and source commit. Record those reviewed bytes using:
+
+```powershell
+cd website
+npm run record:publication -- --build C:\path\to\deployed\dist --source <full-GitHub-commit> --site-source <full-hosting-commit> --site-version <number> --approval https://github.com/scwlkr/RevitThyme/pull/<number>
+npm run check:live
+```
+
+The recorder writes only the local baseline; it does not deploy or change settings. Review and merge that baseline update after successful public readback. Never refresh hashes from the live website to make a failed check green. Investigate unexpected differences; restore the approved deployment/settings or obtain approval for a replacement. Intentional GitHub presentation changes require updating the presentation JSON alongside the separately applied settings. `npm run test:publication` exercises drift failures offline and runs in PR CI.
+
 ## Release checklist
 
 1. Update product version and release-specific installation details with the source change. The site derives its release download paths from `Directory.Build.props`.
@@ -65,6 +85,6 @@ No checker can establish that prose describes an implementation correctly. The P
 4. Run toolkit checks appropriate to the change, then website build/check. Test the production preview's download links, search and narrow-screen navigation.
 5. Review `/install` and its `/install.ps1` alias as PowerShell, not HTML. Preserve `/install-0.8.1` as an explicitly pinned historical endpoint. Deployment must serve extensionless installer files as text and avoid an SPA fallback for them.
 6. Obtain owner acceptance before deploying. Preserve the existing production domain and hosting identity. Upload the reviewed `website/build` static output through the current host's supported release workflow; do not create a replacement hosting project implicitly.
-7. Read back the public homepage, docs, versioned links and installer endpoints after deployment. Record the source revision, host/version identity and observed checks.
+7. Read back the public homepage, docs, versioned links and installer endpoints after deployment. Record the reviewed deployed bytes with `npm run record:publication`, run `npm run check:live`, and review/merge the baseline update. Preserve the deployment's source revision and host/version identity.
 
-The website CI workflow builds review artifacts only. It has read-only repository permissions and does not deploy. The [GitHub presentation file](../.github/PROJECT-PRESENTATION.md) records the repository settings and how to apply them. [Audit checklist](WEBSITE-AUDIT.md) and [validation record](../verification/website.md) track this refresh.
+Both website workflows have read-only repository permissions and do not deploy, update baselines or repair GitHub settings. The [GitHub presentation file](../.github/PROJECT-PRESENTATION.md) explains the settings. [Audit checklist](WEBSITE-AUDIT.md) and [validation record](../verification/website.md) track the initial refresh.

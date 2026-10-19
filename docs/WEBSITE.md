@@ -39,7 +39,7 @@ Stop the editing server before serving the production build on the same port. Fo
 | Canonical-document selection and routes | `website/scripts/content.mjs` |
 | Product version | `Directory.Build.props`; website metadata is generated from it |
 | MCP inventory | Tool attributes in `src/RevitThyme.Mcp`; docs are checked against them |
-| Installer endpoint | `installer/bootstrap.ps1`, copied byte-for-byte to `/install` |
+| Installer endpoint | `installer/bootstrap.ps1`, copied byte-for-byte to `/install` and `/install.ps1` |
 
 `prepare-content.mjs` creates `.generated/docs`, product metadata, native screenshots, `/llms.txt` and `/llms-full.txt`. Generated content is ignored by Git. Edit-source links return to the original Markdown, never the generated copy. Repository-relative links remain valid on GitHub; links to source outside the published guide set lead to GitHub.
 
@@ -63,8 +63,8 @@ No checker can establish that prose describes an implementation correctly. The P
 2. Update `CHANGELOG.md` and relevant features, guides and limits. Keep historical versions inside the changelog/evidence.
 3. Verify the tagged release assets and adjacent checksums exist before advertising a public download. Public release publication is a separate owner action.
 4. Run toolkit checks appropriate to the change, then website build/check. Test the production preview's download links, search and narrow-screen navigation.
-5. Review `/install` as PowerShell, not HTML. Preserve `/install-0.8.1` as an explicitly pinned historical endpoint. Deployment must serve extensionless installer files as text and avoid an SPA fallback for them.
+5. Review `/install` and its `/install.ps1` alias as PowerShell, not HTML. Preserve `/install-0.8.1` as an explicitly pinned historical endpoint. Deployment must serve extensionless installer files as text and avoid an SPA fallback for them.
 6. Obtain owner acceptance before deploying. Preserve the existing production domain and hosting identity. Upload the reviewed `website/build` static output through the current host's supported release workflow; do not create a replacement hosting project implicitly.
 7. Read back the public homepage, docs, versioned links and installer endpoints after deployment. Record the source revision, host/version identity and observed checks.
 
-The website CI workflow builds review artifacts only. It has read-only repository permissions and does not deploy. The [GitHub presentation file](../.github/PROJECT-PRESENTATION.md) records proposed settings for owner review. [Audit checklist](WEBSITE-AUDIT.md) and [validation record](../verification/website.md) track this refresh.
+The website CI workflow builds review artifacts only. It has read-only repository permissions and does not deploy. The [GitHub presentation file](../.github/PROJECT-PRESENTATION.md) records the repository settings and how to apply them. [Audit checklist](WEBSITE-AUDIT.md) and [validation record](../verification/website.md) track this refresh.

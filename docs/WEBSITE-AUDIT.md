@@ -59,8 +59,8 @@ This checklist tracks the October 19, 2026 presentation and onboarding refresh. 
 
 All 30 source/local-review items in this checklist are implemented. The website production build, strict content/link checks, source-contract checks and full toolkit build/offline checks passed. Browser review covered light/dark themes, native screenshots, local search, install-command copying, keyboard focus and 390px/320px layouts. See [validation](../verification/website.md).
 
-GitHub description/topics/homepage/social-preview changes are prepared in [the presentation file](../.github/PROJECT-PRESENTATION.md). Applying them, landing the branch and publishing the site are final owner-approved delivery actions, not already completed production changes.
+The initial GitHub description/topics/homepage/social-preview settings are recorded in [the presentation file](../.github/PROJECT-PRESENTATION.md). Applying settings, landing the branch and publishing the site follow explicit owner approval; delivery is tracked in [PR #30](https://github.com/scwlkr/RevitThyme/pull/30).
 
 ## Boundaries
 
-This refresh does not claim new native Revit qualification, additional supported Revit years, a signed public installer, a stable 1.0 API or a security sandbox. Those require implementation and evidence beyond a documentation refresh. Public settings and deployment are staged, not silently applied.
+This refresh does not claim new native Revit qualification, additional supported Revit years, a signed public installer, a stable 1.0 API or a security sandbox. Those require implementation and evidence beyond a documentation refresh. Public settings and deployment follow explicit owner approval.

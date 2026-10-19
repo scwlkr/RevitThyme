@@ -8,7 +8,7 @@ Website, documentation, contributor/agent onboarding, community files, CI and dr
 
 ## Delivery boundary
 
-Production hosting, GitHub settings and default-branch landing await owner approval. The local preview is the acceptance surface. A built static artifact is deployable only after review and release-link verification. See [website maintenance](../docs/WEBSITE.md).
+At the initial local review, production hosting, GitHub settings and default-branch landing were held for owner approval. The owner subsequently approved merge and publication in this chat; delivery is tracked in [PR #30](https://github.com/scwlkr/RevitThyme/pull/30). A built static artifact is deployable only after review and release-link verification. See [website maintenance](../docs/WEBSITE.md).
 
 ## Local validation — October 19, 2026
 

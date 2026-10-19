@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix unfiltered native element queries with `includeTypes:true`, and align the pinned development launcher with protocol 9. Installed-host qualification checks complete element/type pagination as well as native edit, image and readback.
+
 - Recognize `0.10.0-image-export.1` in the installer/setup gates while retaining the complete existing toolkit payload requirements. Add external SDK qualification against the immutable installed MCP executable and normally started native host, without test host wiring or export callbacks.
 
 - Add the shared `ExportViewImage` operation and MCP `export_view_image` tool for one explicit native view/sheet PNG. Reuse the existing ExternalEvent queue, captured-target checks, request-ID replay and `get_operation` recovery. Decode/hash the PNG, verify unchanged native state, and return structured file metadata plus an inline MCP image without a model transaction, activation or save.

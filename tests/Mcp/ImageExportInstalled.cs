@@ -41,6 +41,7 @@ internal static class ImageExportInstalled
             {
                 var reply = await Program.Call(client, name, args); calls.Add(new { name, args, result = reply.Data, reply.Result.IsError });
                 if (code is not null) Program.Check("installed MCP " + name + ": " + code, reply.Data.GetProperty("code").GetString() == code && reply.Result.IsError == (code is not ("image_exported" or "applied")));
+                else if (reply.Result.IsError == true) throw new InvalidDataException("Installed MCP " + name + " failed: " + reply.Data.GetRawText());
                 if (reply.Data.TryGetProperty("imageExport", out var data) && data.ValueKind == JsonValueKind.Object && reply.Result.IsError != true)
                 {
                     var image = data.Deserialize<ViewImageResult>(Protocol.Json)!; byte[] bytes = File.ReadAllBytes(image.Path);
@@ -108,16 +109,19 @@ internal static class ImageExportInstalled
             var oldProcesses = Process.GetProcessesByName("revitthyme-mcp").Select(p => p.Id).ToHashSet();
             await client.DisposeAsync(); oldProcesses = Process.GetProcessesByName("revitthyme-mcp").Select(p => p.Id).ToHashSet();
             client = await Client();
-            var server = Process.GetProcessesByName("revitthyme-mcp").Single(p => !oldProcesses.Contains(p.Id));
+            using var server = Process.GetProcessesByName("revitthyme-mcp").Single(p => !oldProcesses.Contains(p.Id));
+            Program.Check("response-loss probe owns the exact installed MCP process", server.MainModule?.FileName == executable);
             context = await Context(); string lostId = Guid.NewGuid().ToString();
             var args = Export(context.Id, View("Image QA 3D"), lostId, 4096);
             var pending = Program.Call(client, "export_view_image", args);
             string marker = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitThyme", "view-images", binding.SessionId, lostId, "request.lock");
             var clock = Stopwatch.StartNew();
             while (!File.Exists(marker) && !pending.IsCompleted && clock.Elapsed.TotalSeconds < 20) await Task.Delay(2);
-            bool responseLost = !pending.IsCompleted; Program.Check("installed native export accepted before stdio server loss", File.Exists(marker));
+            Program.Check("installed native export accepted with reply still outstanding", File.Exists(marker) && !pending.IsCompleted);
             server.Kill(); await server.WaitForExitAsync();
-            try { await pending; } catch (Exception e) { calls.Add(new { requestId = lostId, responseLost, exception = e.GetType().Name }); }
+            bool responseLost = false;
+            try { await pending; } catch (Exception e) { responseLost = true; calls.Add(new { requestId = lostId, responseLost, exception = e.GetType().Name }); }
+            Program.Check("installed accepted request actually loses its original response", responseLost);
             await client.DisposeAsync(); client = await Client();
             var recovered = await Call("get_operation", new() { ["requestId"] = lostId }, "image_exported");
             Program.Check("installed retained recovery returns original ID without a capture", recovered.GetProperty("id").GetString() == lostId);

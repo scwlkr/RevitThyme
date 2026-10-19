@@ -14,6 +14,7 @@ internal static class WindowFamilyBuilder
         if (!File.Exists(template)) throw new FileNotFoundException("Install the English-Imperial Revit 2027 Window family template.", template);
         string familyPath = Path.Combine(destination, "TF Original Two Pane Window.rfa");
         var family = application.NewFamilyDocument(template);
+        bool familyClosed = false;
         try
         {
             using (var transaction = OriginalFixtureBuilder.Start(family, "Author original two-pane window", warnings))
@@ -64,6 +65,8 @@ internal static class WindowFamilyBuilder
                 OriginalFixtureBuilder.Commit(transaction);
             }
             family.SaveAs(familyPath, new SaveAsOptions { OverwriteExistingFile = false, Compact = true });
+            if (!family.Close(false)) throw new InvalidDataException("Revit did not close the newly saved original window family.");
+            familyClosed = true;
             File.WriteAllText(Path.Combine(destination, "window-template-provenance.json"), System.Text.Json.JsonSerializer.Serialize(new
             {
                 template, templateSha256 = OriginalFixtureBuilder.Hash(template), familyPath,
@@ -73,6 +76,10 @@ internal static class WindowFamilyBuilder
             }, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
             return familyPath;
         }
-        finally { if (family.IsValidObject) family.Close(false); }
+        finally
+        {
+            if (!familyClosed && family.IsValidObject && !family.Close(false))
+                throw new InvalidDataException("Revit did not close the owned original window family during cleanup.");
+        }
     }
 }

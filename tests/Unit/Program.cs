@@ -12,6 +12,9 @@ internal static class Program
         Utilities.Run(Check); await Dynamic.Run(Check); await Updates.Run(Check); await InstalledCli.Run(Check);
         TimberFoldOperations.Run(Check);
         TimberFoldInspection.Run(Check);
+        TimberFoldFabrication.Run(Check);
+        TimberFoldCollisions.Run(Check);
+        TimberFoldStock.Run(Check);
         await TimberFoldOperations.Cli(Check);
         Console.WriteLine($"Foundation unit checks: {passed} passed, {failed} failed."); return failed == 0 ? 0 : 1;
     }

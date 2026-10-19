@@ -26,9 +26,15 @@ public static partial class OriginalFixtureBuilder
         // One wall spans both roofs. Revit allows only one top-attachment target,
         // so keep an explicit editable stepped/gabled profile at this boundary.
         // The operation must reconcile its top against both actual undersides.
+        var spanningLine = ((LocationCurve)walls[1].Location).Curve;
+        var south = spanningLine.GetEndPoint(0); var north = spanningLine.GetEndPoint(1);
         c.Document.Delete(walls[1].Id);
-        walls[1] = Wall.Create(c.Document, Polygon([new(24, 0, 0), new(24, 28, 0), new(24, 28, 10),
-            new(24, 16, 10), new(24, 8, 14), new(24, 0, 10)]).Cast<Curve>().ToArray(), c.WallType.Id, c.Ground.Id, false);
+        walls[1] = Wall.Create(c.Document, Polygon([new(south.X, south.Y, 0), new(north.X, north.Y, 0), new(north.X, north.Y, 10),
+            new(south.X, 16, 10), new(south.X, 8, 14), new(south.X, south.Y, 10 + south.Y * 0.5)]).Cast<Curve>().ToArray(),
+            c.WallType.Id, c.Ground.Id, false, XYZ.BasisX);
+        c.Document.Regenerate();
+        if (walls[1].Orientation.DotProduct(XYZ.BasisX) < 0) walls[1].Flip();
+        c.Document.Regenerate();
         Tag(walls[1], "L-shell-wall-1-profile-spanning-two-roofs");
         c.Window(walls[0], c.Ground, new(6, 0, 3), "front-left");
         c.Window(walls[0], c.Ground, new(18, 0, 3), "front-right");
@@ -77,7 +83,8 @@ public static partial class OriginalFixtureBuilder
             var boundary = new CurveArray();
             boundary.Append(Arc.Create(new XYZ(0, 0, 10), 8, 0, Math.PI, XYZ.BasisX, XYZ.BasisY));
             boundary.Append(Arc.Create(new XYZ(0, 0, 10), 8, Math.PI, Math.PI * 2, XYZ.BasisX, XYZ.BasisY));
-            var roof = c.Document.Create.NewFootPrintRoof(boundary, eave, c.RoofType, out var edges);
+            var edges = new ModelCurveArray();
+            var roof = c.Document.Create.NewFootPrintRoof(boundary, eave, c.RoofType, out edges);
             foreach (ModelCurve edge in edges) roof.set_DefinesSlope(edge, false);
             Tag(roof, "arc-roof-radius-8ft");
             return;
@@ -89,7 +96,7 @@ public static partial class OriginalFixtureBuilder
             Curve line = fixture == "curved-wall"
                 ? Arc.Create(new XYZ(0, 0, 0), 10, 0, Math.PI / 2, XYZ.BasisX, XYZ.BasisY)
                 : Line.CreateBound(new XYZ(0, i * 4, 0), new XYZ(fixture == "oversized-wall" ? 120 : 12, i * 4, 0));
-            var wall = Wall.Create(c.Document, line, c.WallType.Id, c.Ground.Id, 10, 0, false, false);
+            var wall = Wall.Create(c.Document, line, c.WallType.Id, c.Ground.Id, 10, 0, true, false);
             Tag(wall, fixture + "-" + i);
             if (fixture == "slanted-wall")
             {
@@ -133,25 +140,55 @@ public static partial class OriginalFixtureBuilder
         public CancellationToken Cancellation { get; } = cancellation;
         public Wall[] Shell((double X, double Y)[] outline, Level level, double height, string role)
         {
-            return Enumerable.Range(0, outline.Length).Select(i =>
+            var centreline = OrthogonalExteriorOutline.Inset(outline, WallType.Width / 2, level.Elevation);
+            var walls = Enumerable.Range(0, outline.Length).Select(i =>
             {
                 Cancellation.ThrowIfCancellationRequested();
-                var a = outline[i]; var b = outline[(i + 1) % outline.Length];
-                var wall = Wall.Create(Document, Line.CreateBound(new(a.X, a.Y, level.Elevation), new(b.X, b.Y, level.Elevation)),
-                    WallType.Id, level.Id, height, 0, false, false);
+                var wall = Wall.Create(Document, Line.CreateBound(centreline[i], centreline[(i + 1) % outline.Length]),
+                    WallType.Id, level.Id, height, 0, true, false);
                 Tag(wall, role + "-wall-" + i); return wall;
             }).ToArray();
+            // Native Orientation reads the wall face; complete geometry creation first.
+            Document.Regenerate();
+            for (int i = 0; i < walls.Length; i++)
+            {
+                var a = outline[i]; var b = outline[(i + 1) % outline.Length];
+                var outward = new XYZ(b.Y - a.Y, a.X - b.X, 0).Normalize();
+                if (walls[i].Orientation.DotProduct(outward) < 0) walls[i].Flip();
+            }
+            Document.Regenerate();
+            return walls;
         }
         public FootPrintRoof Roof((double X, double Y)[] outline, Level level, int[] slopingEdges, string role)
         {
-            var roof = Document.Create.NewFootPrintRoof(Polygon(outline.Select(p => new XYZ(p.X, p.Y, level.Elevation)).ToArray()), level, RoofType, out var edges);
-            int i = 0;
+            // Revit requires an initialized native mapping array even for this out parameter.
+            var edges = new ModelCurveArray();
+            var roof = Document.Create.NewFootPrintRoof(Polygon(outline.Select(p => new XYZ(p.X, p.Y, level.Elevation)).ToArray()), level, RoofType, out edges);
+            var mappedSegments = new HashSet<int>();
             foreach (ModelCurve edge in edges)
             {
-                bool slope = slopingEdges.Contains(i++); roof.set_DefinesSlope(edge, slope);
-                if (slope) roof.set_SlopeAngle(edge, Math.Atan(0.5));
+                int segment = FootprintSegment(edge.GeometryCurve, outline);
+                if (!mappedSegments.Add(segment)) throw new InvalidDataException("Native roof mapping duplicated a footprint segment.");
+                bool slope = slopingEdges.Contains(segment); roof.set_DefinesSlope(edge, slope);
+                // Installed RevitAPI.xml, FootPrintRoof.SlopeAngle: this value is
+                // rise/run; 0.5 means 6:12 and produces a 26.57-degree slope.
+                if (slope) roof.set_SlopeAngle(edge, 0.5);
             }
+            if (mappedSegments.Count != outline.Length) throw new InvalidDataException("Native roof mapping lost a footprint segment.");
             Tag(roof, role); return roof;
+        }
+        private static int FootprintSegment(Curve curve, (double X, double Y)[] outline)
+        {
+            if (curve is not Line || !curve.IsBound) throw new InvalidDataException("Expected a native straight footprint model curve.");
+            bool Same(XYZ point, (double X, double Y) vertex) => Math.Abs(point.X - vertex.X) < 1e-7 && Math.Abs(point.Y - vertex.Y) < 1e-7;
+            var start = curve.GetEndPoint(0); var end = curve.GetEndPoint(1);
+            var matches = Enumerable.Range(0, outline.Length).Where(i =>
+            {
+                var a = outline[i]; var b = outline[(i + 1) % outline.Length];
+                return Same(start, a) && Same(end, b) || Same(start, b) && Same(end, a);
+            }).ToArray();
+            if (matches.Length != 1) throw new InvalidDataException("Native roof model curve does not correspond uniquely to an original footprint segment.");
+            return matches[0];
         }
         public void Fit(Wall[] walls, RoofBase roof)
         {
@@ -163,10 +200,17 @@ public static partial class OriginalFixtureBuilder
         {
             Cancellation.ThrowIfCancellationRequested();
             Document.Regenerate();
-            var instance = Document.Create.NewFamilyInstance(origin, window ?? throw new InvalidOperationException("No original family loaded."), host, level, StructuralType.NonStructural);
+            var instance = Document.Create.NewFamilyInstance(OnHost(host, origin), window ?? throw new InvalidOperationException("No original family loaded."), host, level, StructuralType.NonStructural);
             Tag(instance, "two-pane-window-" + role);
         }
-        public void Door(Wall host, XYZ min, XYZ max) => Tag(Document.Create.NewOpening(host, min, max), "door-void");
+        private static XYZ OnHost(Wall host, XYZ point)
+        {
+            var curve = ((LocationCurve)host.Location).Curve;
+            var projected = curve.Project(new XYZ(point.X, point.Y, curve.GetEndPoint(0).Z))
+                ?? throw new InvalidDataException("An opening point did not project onto its native host location curve.");
+            return new(projected.XYZPoint.X, projected.XYZPoint.Y, point.Z);
+        }
+        public void Door(Wall host, XYZ min, XYZ max) => Tag(Document.Create.NewOpening(host, OnHost(host, min), OnHost(host, max)), "door-void");
         public void RoofOpening(RoofBase host, (double X, double Y)[] outline, double elevation, string role) =>
             Tag(Document.Create.NewOpening(host, Polygon(outline.Select(p => new XYZ(p.X, p.Y, elevation)).ToArray()), true), role);
     }

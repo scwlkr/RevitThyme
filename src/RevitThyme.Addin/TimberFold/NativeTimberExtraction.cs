@@ -122,11 +122,15 @@ public static class NativeTimberExtraction
             }
             var solidKeys = solidTop.Select(NativeTimberGeometry.FaceKey).Order(StringComparer.Ordinal).ToArray();
             var refKeys = resolved.Select(NativeTimberGeometry.FaceKey).Order(StringComparer.Ordinal).ToArray();
-            if (solidTop.Count != references.Count || refKeys.Except(solidKeys).Any() ||
+            // Revit 2027 can return an additional unresolved top reference (the
+            // original native gable has three references but two actual faces).
+            // The full solid inventory is authoritative; every resolvable face
+            // must agree with it, and a fully resolved provider must match it.
+            if (refKeys.Except(solidKeys).Any() ||
                 unresolved == 0 && !solidKeys.SequenceEqual(refKeys))
                 throw new InvalidOperationException($"Roof top references and independently enumerated native solid faces disagree ({references.Count} references, {solidTop.Count} solid faces, {unresolved} unresolved).");
             if (unresolved > 0) diagnostics.Add(new("roof_reference_reconciled", TimberSeverity.Warning,
-                $"Reconciled {unresolved} unresolved top references against complete independent upward solid faces.", id));
+                $"Reconciled {references.Count} top references ({unresolved} unresolved) against all {solidTop.Count} independently enumerated upward solid faces.", id));
             resolved = solidTop;
         }
         else if (unresolved > 0) throw new InvalidOperationException($"Wall has {unresolved} unresolved exterior references.");

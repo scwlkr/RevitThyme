@@ -18,10 +18,10 @@ function Refused([scriptblock]$Body, [string]$Pattern) {
     try { $null = & $Body } catch { $failure = $_.Exception.Message }
     if (-not $failure -or $failure -notmatch $Pattern) { throw "Expected refusal $Pattern; got: $failure" }
 }
-function New-PackageFixture([string]$Version, [switch]$TimberFold) {
+function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabrication) {
     $folder = Join-Path $run ([Guid]::NewGuid().ToString())
     New-Item -ItemType Directory -Path $folder | Out-Null
-    # Existing complete product plus the stage-one inspection guide; no native geometry dependencies.
+    # Nonexecutable payloads exercise the package boundary without installation or native execution.
     $files = @('RevitThyme.Addin.dll','RevitThyme.Core.dll','RevitThyme.UI.dll','cli/revitthyme.exe','cli/revitthyme.dll',
         'cli/revitthyme.deps.json','cli/revitthyme.runtimeconfig.json','cli/RevitThyme.Core.dll','install.ps1','uninstall.ps1',
         'common.ps1','host-path.ps1','LICENSE','README.md','mcp-files.ps1','THIRD-PARTY-NOTICES.md','MCP.md',
@@ -31,6 +31,7 @@ function New-PackageFixture([string]$Version, [switch]$TimberFold) {
     $files += @(Get-McpPackageFiles | ForEach-Object { 'mcp/'+$_ })
     $files += Get-AgentPackageFiles
     if ($TimberFold) { $files += 'TIMBERFOLD.md' }
+    if ($Fabrication) { $files += @('Clipper2Lib.dll','cli/Clipper2Lib.dll','mcp/Clipper2Lib.dll','notices/CLIPPER2-LICENSE.txt') }
     $hashes = @{}
     foreach ($name in $files) {
         $path = Join-Path $folder $name
@@ -43,6 +44,23 @@ function New-PackageFixture([string]$Version, [switch]$TimberFold) {
     return $folder
 }
 
+Check 'TimberFold fabrication candidate requires managed clipping in every execution payload' {
+    $candidate = New-PackageFixture '0.10.0-timberfold.2' -TimberFold -Fabrication
+    $manifest = Assert-FoundationPackage $candidate
+    if ($manifest.version -ne '0.10.0-timberfold.2') { throw 'Wrong fabrication candidate accepted.' }
+}
+foreach ($dependency in @('Clipper2Lib.dll','cli/Clipper2Lib.dll','mcp/Clipper2Lib.dll','notices/CLIPPER2-LICENSE.txt')) {
+    Check "fabrication candidate refuses missing $dependency" {
+        $candidate = New-PackageFixture '0.10.0-timberfold.2' -TimberFold -Fabrication
+        Remove-Item -LiteralPath (Join-Path $candidate $dependency)
+        Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+    }
+    Check "fabrication candidate refuses modified $dependency" {
+        $candidate = New-PackageFixture '0.10.0-timberfold.2' -TimberFold -Fabrication
+        [IO.File]::WriteAllText((Join-Path $candidate $dependency), 'Modified dependency fixture.')
+        Refused { Assert-FoundationPackage $candidate } 'modified'
+    }
+}
 Check 'TimberFold inspection candidate accepts prior product contents plus its guide' {
     $candidate = New-PackageFixture '0.10.0-timberfold.1' -TimberFold
     $manifest = Assert-FoundationPackage $candidate
@@ -66,6 +84,35 @@ Check 'previous identity package remains valid for recovery without TimberFold g
     $previous = New-PackageFixture '0.9.3-identity'
     $manifest = Assert-FoundationPackage $previous
     if ($manifest.version -ne '0.9.3-identity') { throw 'Previous package was not accepted.' }
+}
+Check 'Clipper2 upstream package and exact managed payload can be verified before packaging' {
+    . (Join-Path $root 'installer\clipper2.ps1')
+    $packageRoot = & dotnet nuget locals global-packages --list --force-english-output
+    if ($LASTEXITCODE -ne 0 -or $packageRoot -notmatch '^global-packages: (.+)$') { throw 'Cannot locate NuGet package cache.' }
+    $archive = Join-Path $Matches[1].Trim() 'clipper2\2.0.0\clipper2.2.0.0.nupkg'
+    $assembly = Join-Path (Split-Path $archive -Parent) 'lib\netstandard2.0\Clipper2Lib.dll'
+    $verified = Assert-Clipper2Payload -ArchivePath $archive -LicensePath (Join-Path $root 'installer\notices\CLIPPER2-LICENSE.txt') -AssemblyPaths @($assembly)
+    if ($verified.package_sha256 -ne 'f07dfcf6adccd035fde042f0ff6fd6d746b989e9bb361cda38216f185304172b') { throw 'Unexpected upstream package accepted.' }
+    $verified | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $run 'clipper2-provenance.json') -Encoding utf8
+    $script:ClipperArchive = $archive
+    $script:ClipperAssembly = $assembly
+}
+. (Join-Path $root 'installer\clipper2.ps1')
+Check 'build-time verification refuses a substituted managed Clipper2 assembly' {
+    $changed = Join-Path $run 'substituted-Clipper2Lib.dll'
+    [IO.File]::WriteAllBytes($changed, [byte[]](1,2,3))
+    Refused { Assert-Clipper2Payload -ArchivePath $script:ClipperArchive -LicensePath (Join-Path $root 'installer\notices\CLIPPER2-LICENSE.txt') -AssemblyPaths @($changed) } 'managed payload differs'
+}
+Check 'build-time verification refuses a changed Clipper2 license' {
+    $changed = Join-Path $run 'changed-CLIPPER2-LICENSE.txt'
+    [IO.File]::WriteAllText($changed, 'Truncated license fixture.')
+    Refused { Assert-Clipper2Payload -ArchivePath $script:ClipperArchive -LicensePath $changed -AssemblyPaths @($script:ClipperAssembly) } 'license notice differs'
+}
+Check 'build-time verification refuses a changed upstream archive before reading its payload' {
+    $changed = Join-Path $run 'changed-clipper2.2.0.0.nupkg'
+    Copy-Item -LiteralPath $script:ClipperArchive -Destination $changed
+    [IO.File]::AppendAllText($changed, 'Changed archive fixture.')
+    Refused { Assert-Clipper2Payload -ArchivePath $changed -LicensePath (Join-Path $root 'installer\notices\CLIPPER2-LICENSE.txt') -AssemblyPaths @($script:ClipperAssembly) } 'package checksum mismatch'
 }
 $checks | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $run 'result.json') -Encoding utf8
 Write-Output "Passed $($checks.Count) package validator checks in $run; no installation or native execution."

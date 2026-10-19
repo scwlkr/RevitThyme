@@ -12,6 +12,11 @@
           "Microsoft.CodeAnalysis.Common": "[5.9.0]"
         }
       },
+      "Clipper2": {
+        "type": "Transitive",
+        "resolved": "2.0.0",
+        "contentHash": "2X23RZxJrjRjOSZc20aqXY9jpmHLekDRy4PIMfrsi2LPNzxFYlnuqzX/nLdk77fbURHUeX+gMhUn2a1z9/wMTQ=="
+      },
       "Microsoft.CodeAnalysis.Analyzers": {
         "type": "Transitive",
         "resolved": "5.9.0-1.26328.17",
@@ -28,17 +33,20 @@
       "revitthyme.codex": {
         "type": "Project",
         "dependencies": {
-          "RevitThyme.Core": "[0.8.0, )"
+          "RevitThyme.Core": "[0.10.0, )"
         }
       },
       "revitthyme.core": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "Clipper2": "[2.0.0, )"
+        }
       },
       "revitthyme.ui": {
         "type": "Project",
         "dependencies": {
-          "RevitThyme.Codex": "[0.8.0, )",
-          "RevitThyme.Core": "[0.8.0, )"
+          "RevitThyme.Codex": "[0.10.0, )",
+          "RevitThyme.Core": "[0.10.0, )"
         }
       }
     }

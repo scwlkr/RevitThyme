@@ -10,7 +10,7 @@ namespace RevitThyme.TimberFold.Fixtures;
 /// <summary>Test-only native fixture production. No existing document is modified or saved.</summary>
 public static partial class OriginalFixtureBuilder
 {
-    public const string RecipeVersion = "original-shells-v1";
+    public const string RecipeVersion = "original-shells-v2";
     private static readonly HashSet<string> Cases = ["gable", "irregular", "multistorey", "flat", "curved-wall",
         "slanted-wall", "oversized-wall", "ambiguous-glazing", "thin-bar", "arc-roof", "phase-scope", "performance-100"];
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
@@ -87,24 +87,29 @@ public static partial class OriginalFixtureBuilder
                 AddViews(project, ground);
                 project.ProjectInformation.Name = "Original TimberFold " + fixture;
                 project.ProjectInformation.Author = "WLKR LABS / RevitThyme contributors";
-                project.ProjectInformation.Number = "TF-ORIGINAL-V1-" + fixture.ToUpperInvariant();
+                project.ProjectInformation.Number = "TF-ORIGINAL-V2-" + fixture.ToUpperInvariant();
                 project.ProjectInformation.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set(
                     "Procedurally authored qualification model; no copied project or third-party family geometry. Recipe: " + RecipeVersion);
                 project.Regenerate();
                 Commit(transaction);
             }
             cancellationToken.ThrowIfCancellationRequested();
-            object qualification = FixtureQualification.Inspect(project, fixture);
+            object qualification = FixtureQualification.Inspect(project, fixture, Path.Combine(destination, "native-fixture-inspection.json"));
             string geometryFingerprint = GeometryFingerprint(project);
+            string nativeRevitVersion = uiapp.Application.VersionNumber;
+            string nativeRevitBuild = uiapp.Application.VersionBuild;
             project.SaveAs(modelPath, new SaveAsOptions { OverwriteExistingFile = false, Compact = true });
+            if (!project.Close(false)) throw new InvalidDataException("Revit did not close the newly saved original fixture project.");
+            project = null;
             if (!File.Exists(modelPath)) throw new IOException("Native fixture save produced no RVT.");
             string hash = Hash(modelPath);
             var receipt = new
             {
                 schema = 1, fixture, recipe = RecipeVersion, nativeFixtureChecksPassed = true,
+                footprintDefinition = "V2 counterclockwise outlines locate exterior wall faces; native centrelines are inset by half the native wall width.",
                 provenance = "Original procedural native Revit walls, roofs and family geometry. No sample building or private comparison data used.",
                 lengthUnit = "Revit internal feet", originalSourceLicense = "Repository license; Autodesk templates and API binaries are external prerequisites, not redistributed.",
-                nativeRevitVersion = uiapp.Application.VersionNumber, nativeRevitBuild = uiapp.Application.VersionBuild,
+                nativeRevitVersion, nativeRevitBuild,
                 builderAssemblyPath, builderAssemblySha256, projectTemplate, projectTemplateSha256, geometryFingerprint, rvtSha256 = hash,
                 sourceMap = qualification, modelPath, familyPath, warnings,
                 expectedPhysicalBarInchesAt48 = fixture == "thin-bar" ? 0.03125 : 0.0625,
@@ -121,7 +126,8 @@ public static partial class OriginalFixtureBuilder
         }
         finally
         {
-            if (project is { IsValidObject: true }) project.Close(false);
+            if (project is { IsValidObject: true } && !project.Close(false))
+                throw new InvalidDataException("Revit did not close the owned fixture project during cleanup.");
             if (!active.Equals(uiapp.ActiveUIDocument?.Document)) throw new InvalidOperationException("Active development document changed unexpectedly.");
         }
     }
@@ -147,7 +153,7 @@ public static partial class OriginalFixtureBuilder
         if (transaction.Commit() != TransactionStatus.Committed) throw new InvalidDataException("Native fixture transaction did not commit.");
     }
     internal static string Hash(string path) => Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(path)));
-    internal static void Tag(Element element, string role) => element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("TF-V1:" + role);
+    internal static void Tag(Element element, string role) => element.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS)?.Set("TF-V2:" + role);
     internal static CurveArray Polygon(IReadOnlyList<XYZ> points)
     {
         var curves = new CurveArray();

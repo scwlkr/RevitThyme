@@ -25,3 +25,5 @@ Use the canonical five triage roles. See [label mapping](docs/agents/triage-labe
 Use one root glossary and shared ADR directory. Read [domain rules](docs/agents/domain.md) before domain discovery or design.
 
 For user-visible behavior, CLI/MCP contracts or releases, update the relevant canonical guides and changelog in the same change. Read [website maintenance](docs/WEBSITE.md) for content sources, drift checks and release review. Website/docs changes require `npm ci`, `npm run build` and `npm run check` in `website`; keep public deployment as a separate owner-approved action.
+
+For website publication or resuming a publication, use [publish-website](.agents/skills/publish-website/SKILL.md) (`$publish-website` or “publish website”): prepare the candidate before owner approval, then deploy, verify and merge its baseline.

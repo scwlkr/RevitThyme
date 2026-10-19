@@ -1,5 +1,30 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+
+export function publicationFiles(directory) {
+  const files = {};
+  function walk(dir) {
+    for (const entry of fs
+      .readdirSync(dir, { withFileTypes: true })
+      .sort((a, b) => a.name.localeCompare(b.name))) {
+      const file = path.join(dir, entry.name);
+      if (entry.isSymbolicLink()) throw new Error(`Symlink in publication: ${file}`);
+      if (entry.isDirectory()) walk(file);
+      else if (entry.isFile()) {
+        const relative = path.relative(directory, file).split(path.sep).join('/');
+        const url =
+          relative === '404.html'
+            ? '/404'
+            : `/${entry.name === 'index.html' ? relative.slice(0, -10) : relative}`;
+        files[url] = digest(fs.readFileSync(file));
+      }
+    }
+  }
+  walk(directory);
+  return files;
+}
 
 // Match only the exact host-injected Cloudflare script, allowing its ray/time tokens.
 // Every other HTML byte, including other scripts, remains covered by the hash.

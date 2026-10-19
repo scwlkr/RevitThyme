@@ -19,6 +19,8 @@
     "check:live": "node scripts/check-live.mjs",
     "test:publication": "node --test scripts/publication.test.mjs",
     "record:publication": "node scripts/record-publication.mjs",
+    "publication": "node scripts/publish.mjs",
+    "test:publish": "node --test scripts/publish.test.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

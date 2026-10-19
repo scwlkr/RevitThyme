@@ -19,7 +19,7 @@ RevitThyme grows through focused tools, shared operations, inspectable results a
 
 ## Next priorities
 
-- Qualify the unreleased exact-view/sheet [MCP image export](MCP.md#exact-view-and-sheet-images-unreleased), then address explicit save/lifecycle recovery and bounded promotion separately. Do not promote electrical-lab changes before the MCP edit, see and verify loop is qualified.
+- Review the qualified unreleased [document lifecycle](MCP.md#explicit-document-lifecycle-unreleased) follow-up after the landed exact-view/sheet image-export work. Scope Home-screen open, explicit close/view switching and recovery limits separately before bounded model promotion; keep changes above 512 native IDs independent. Native evidence is in [image verification](../verification/view-images.md) and [lifecycle verification](../verification/document-lifecycle.md).
 
 - Keep user, developer and agent onboarding aligned with behavior through shared docs and automated checks.
 - Improve reproducible public examples and diagnostics.

@@ -94,6 +94,9 @@ internal static class DocumentLifecycleLive
                 using var server = Process.GetProcessesByName("revitthyme-mcp").Single(p => !before.Contains(p.Id));
                 Program.Check("interruption probe owns exact installed MCP server", server.MainModule?.FileName == executable);
                 var current = await Context(); string id = Guid.NewGuid().ToString(); var args = build(current.Id, id);
+                var intent = new { name = tool, requestId = id, args, target = current.Snapshot.Target };
+                calls.Add(intent);
+                File.WriteAllText(Path.Combine(folder, "submitted-" + id + ".json"), JsonSerializer.Serialize(intent, Protocol.Json));
                 var pending = Program.Call(client, tool, args); var watch = Stopwatch.StartNew();
                 while (!pending.IsCompleted && !accepted() && watch.Elapsed.TotalSeconds < 20) await Task.Delay(2);
                 Program.Check("native " + tool + " started while response outstanding", accepted() && !pending.IsCompleted);

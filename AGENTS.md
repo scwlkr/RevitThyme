@@ -9,3 +9,17 @@
 For development and live Revit testing, follow the [isolated development workflow](docs/DEVELOPMENT.md) by default. Reuse a verified, pinned development session or launch one with `project.cmd dev-start`. Keep working Revit sessions and models separate from testing; never use them as a test fallback or close/restart them without explicit user authorization.
 
 For ribbon organization, controls, tooltips, or SVG icons, use the [revitthyme-ribbon skill](https://github.com/scwlkr/skillsies/blob/main/personal/revitthyme-ribbon/SKILL.md).
+
+## Agent skills
+
+### Issue tracker
+
+Track implementation and wayfinding in WLKR LABS / RevitThyme on Linear. Read [tracker operations](docs/agents/issue-tracker.md) before creating specs, tickets or dependency links.
+
+### Triage labels
+
+Use the canonical five triage roles. See [label mapping](docs/agents/triage-labels.md) when triaging incoming work.
+
+### Domain docs
+
+Use one root glossary and shared ADR directory. Read [domain rules](docs/agents/domain.md) before domain discovery or design.

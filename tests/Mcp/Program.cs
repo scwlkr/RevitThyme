@@ -81,7 +81,9 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 18-tool discovery", tools.Count == 18);
+        Check("official SDK stdio initialization and 19-tool discovery", tools.Count == 19);
+        Check("TimberFold inspection declares private evidence writes and captured typed settings", tools.Single(t => t.Name == "timberfold_inspect").ProtocolTool.Annotations?.ReadOnlyHint == false
+            && tools.Single(t => t.Name == "timberfold_inspect").JsonSchema.ToString().Contains("stockWidthInches", StringComparison.OrdinalIgnoreCase));
         Check("trusted query is not advertised as sandboxed read-only", tools.Single(t => t.Name == "run_query").ProtocolTool.Annotations?.ReadOnlyHint == false
             && tools.Single(t => t.Name == "run_modify").JsonSchema.ToString().Contains("trusted"));
         Check("native utility tools expose structured schemas", tools.Single(t => t.Name == "create_room_dimensions").JsonSchema.ToString().Contains("fingerprint", StringComparison.OrdinalIgnoreCase)

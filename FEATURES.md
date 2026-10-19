@@ -19,5 +19,6 @@
 | Built-in Agent | Dockable Codex chat, ChatGPT sign-in, streaming, approvals, interruption, saved sessions and ordinary skills, pinned to this Revit process |
 | Updates | Quiet daily native check, manual ribbon/CLI check, registered-installation comparison, verified installer download and close-Revit installation |
 | Verification | Portable unit/stdio checks, pinned actual-Revit and three external Codex rounds |
+| TimberFold development | C# profile/scope inspection through native controls, CLI and MCP; complete private source/diagnostic evidence, original fixture builders and explicit unsupported geometry. Kit generation and four-building native qualification remain in progress. See [TimberFold](docs/timberfold/README.md). |
 
 Version 0.9.3 adds shared status, nullable shared GUID, nullable built-in identity and native `HasValue` to parameter inspection/readback through CLI and MCP. Exact parameter IDs, raw values, pagination and expected-value edit safeguards remain in place. It includes the native ribbon, Built-in Agent and [release checker](docs/UPDATES.md), using the existing installer. The installer is unsigned and supports full Revit 2027. Exploration remains deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.

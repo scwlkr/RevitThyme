@@ -19,6 +19,7 @@ A panel may start with one command when its purpose is distinct and useful. Add 
 | Views | View Range | Large push button, first | A direct task with its own editing workflow. |
 | Views | Inspect View | Large push button, second | Inspect active-view context and review a view-name edit. |
 | Annotation | Room Dimensions | Large push button | Creates view-owned dimensions; annotation is its task home. |
+| Fabrication | TimberFold | Large push button | Opens exterior-shell settings and source inspection; generation remains under qualification. |
 | RevitThyme | Open Agent | Large push button | The visible entry to the optional dockable assistant; requires an open document. |
 | RevitThyme | Check for Updates | Push button in the panel slide-out | Infrequent maintenance, available without a document; background update checks already exist. |
 
@@ -37,7 +38,7 @@ The **RevitThyme** panel is the toolkit's entry and maintenance area. Its broad 
 | Slide-out | Rare settings or maintenance can tolerate reduced discoverability. | Keep primary work visible and document where the secondary command lives. |
 | Toggle group, combo box, or text box | A task genuinely needs a persistent mode, preset, or compact value. | Use a dialog when the input needs explanation, validation, or several related settings. |
 
-Choose large versus small from importance, frequency, and discovery cost together. Destructive or consequential commands still need clear preview or confirmation in their actual workflow; icon size does not provide that protection. Introduce a dropdown only when existing commands form a useful family. The current five commands need none.
+Choose large versus small from importance, frequency, and discovery cost together. Destructive or consequential commands still need clear preview or confirmation in their actual workflow; icon size does not provide that protection. Introduce a dropdown only when existing commands form a useful family. The current commands need none.
 
 Use separators only where they express a real subgroup. Let Revit manage panel sizing, collapse, keyboard behavior, fonts, spacing, backgrounds, and hover states through the supported `Autodesk.Revit.UI` API. Ribbon restyling through internal visual trees or unsupported UI libraries is outside this standard.
 

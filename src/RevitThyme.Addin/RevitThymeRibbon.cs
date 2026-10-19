@@ -34,6 +34,12 @@ internal sealed class RevitThymeRibbon : IDisposable
             "Activate a project floor plan with an enclosed rectangular room. Select a room and review its finish-face dimensions, " +
             "inset and tag clearance. Create adds two associative dimensions in one Revit Undo item.", "NATIVE-UTILITIES.md#room-dimensions");
 
+        var fabrication = application.CreateRibbonPanel("RevitThyme", "Fabrication");
+        Add<TimberFoldCommand, TimberFoldAvailability>(fabrication, "RevitThyme.TimberFold", "TimberFold", "timberfold",
+            "Opens exterior-shell fabrication settings and inspects the active building.",
+            "Use a project with vertical basic exterior walls and planar roofs. Review stock dimensions, thickness and source diagnostics. " +
+            "Inspection creates no cutting files or model elements. Physical cutting and assembly require separate checks.", "timberfold/README.md");
+
         var product = application.CreateRibbonPanel("RevitThyme", "RevitThyme");
         Add<AgentCommand, DocumentAvailability>(product, "RevitThyme.Agent", "Open\nAgent", "open-agent",
             "Opens the RevitThyme Agent panel for working with Codex.",

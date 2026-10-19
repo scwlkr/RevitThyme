@@ -4,9 +4,16 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel
+public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel
 {
     public bool TrustedCodeEnabled => host.TrustedCodeEnabled;
+    public string TimberFoldEvidenceDirectory => System.IO.Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitThyme", "TimberFold", "inspections");
+    public TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope)
+    {
+        var captured = Capture();
+        return NativeTimberExtraction.Extract(Document, captured.Target, profile, scope);
+    }
     public OperationResult ExecuteCode(OperationRequest request) => NativeDynamicExecution.Run(app, this, request);
     private Document Document => app.ActiveUIDocument?.Document
         ?? throw new OperationException("no_document", "Open a Revit project and refresh.");

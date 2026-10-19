@@ -2,6 +2,8 @@
 
 Near the start of coding, run `2brain`; on Windows encoding errors use `$env:PYTHONUTF8='1'`. Current user instructions and [AGENTS.md](AGENTS.md) take precedence over historical guidance.
 
+Current authorized effort: [complete native C# TimberFold](docs/timberfold/spec.md), with [status and ticket dependencies](docs/timberfold/progress.md). Use `ask-matt` before each task and its routed skills. The owner approved scope, numerical gates, four original buildings, test seams and slices, then requested autonomous continuation without further approval prompts. Preserve physical qualification as explicitly outstanding and keep old TimberFold until accepted.
+
 For architecture or scope changes, read [PROJECT.md](PROJECT.md) and the complete [2026-10-14 plan](2026-10-14_NEW_PLAN.md). The active architecture is C#/.NET 10/WPF; `legacy/pre-foundation` is preserved historical source. Implement only the authorized stage. [Features](FEATURES.md) and [terms](GLOSSARY.md) record current behavior.
 
 Use `project.cmd help` for supported development routes. Implement shared operations in Core and Autodesk access in Addin, under ExternalEvent/API callbacks. Each edit requires explicit captured identity and native before/after readback. Files should normally stay under 300 lines; split by responsibility when useful.

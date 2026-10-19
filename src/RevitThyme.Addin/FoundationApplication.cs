@@ -27,6 +27,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     public InspectWindow? InspectWindow => window;
     public ViewRangeWindow? ViewRangeWindow { get; private set; }
     public RoomDimensionsWindow? RoomDimensionsWindow { get; private set; }
+    public TimberFoldWindow? TimberFoldWindow { get; private set; }
     public AgentPanel? AgentPanel { get; private set; }
     private UpdateCoordinator? updates;
     public UpdateWindow? UpdateWindow => updates?.Window;
@@ -103,6 +104,12 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         if (!documents.TryGetValue(document, out string? id)) documents.Add(document, id = Guid.NewGuid().ToString());
         return id;
     }
+    public TimberFoldWindow ShowTimberFold(UIApplication app)
+    {
+        if (TimberFoldWindow is not null) { TimberFoldWindow.Activate(); return TimberFoldWindow; }
+        TimberFoldWindow = new(Operations); new WindowInteropHelper(TimberFoldWindow) { Owner = app.MainWindowHandle };
+        TimberFoldWindow.Closed += (_, _) => TimberFoldWindow = null; TimberFoldWindow.Show(); return TimberFoldWindow;
+    }
     public UpdateWindow ShowUpdates(UIApplication app, UpdateResult? result = null) => updates!.Show(app, result);
     public void AssertDocument(Document document)
     {
@@ -147,6 +154,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     {
         stopping = true; Instance = null; Operations.Stop();
         AgentPanel?.Shutdown(); window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
+        TimberFoldWindow?.Close();
         updates?.Dispose(); ribbon?.Dispose();
         // Bindings are non-secret historical identities; exited processes fail client verification.
         documents.Clear();

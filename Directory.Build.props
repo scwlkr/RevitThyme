@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
-    <Version>0.9.3</Version>
+    <Version>0.10.0</Version>
+    <InformationalVersion>0.10.0-timberfold.1</InformationalVersion>
   </PropertyGroup>
 </Project>

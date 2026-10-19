@@ -1,6 +1,8 @@
 param([string]$OutputDirectory, [switch]$DevelopmentSigning, [string]$DevelopmentSigningConfigPath)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
+[xml]$buildProperties = Get-Content -LiteralPath (Join-Path $root 'Directory.Build.props') -Raw
+$stage = [string]$buildProperties.Project.PropertyGroup.InformationalVersion
 if ($DevelopmentSigning) {
     $signing = & (Join-Path $root 'scripts\dev-signing.ps1') -Action Status -ConfigPath $DevelopmentSigningConfigPath | ConvertFrom-Json
     if (-not $signing.ready) { throw 'Development signing is not ready. Run explicit dev-signing.ps1 -Action Setup first.' }
@@ -9,7 +11,7 @@ if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root 'packages' }
 $output = [IO.Path]::GetFullPath($OutputDirectory)
 & (Join-Path $root 'project.cmd') build
 if ($LASTEXITCODE) { throw 'Native build failed.' }
-$name = 'RevitThyme-0.9.3-identity-' + [Guid]::NewGuid().ToString('N')
+$name = 'RevitThyme-' + $stage + '-' + [Guid]::NewGuid().ToString('N')
 $folder = Join-Path $output $name
 New-Item -ItemType Directory -Path (Join-Path $folder 'cli') -Force | Out-Null
 $native = Join-Path $root 'src\RevitThyme.Addin\bin\Release\net10.0-windows'
@@ -39,6 +41,7 @@ Copy-Item -LiteralPath (Join-Path $root 'THIRD-PARTY-NOTICES.md') -Destination (
 Copy-Item -LiteralPath (Join-Path $root 'docs\MCP.md') -Destination (Join-Path $folder 'MCP.md')
 Copy-Item -LiteralPath (Join-Path $root 'docs\NATIVE-UTILITIES.md') -Destination (Join-Path $folder 'NATIVE-UTILITIES.md')
 Copy-Item -LiteralPath (Join-Path $root 'docs\DYNAMIC-EXECUTION.md') -Destination (Join-Path $folder 'DYNAMIC-EXECUTION.md')
+Copy-Item -LiteralPath (Join-Path $root 'docs\timberfold\README.md') -Destination (Join-Path $folder 'TIMBERFOLD.md')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'notices') -Destination (Join-Path $folder 'notices') -Recurse
 Copy-Item -LiteralPath (Join-Path $root 'scripts\host-path.ps1') -Destination (Join-Path $folder 'host-path.ps1')
 Copy-Item -LiteralPath (Join-Path $root 'LICENSE') -Destination (Join-Path $folder 'LICENSE')
@@ -53,8 +56,7 @@ $files = @{}; Get-ChildItem -LiteralPath $folder -File -Recurse | ForEach-Object
     if ($_.Name -match '^(RevitAPI|RevitAPIUI|RevitThyme.RevitIntegration)' -or $_.Extension -in '.rvt','.rfa','.rte') { throw 'Proprietary/test/model artifact in package.' }
     $files[$relative] = (Get-FileHash -LiteralPath $_.FullName).Hash.ToLowerInvariant()
 }
-[xml]$buildProperties = Get-Content -LiteralPath (Join-Path $root 'Directory.Build.props') -Raw
-@{version='0.9.3-identity';product_version=[string]$buildProperties.Project.PropertyGroup.Version;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$files} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
+@{version=$stage;product_version=[string]$buildProperties.Project.PropertyGroup.Version;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$files} | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
 $zip = $folder+'.zip'; Compress-Archive -LiteralPath $folder -DestinationPath $zip
 (Get-FileHash -LiteralPath $zip).Hash.ToLowerInvariant()+'  '+(Split-Path $zip -Leaf) | Set-Content -LiteralPath ($zip+'.sha256') -Encoding ascii
 Write-Output $folder

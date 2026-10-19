@@ -17,6 +17,7 @@ internal static class Program
             if (args is ["--live", var folder]) await Live.Run(folder);
             else if (args is ["--image-live", var imageFolder]) await ImageExportLive.Run(imageFolder);
             else if (args is ["--image-baseline", var executable, var inventory]) await ImageExportLive.Baseline(executable, inventory);
+            else if (args is ["--image-installed", var installedFolder]) await ImageExportInstalled.Run(installedFolder);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
             else if (args is ["--dynamic-live", var dynamicFolder]) await DynamicLive.Run(dynamicFolder);
             else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);

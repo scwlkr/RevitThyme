@@ -50,6 +50,16 @@ Check 'native-kit candidate keeps the complete managed geometry and DXF payload'
     $manifest = Assert-FoundationPackage $candidate
     if ($manifest.version -ne '0.10.0-timberfold.4') { throw 'Wrong native-kit candidate accepted.' }
 }
+Check 'image-export candidate keeps the full native toolkit payload' {
+    $candidate = New-PackageFixture '0.10.0-image-export.1' -TimberFold -Fabrication -CutFiles
+    $manifest = Assert-FoundationPackage $candidate
+    if ($manifest.version -ne '0.10.0-image-export.1') { throw 'Wrong image-export candidate accepted.' }
+}
+Check 'image-export candidate refuses a missing existing toolkit dependency' {
+    $candidate = New-PackageFixture '0.10.0-image-export.1' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
 Check 'native-kit candidate refuses a missing managed DXF dependency' {
     $candidate = New-PackageFixture '0.10.0-timberfold.4' -TimberFold -Fabrication -CutFiles
     Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')

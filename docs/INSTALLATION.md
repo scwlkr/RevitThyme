@@ -40,6 +40,8 @@ Uninstall from Windows **Installed apps → RevitThyme**, with Revit closed. The
 
 Source-package users can still run `install.ps1` or `uninstall.ps1` in Windows PowerShell. Explicit custom install roots must also be passed to uninstall. `-CheckOnly` validates prerequisites and ownership without installing or unregistering.
 
+The unreleased image-export candidate is `0.10.0-image-export.1`, protocol 9. Its local package/setup retains the same complete toolkit payload requirements as `0.10.0-timberfold.4`. Install host, CLI and MCP together with Revit closed; do not point a protocol-8 client at the candidate host. This local candidate is separate from the published v0.10.0 download. See [image-export qualification](../verification/view-images.md) for the installed-host checks and remaining limits.
+
 ## Build and verify a candidate
 
 Contributors need Windows, PowerShell 7, .NET SDK 10.0.400 and locally supplied licensed Revit 2027 API binaries. Autodesk binaries and test models are excluded from the package.

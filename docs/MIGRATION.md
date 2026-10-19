@@ -1,5 +1,7 @@
 # 2026-10-14 C# migration
 
+> Historical migration record: the Foundation-only scope below describes the initial conversion on October 14. Later milestones, including MCP, utilities, trusted execution and the built-in Agent, are available in the [current project overview](../PROJECT.md).
+
 The complete [new plan](../2026-10-14_NEW_PLAN.md) supersedes the Rust/Axum and Expo/Electron product architecture. The active solution, developer launcher, CI, installer and documentation now use C#/.NET and WPF. Only Foundation is in scope.
 
 `legacy/pre-foundation` preserves the exact prior `config`, `contracts`, `desktop`, `docs`, `extensions`, `native`, `packaging`, `replacement`, `scripts`, `tools` and `verification` trees, including ignored local builds. Former root metadata and launchers are retained there too. Historical links and scripts retain their original paths and assumptions; use the old Git revision for reproduction. They are reference material, not the active build or product.

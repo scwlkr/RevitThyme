@@ -1,6 +1,6 @@
 # MCP interface
 
-The current [2026-10-14 plan](../2026-10-14_NEW_PLAN.md) boundary is Dynamic execution. Twelve generic tools, four utility tools and two trusted C# tools share the native execution host. Built-in Agent and Exploration remain deferred. See [Native utilities](NATIVE-UTILITIES.md) and [Dynamic execution](DYNAMIC-EXECUTION.md) for acceptance and limits.
+Twelve generic tools, four utility tools and two trusted C# tools share the native execution host. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. Exploration remains deferred. Start with [agent integration](AGENT-INTEGRATION.md) for setup; see [Native utilities](NATIVE-UTILITIES.md) and [Dynamic execution](DYNAMIC-EXECUTION.md) for behavior and limits.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 

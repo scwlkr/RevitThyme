@@ -1,0 +1,11 @@
+node_modules
+build
+.docusaurus
+.generated
+static/generated
+static/install
+static/install-0.8.1
+static/llms.txt
+static/llms-full.txt
+static/content-manifest.json
+package-lock.json

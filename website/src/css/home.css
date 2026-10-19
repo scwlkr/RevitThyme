@@ -1,0 +1,124 @@
+.project-home {
+  width: min(760px, calc(100% - 3rem));
+  margin: 2.75rem auto 3rem;
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+.project-home h1 {
+  font-size: 1.8rem;
+  letter-spacing: -0.025em;
+  margin-bottom: 0.65rem;
+}
+.project-home p {
+  margin: 0.65rem 0;
+}
+.project-meta,
+.install-note {
+  font-size: 0.77rem;
+  color: var(--ifm-color-emphasis-700);
+}
+.install-command {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 3px;
+  background: var(--ifm-color-emphasis-100);
+  padding: 0.7rem 0.8rem;
+  margin: 1.2rem 0 0.45rem;
+}
+.install-command code {
+  background: none;
+  border: 0;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.76rem;
+  overflow-wrap: anywhere;
+}
+.terminal-prompt {
+  font: 0.7rem monospace;
+  color: var(--ifm-color-emphasis-700);
+  white-space: nowrap;
+}
+.install-command button {
+  min-width: 4.2rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 3px;
+  background: var(--ifm-background-color);
+  color: var(--ifm-font-color-base);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.install-command button:hover {
+  border-color: var(--ifm-color-primary);
+}
+.tool-index {
+  display: table;
+  width: 100%;
+  margin: 1.75rem 0 1.5rem;
+  font-size: 0.86rem;
+  border-collapse: collapse;
+}
+.tool-index tr {
+  background: none;
+  border: 0;
+}
+.tool-index th,
+.tool-index td {
+  border: 0;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  padding: 0.65rem 0;
+  text-align: left;
+  vertical-align: top;
+}
+.tool-index th {
+  width: 160px;
+  font-weight: 500;
+  padding-right: 1rem;
+}
+.native-screenshot {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+.download-page p {
+  max-width: 650px;
+}
+.download-links {
+  padding-left: 1.2rem;
+  margin-block: 1.5rem;
+}
+.download-links li {
+  margin-block: 0.5rem;
+}
+@media (max-width: 600px) {
+  .project-home {
+    width: calc(100% - 2rem);
+    margin-block: 1.75rem 2rem;
+  }
+  .project-home h1 {
+    font-size: 1.5rem;
+  }
+  .tool-index {
+    font-size: 0.79rem;
+  }
+  .tool-index th {
+    width: 115px;
+    padding-right: 0.75rem;
+  }
+  .terminal-prompt {
+    display: none;
+  }
+  .install-command {
+    gap: 0.5rem;
+    padding: 0.65rem;
+  }
+  .install-command code {
+    font-size: 0.7rem;
+  }
+}

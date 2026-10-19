@@ -1,6 +1,6 @@
 # Trusted C# execution
 
-This implements only the **Dynamic execution** stage of the [2026-10-14 plan](../2026-10-14_NEW_PLAN.md), on top of Foundation, MCP and Native utilities. Built-in Agent and Exploration remain deferred. Tracking: [WLK-248](https://linear.app/wlkr-labs/issue/WLK-248/complete-the-c-dynamic-execution-stage-with-native-cabin-eval).
+Trusted C# extends the shared native operation layer with explicitly reviewed query and modify method bodies. CLI, external MCP clients and the optional [built-in Agent](AGENT.md) can use the same execution contracts. This guide describes permissions, transactions, bounds and qualification; [isolated development](DEVELOPMENT.md) provides the repeatable fixture-copy workflow.
 
 ## Enable and execute
 

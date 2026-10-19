@@ -1,6 +1,6 @@
 # C# Native toolkit
 
-The accepted architecture is [the complete 2026-10-14 plan](../2026-10-14_NEW_PLAN.md). This implementation stops at its Built-in Agent row. Native tools work without an AI runtime.
+Ribbon tools, CLI, MCP and the optional built-in Agent share typed operations and a native execution host. The [original architecture plan](../2026-10-14_NEW_PLAN.md) records the design history. Native tools work without an AI runtime; the [project overview](../PROJECT.md) describes current scope.
 
 ```mermaid
 flowchart TD

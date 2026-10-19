@@ -5,7 +5,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.UI;
 
-public sealed class TimberFoldWindow : Window
+public sealed partial class TimberFoldWindow : Window
 {
     private readonly IOperationClient client;
     private readonly Dictionary<string, TextBox> numbers = [];
@@ -46,17 +46,17 @@ public sealed class TimberFoldWindow : Window
         root.Children.Add(measurements);
         root.Children.Add(new TextBlock { Text = "Kerf compensation: laser software. Physical cutting and assembly remain untested.",
             TextWrapping = TextWrapping.Wrap, Margin = new(0, 10, 0, 0) });
-        root.Children.Add(status); root.Children.Add(diagnostics);
+        root.Children.Add(runIdentity); root.Children.Add(status); root.Children.Add(diagnostics);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new(16, 12, 16, 16) };
-        buttons.Children.Add(openFiles); buttons.Children.Add(inspect);
-        openFiles.Click += (_, _) =>
-        {
-            if (CurrentInspection?.Evidence is { } evidence)
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(evidence.Directory) { UseShellExecute = true });
-        };
+        buttons.Children.Add(openFiles); buttons.Children.Add(inspect); buttons.Children.Add(preview); buttons.Children.Add(cancelRun);
+        openFiles.Click += (_, _) => OpenFiles();
         var close = new Button { Content = "Close", Width = 84, Height = 27, Margin = new(8, 0, 0, 0) };
         close.Click += (_, _) => Close(); buttons.Children.Add(close); Grid.SetRow(buttons, 1); layout.Children.Add(buttons);
         inspect.Click += async (_, _) => await InspectAsync();
+        preview.Click += async (_, _) => await PreviewAsync();
+        cancelRun.Click += async (_, _) => await CancelAsync();
+        runTimer.Tick += PollRun;
+        Closed += (_, _) => { windowClosed = true; runTimer.Stop(); runTimer.Tick -= PollRun; };
         Loaded += async (_, _) => await InspectAsync();
     }
 
@@ -88,14 +88,17 @@ public sealed class TimberFoldWindow : Window
 
     public async Task<OperationResult?> InspectAsync()
     {
-        if (!inspect.IsEnabled) return null;
-        inspect.IsEnabled = openFiles.IsEnabled = false; CurrentInspection = null;
+        if (nativeActionBusy || HasActiveRun || windowClosed) return null;
+        nativeActionBusy = true; CurrentInspection = null; CurrentRun = null; retainedRunId = null;
+        runIdentity.Text = ""; UpdateActions();
         try
         {
             var profile = ReadProfile();
             var context = await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect));
+            if (windowClosed) return context;
             var result = context.Succeeded && context.Snapshot is { } snapshot
                 ? await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.InspectTimberFold, snapshot.Target, TimberFold: new(profile))) : context;
+            if (windowClosed) return result;
             CurrentInspection = result.TimberFold; status.Text = result.Message;
             if (result.TimberFold is { } timber)
             {
@@ -108,13 +111,12 @@ public sealed class TimberFoldWindow : Window
                     info.SourceSample.Select(s => $"{s.Id} · {s.Category} · {s.Disposition}: {s.Reason}"));
                 if (info.DiagnosticsTruncated) diagnostics.Text += $"\nShowing {info.Diagnostics.Length} of {info.ErrorCount + info.WarningCount + info.InfoCount} diagnostics.";
                 if (info.SourcesTruncated) diagnostics.Text += $"\nShowing {info.SourceSample.Length} of {info.SourceCount} sources. Open files for all IDs and reasons.";
-                openFiles.IsEnabled = timber.Evidence is not null;
             }
             else diagnostics.Text = "";
             return result;
         }
-        catch (Exception error) when (error is FormatException or OverflowException or ArgumentException or InvalidOperationException or System.IO.IOException)
+        catch (Exception error)
         { status.Text = error.Message; return null; }
-        finally { inspect.IsEnabled = true; }
+        finally { nativeActionBusy = false; UpdateActions(); }
     }
 }

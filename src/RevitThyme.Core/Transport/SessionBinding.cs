@@ -7,6 +7,8 @@ namespace RevitThyme.Core;
 public sealed record SessionBinding(int ProtocolVersion, int ProcessId, string ProcessStart,
     string SessionId, string PipeName, string RevitVersion)
 {
+    public string PipeFor(OperationKind operation) => PipeName + (operation switch
+    { OperationKind.GetTimberFoldRun => "-status", OperationKind.CancelTimberFoldRun => "-cancel", _ => "" });
     public static SessionBinding Load(string path)
     {
         if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > 4096)

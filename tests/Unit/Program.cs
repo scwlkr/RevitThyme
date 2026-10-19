@@ -13,9 +13,14 @@ internal static class Program
         TimberFoldOperations.Run(Check);
         TimberFoldInspection.Run(Check);
         TimberFoldFabrication.Run(Check);
+        TimberFoldJoints.Run(Check);
         TimberFoldCollisions.Run(Check);
         TimberFoldStock.Run(Check);
+        TimberFoldCutFiles.Run(Check);
+        await TimberFoldRuns.Run(Check);
+        await TimberFoldTransport.Run(Check);
         await TimberFoldOperations.Cli(Check);
+        await TimberFoldCliRuns.Run(Check);
         Console.WriteLine($"Foundation unit checks: {passed} passed, {failed} failed."); return failed == 0 ? 0 : 1;
     }
     internal static void Check(string name, bool condition)

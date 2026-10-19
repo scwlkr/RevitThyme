@@ -7,17 +7,38 @@ internal static class TimberPrismClipping
 {
     internal static Q Intersection(TimberPrismCell first, TimberPrismCell second, TimberPrismBudget budget)
     {
-        var faces = first.Faces.Select(f => f.ToList()).ToList();
-        foreach (var plane in second.Planes)
+        var faces = ClipFaces(first, second.Planes, budget);
+        Q volume = 0;
+        foreach (var face in faces)
+        for (int i = 1; i + 1 < face.Count; i++)
         {
             budget.Check();
+            volume += face[0].Dot(face[i].Cross(face[i + 1])) / 6;
+        }
+        if (volume < 0) throw new TimberPrismUnresolved("invalid_orientation", "Clipped prism has inconsistent boundary orientation.");
+        return volume;
+    }
+
+    // A finite cell clipped to closed half-spaces. Exact zero-volume contact returns no vertices.
+    internal static Point[] ClipVertices(TimberPrismCell cell, IEnumerable<TimberPrismPlane> planes, TimberPrismBudget budget) =>
+        ClipFaces(cell, planes, budget).SelectMany(f => f).Distinct().ToArray();
+
+    private static List<List<Point>> ClipFaces(TimberPrismCell cell, IEnumerable<TimberPrismPlane> planes, TimberPrismBudget budget)
+    {
+        budget.Check();
+        var faces = cell.Faces.Select(f => f.ToList()).ToList();
+        foreach (var plane in planes)
+        {
+            budget.Check();
+            if (plane.Normal.Dot(plane.Normal) == 0)
+                throw new TimberPrismUnresolved("invalid_clip_plane", "An exact clipping half-space needs a nonzero normal.");
             bool inside = false, outside = false;
             foreach (var p in faces.SelectMany(f => f))
             {
                 var sign = plane.Distance(p).Sign;
                 inside |= sign < 0; outside |= sign > 0;
             }
-            if (!inside) return 0; // Empty or exact face/edge/vertex contact has no volume.
+            if (!inside) return []; // Empty or exact face/edge/vertex contact has no volume.
             if (!outside) continue;
             var clipped = new List<List<Point>>();
             foreach (var face in faces)
@@ -38,15 +59,7 @@ internal static class TimberPrismClipping
             if (cap.Count < 3) throw new TimberPrismUnresolved("invalid_cap", "Exact prism clipping could not close a positive-volume cut.");
             clipped.Add(cap); faces = clipped;
         }
-        Q volume = 0;
-        foreach (var face in faces)
-        for (int i = 1; i + 1 < face.Count; i++)
-        {
-            budget.Check();
-            volume += face[0].Dot(face[i].Cross(face[i + 1])) / 6;
-        }
-        if (volume < 0) throw new TimberPrismUnresolved("invalid_orientation", "Clipped prism has inconsistent boundary orientation.");
-        return volume;
+        return faces;
     }
 
     private static List<Point> Hull(IEnumerable<Point> vertices, TimberPrismPlane plane, TimberPrismBudget budget)

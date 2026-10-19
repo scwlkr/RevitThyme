@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 
 namespace RevitThyme.Core;
 
-public static class TimberFabrication
+public static partial class TimberFabrication
 {
     public static TimberPanelDraft Draft(TimberSnapshot snapshot, TimberFoldProfile profile, TimberScope scope,
         CancellationToken cancellationToken = default)

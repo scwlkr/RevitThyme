@@ -17,6 +17,11 @@
         "resolved": "2.0.0",
         "contentHash": "2X23RZxJrjRjOSZc20aqXY9jpmHLekDRy4PIMfrsi2LPNzxFYlnuqzX/nLdk77fbURHUeX+gMhUn2a1z9/wMTQ=="
       },
+      "IxMilia.Dxf": {
+        "type": "Transitive",
+        "resolved": "0.8.4",
+        "contentHash": "NTrAnCKMgaY0Tm/C1++rp9i+JGHkXL9vy7LjEimeqTOZMRsnyVEvcKksoMsMDyevQArm2epOJc4v+EWP8tSiPg=="
+      },
       "Microsoft.CodeAnalysis.Analyzers": {
         "type": "Transitive",
         "resolved": "5.9.0-1.26328.17",
@@ -39,7 +44,8 @@
       "revitthyme.core": {
         "type": "Project",
         "dependencies": {
-          "Clipper2": "[2.0.0, )"
+          "Clipper2": "[2.0.0, )",
+          "IxMilia.Dxf": "[0.8.4, )"
         }
       }
     }

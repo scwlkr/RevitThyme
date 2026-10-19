@@ -12,4 +12,26 @@ public sealed partial class RevitTools
     public Task<CallToolResult> TimberFoldInspect(string captureId, TimberFoldProfile? profile = null,
         TimberScope? scope = null, CancellationToken cancellationToken = default) =>
         Run(captureId, new(Guid.NewGuid(), OperationKind.InspectTimberFold, TimberFold: new(profile, scope)), cancellationToken);
+
+    [McpServerTool(Name = "timberfold_preview", ReadOnly = false, Destructive = false, Idempotent = true),
+        Description("Start a retained digital kit preview from a fresh captured target and caller requestId/run ID. Writes private nominal-inch DXF, calibration and traceability files; no model edits or save. Poll timberfold_status; retry only identical ID/settings. Native import and physical checks remain outstanding; manufacturing readiness stays false. Kerf compensation belongs to laser software.")]
+    public Task<CallToolResult> TimberFoldPreview(string captureId, string requestId, TimberFoldProfile? profile = null,
+        TimberScope? scope = null, CancellationToken cancellationToken = default) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.PreviewTimberFold, TimberFold: new(profile, scope)), cancellationToken));
+
+    [McpServerTool(Name = "timberfold_status", ReadOnly = true, Idempotent = true),
+        Description("Read a retained TimberFold run by runId in the explicitly bound session. No get_context, native extraction or UI queue required. Reports stage, diagnostics and private artifact directory; digital previews retain outstanding native import and physical checks.")]
+    public Task<CallToolResult> TimberFoldStatus(string runId, CancellationToken cancellationToken = default) => Safe(async () =>
+    {
+        var result = await connection.TimberRun(Id(runId), false, cancellationToken);
+        return Reply(result, !result.Succeeded);
+    });
+
+    [McpServerTool(Name = "timberfold_cancel", ReadOnly = false, Destructive = false, Idempotent = true),
+        Description("Request cooperative cancellation of a retained TimberFold run by runId in the bound session. No get_context or UI queue required. Preserves previous outputs and retained terminal results; poll timberfold_status for the final state.")]
+    public Task<CallToolResult> TimberFoldCancel(string runId, CancellationToken cancellationToken = default) => Safe(async () =>
+    {
+        var result = await connection.TimberRun(Id(runId), true, cancellationToken);
+        return Reply(result, !result.Succeeded);
+    });
 }

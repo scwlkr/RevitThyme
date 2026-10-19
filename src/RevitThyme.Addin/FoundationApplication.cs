@@ -16,13 +16,15 @@ namespace RevitThyme.Addin;
 public sealed class FoundationApplication : IExternalApplication, IExternalEventHandler
 {
     public static FoundationApplication? Instance { get; private set; }
-    public OperationDispatcher Operations { get; } = new();
+    public OperationDispatcher Operations { get; } = new(Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitThyme", "TimberFold", "runs"));
     public SessionBinding Binding { get; private set; } = null!;
     public long Revision { get; private set; }
     public bool TrustedCodeEnabled { get; private set; }
     private readonly Dictionary<Document, string> documents = [];
     private ExternalEvent? externalEvent;
     private PipeServer? server;
+    private PipeServer? timberStatusServer, timberCancelServer;
     private InspectWindow? window;
     public InspectWindow? InspectWindow => window;
     public ViewRangeWindow? ViewRangeWindow { get; private set; }
@@ -52,6 +54,8 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
             if (fixturePath is not null && !Path.IsPathFullyQualified(fixturePath)) throw new InvalidDataException("Absolute fixture required.");
             externalEvent = ExternalEvent.Create(this); Operations.Schedule = Schedule;
             server = new(Binding, Operations); server.Start();
+            timberStatusServer = new(Binding, Operations, OperationKind.GetTimberFoldRun); timberStatusServer.Start();
+            timberCancelServer = new(Binding, Operations, OperationKind.CancelTimberFoldRun); timberCancelServer.Start();
             string folder = Environment.GetEnvironmentVariable("REVITTHYME_FOUNDATION_SESSIONS")
                 ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitThyme", "sessions");
             if (!Path.IsPathFullyQualified(folder)) throw new InvalidDataException("Absolute session directory required.");
@@ -155,6 +159,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         stopping = true; Instance = null; Operations.Stop();
         AgentPanel?.Shutdown(); window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
         TimberFoldWindow?.Close();
+        timberStatusServer?.Dispose(); timberCancelServer?.Dispose();
         updates?.Dispose(); ribbon?.Dispose();
         // Bindings are non-secret historical identities; exited processes fail client verification.
         documents.Clear();

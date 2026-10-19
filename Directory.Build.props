@@ -6,6 +6,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <Version>0.10.0</Version>
-    <InformationalVersion>0.10.0-timberfold.2</InformationalVersion>
+    <InformationalVersion>0.10.0-timberfold.3</InformationalVersion>
   </PropertyGroup>
 </Project>

@@ -1,6 +1,6 @@
 # MCP interface
 
-The current [2026-10-14 plan](../2026-10-14_NEW_PLAN.md) boundary is Dynamic execution. Twelve generic tools, four utility tools and two trusted C# tools share the native execution host. Built-in Agent and Exploration remain deferred. See [Native utilities](NATIVE-UTILITIES.md) and [Dynamic execution](DYNAMIC-EXECUTION.md) for acceptance and limits.
+Twelve generic tools, four utility tools, two trusted C# tools and four TimberFold tools share the native execution host. TimberFold currently supports inspection and retained previews; final kit generation remains under implementation. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for acceptance and limits.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -24,6 +24,10 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `create_room_dimensions` | Recomputed exact preview, verified native associative pair and one Undo |
 | `run_query` | Explicitly trusted Roslyn C# method body, serialized JSON result, always rolls back current-document changes |
 | `run_modify` | Explicitly trusted Roslyn C# method body, native change IDs, rollback on failure and one Undo |
+| `timberfold_inspect` | Captured exterior-shell accounting and private evidence, without model changes |
+| `timberfold_preview` | Accept a retained request/run ID; capture, fit, nest and stage digital DXF preview files |
+| `timberfold_status` | Inspect retained progress or terminal evidence without a native callback/capture |
+| `timberfold_cancel` | Request cooperative cancellation by run ID, preserving previous outputs |
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
 
@@ -64,7 +68,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings other than protocol 4 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings other than protocol 6 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

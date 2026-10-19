@@ -6,20 +6,23 @@ namespace RevitThyme.Mcp;
 public sealed record SessionInfo(string File, SessionBinding Binding);
 public sealed record CaptureResult(string CaptureId, OperationResult Result);
 
-// Serialize connection changes and calls so a call cannot silently switch processes mid-flight.
-public sealed class RevitConnection
+// Native calls serialize with connection changes. Controls snapshot one immutable
+// binding/client pair and never hold the native-call gate while awaiting a reply.
+public sealed partial class RevitConnection
 {
     private readonly ServerSettings settings;
     private readonly Func<SessionBinding, IOperationClient> factory;
     private readonly SemaphoreSlim gate = new(1, 1);
+    private readonly object stateGate = new();
     private readonly Dictionary<string, Snapshot> captures = [];
-    private SessionBinding? binding;
-    private IOperationClient? client;
+    private sealed record ConnectionState(SessionBinding Binding, IOperationClient Client);
+    private ConnectionState? state;
     public RevitConnection(ServerSettings settings) : this(settings, b => new PipeClient(b)) { }
     public RevitConnection(ServerSettings settings, Func<SessionBinding, IOperationClient> factory)
     {
         this.settings = settings; this.factory = factory;
-        if (settings.SessionFile is not null) { binding = SessionBinding.Load(settings.SessionFile); client = factory(binding); }
+        if (settings.SessionFile is not null)
+        { var binding = SessionBinding.Load(settings.SessionFile); state = new(binding, factory(binding)); }
     }
     public SessionInfo[] Sessions()
     {
@@ -42,7 +45,8 @@ public sealed class RevitConnection
             // Native handshake must succeed before replacing the current connection.
             var result = await next.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect), token);
             if (result.Code != "no_document" && !result.Succeeded) throw new OperationException(result.Code, result.Message);
-            binding = chosen; client = next; captures.Clear(); return chosen;
+            lock (stateGate) state = new(chosen, next);
+            captures.Clear(); return chosen;
         }
         finally { gate.Release(); }
     }
@@ -51,8 +55,8 @@ public sealed class RevitConnection
         await gate.WaitAsync(token);
         try
         {
-            RequireClient();
-            var result = await client!.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect), token);
+            var chosen = RequireClient();
+            var result = await chosen.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect), token);
             string id = "";
             if (result.Succeeded && result.Snapshot is { } snapshot)
             {
@@ -68,9 +72,9 @@ public sealed class RevitConnection
         await gate.WaitAsync(token);
         try
         {
-            RequireClient();
+            var chosen = RequireClient();
             if (!captures.TryGetValue(captureId, out var snapshot)) throw new OperationException("capture_missing", "Call get_context in this connection first.");
-            return await client!.ExecuteAsync(request with { Target = snapshot.Target,
+            return await chosen.ExecuteAsync(request with { Target = snapshot.Target,
                 ExpectedName = request.Operation == OperationKind.RenameView ? snapshot.ViewName : null }, token);
         }
         finally { gate.Release(); }
@@ -78,12 +82,16 @@ public sealed class RevitConnection
     public async Task<OperationResult> Outcome(Guid id, CancellationToken token)
     {
         await gate.WaitAsync(token);
-        try { RequireClient(); return await client!.ExecuteAsync(new(Guid.NewGuid(), OperationKind.GetOperation, OperationId: id), token); }
+        try { var chosen = RequireClient(); return await chosen.ExecuteAsync(new(Guid.NewGuid(), OperationKind.GetOperation, OperationId: id), token); }
         finally { gate.Release(); }
     }
-    private void RequireClient()
+    private IOperationClient RequireClient()
     {
-        if (binding is null || client is null) throw new OperationException("not_connected", "List sessions, then explicitly connect_session.");
-        binding.AssertProcess();
+        lock (stateGate)
+        {
+            var chosen = state ?? throw new OperationException("not_connected", "List sessions, then explicitly connect_session.");
+            chosen.Binding.AssertProcess();
+            return chosen.Client;
+        }
     }
 }

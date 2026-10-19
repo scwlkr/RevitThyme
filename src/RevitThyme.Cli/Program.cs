@@ -35,6 +35,8 @@ public static class Program
                 revitthyme run-query|run-modify --session ABSOLUTE_FILE --capture INSPECTION --source CS_BODY_FILE --trusted true --request-id GUID [--budget-ms 10000] --json
                 revitthyme get-operation --session ABSOLUTE_FILE --request-id GUID --json
                 revitthyme timberfold inspect --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
+                revitthyme timberfold preview --run-id GUID --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
+                revitthyme timberfold status|cancel --run-id GUID --session ABSOLUTE_FILE [--json]
 
                 Version reports distinguish the CLI/development build from installed RevitThyme.
                 Update commands target the registered RevitThyme installation. Close Revit before installing.

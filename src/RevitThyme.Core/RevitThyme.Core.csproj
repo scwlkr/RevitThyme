@@ -2,5 +2,6 @@
   <ItemGroup><Content Include="../../installer/bootstrap.ps1" Link="update.ps1" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup>
     <PackageReference Include="Clipper2" Version="2.0.0" />
+    <PackageReference Include="IxMilia.Dxf" Version="0.8.4" />
   </ItemGroup>
 </Project>

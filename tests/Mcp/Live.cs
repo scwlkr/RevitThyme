@@ -32,7 +32,7 @@ internal static class Live
         }
         try
         {
-            Program.Check("live 19-tool discovery", (await client.ListToolsAsync()).Count == 19);
+            Program.Check("live 22-tool discovery", (await client.ListToolsAsync()).Count == 22);
             var sessions = await Call("list_sessions"); Program.Check("owned session discovered", sessions.EnumerateArray().Any(s => s.GetProperty("binding").GetProperty("processId").GetInt32() == binding.GetProperty("processId").GetInt32()));
             await Call("connect_session", new() { ["sessionFile"] = session });
             await Call("connect_session", new() { ["sessionFile"] = Path.Combine(folder, "wrong.json") }, "session_pinned");

@@ -1,11 +1,35 @@
 namespace RevitThyme.Core;
 
 // Queue contains data only. The host drains it from ExternalEvent.Execute on Revit's thread.
-public sealed class OperationDispatcher : IOperationClient
+public sealed partial class OperationDispatcher : IOperationClient, ITimberCaptureQueue, IAsyncDisposable
 {
-    private sealed record Pending(OperationRequest Request, TaskCompletionSource<OperationResult> Completion, CancellationToken Cancellation);
+    private readonly TimberRunCoordinator? timberRuns;
+    public OperationDispatcher(string? timberRunDirectory = null)
+    { if (timberRunDirectory is not null) timberRuns = new(timberRunDirectory, this); }
+    public ValueTask DisposeAsync() { Stop(); return timberRuns?.DisposeAsync() ?? ValueTask.CompletedTask; }
+    public Task<TimberCapturedSnapshot> CaptureTimberAsync(TimberCaptureRequest request, CancellationToken cancellationToken = default)
+    {
+        if (request.RunId == Guid.Empty) return Task.FromException<TimberCapturedSnapshot>(new OperationException("invalid_id", "A run ID is required."));
+        // Capture scope by value before another caller can mutate its arrays.
+        var owned = System.Text.Json.JsonSerializer.Deserialize<TimberCaptureRequest>(
+            System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(request, Protocol.Json), Protocol.Json)!;
+        var pending = new CapturePending(owned, new(TaskCreationOptions.RunContinuationsAsynchronously), cancellationToken);
+        lock (gate)
+        {
+            if (stopped) return Task.FromException<TimberCapturedSnapshot>(new OperationException("host_stopped", "RevitThyme is stopped."));
+            if (cancellationToken.IsCancellationRequested) return Task.FromCanceled<TimberCapturedSnapshot>(cancellationToken);
+            if (queue.Count >= 32) return Task.FromException<TimberCapturedSnapshot>(new OperationException("queue_full", "Native capture queue is full."));
+            queue.Enqueue(pending);
+        }
+        try { Schedule?.Invoke(); }
+        catch (Exception) { RejectPending("schedule_failed", "Revit could not schedule extraction."); }
+        return pending.Completion.Task;
+    }
+    private abstract record Work(CancellationToken Cancellation);
+    private sealed record Pending(OperationRequest Request, TaskCompletionSource<OperationResult> Completion, CancellationToken Cancellation) : Work(Cancellation);
+    private sealed record CapturePending(TimberCaptureRequest Request, TaskCompletionSource<TimberCapturedSnapshot> Completion, CancellationToken Cancellation) : Work(Cancellation);
     private readonly object gate = new();
-    private readonly Queue<Pending> queue = new();
+    private readonly Queue<Work> queue = new();
     private readonly Dictionary<Guid, Pending> history = [];
     private readonly OperationExecutor executor = new();
     private bool stopped;
@@ -34,6 +58,7 @@ public sealed class OperationDispatcher : IOperationClient
             if (history.TryGetValue(request.Id, out var previous))
                 return previous.Request.EquivalentTo(request) ? previous.Completion.Task :
                     Task.FromResult(OperationResult.Reject(request, "id_conflict", "Request ID was already used with different arguments."));
+            if (IsTimberRun(request.Operation)) return RetainTimberRun(request);
             // Retain outcomes for this entire session; never evict an edit and execute it twice.
             if (queue.Count >= 32 || history.Count >= 4096)
                 return Task.FromResult(OperationResult.Reject(request, "queue_full", "Session request capacity reached."));
@@ -46,20 +71,27 @@ public sealed class OperationDispatcher : IOperationClient
     }
     public void ExecuteNext(IModel model)
     {
-        Pending? pending;
+        Work? pending;
         lock (gate) { pending = queue.Count == 0 ? null : queue.Dequeue(); }
-        if (pending is not null) pending.Completion.TrySetResult(pending.Cancellation.IsCancellationRequested
-            ? OperationResult.Reject(pending.Request, "cancelled", "Request cancelled before Revit execution.")
-            : executor.Execute(model, pending.Request));
+        if (pending is Pending operation) operation.Completion.TrySetResult(operation.Cancellation.IsCancellationRequested
+            ? OperationResult.Reject(operation.Request, "cancelled", "Request cancelled before Revit execution.")
+            : executor.Execute(model, operation.Request));
+        if (pending is CapturePending capture)
+        {
+            try { capture.Completion.TrySetResult(TimberCaptureExecutor.Execute(model, capture.Request, capture.Cancellation)); }
+            catch (OperationCanceledException) { capture.Completion.TrySetCanceled(capture.Cancellation); }
+            catch (Exception error) { capture.Completion.TrySetException(error); }
+        }
     }
     public void RejectPending(string code, string message)
     {
         lock (gate)
             while (queue.TryDequeue(out var pending))
-                pending.Completion.TrySetResult(OperationResult.Reject(pending.Request, code, message));
+                if (pending is Pending operation) operation.Completion.TrySetResult(OperationResult.Reject(operation.Request, code, message));
+                else if (pending is CapturePending capture) capture.Completion.TrySetException(new OperationException(code, message));
     }
     public void Stop()
     {
-        lock (gate) { stopped = true; RejectPending("host_stopped", "Revit closed before execution."); }
+        lock (gate) { stopped = true; timberRuns?.Stop(); RejectPending("host_stopped", "Revit closed before execution."); }
     }
 }

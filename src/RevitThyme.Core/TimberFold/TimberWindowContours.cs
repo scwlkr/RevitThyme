@@ -23,10 +23,9 @@ internal static class TimberWindowContours
             // common host envelope, then subtract only actual cuts (pane minus opaque material).
             region = Clipper.Union(region, aperture, FillRule.NonZero);
             var panes = Clipper.Union(TimberContours.Encode(opening.PaneRingsFeet, x, y, factor, false), FillRule.NonZero);
-            var opaque = Clipper.Union(TimberContours.Encode(opening.OpaqueRingsFeet ?? [], x, y, factor, false), FillRule.NonZero);
             if (Clipper.Difference(panes, aperture, FillRule.NonZero).Count != 0)
                 throw new InvalidOperationException($"Glazing for {opening.Id} extends outside its native aperture.");
-            var glazingCuts = Clipper.Difference(panes, opaque, FillRule.NonZero);
+            var glazingCuts = GlazingCut(opening, x, y, factor);
             if (glazingCuts.Count == 0)
                 throw new InvalidOperationException($"Window {opening.Id} has no resolved pane area after opaque projection.");
             var cutouts = TimberContours.Pieces(glazingCuts);
@@ -47,4 +46,7 @@ internal static class TimberWindowContours
         if (result.Count == 0) throw new InvalidOperationException("Opening cuts remove the complete source face.");
         return result;
     }
+    internal static Paths64 GlazingCut(TimberOpening opening, double x, double y, double factor) => Clipper.Difference(
+        Clipper.Union(TimberContours.Encode(opening.PaneRingsFeet, x, y, factor, false), FillRule.NonZero),
+        Clipper.Union(TimberContours.Encode(opening.OpaqueRingsFeet ?? [], x, y, factor, false), FillRule.NonZero), FillRule.NonZero);
 }

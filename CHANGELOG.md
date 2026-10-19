@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add the shared `ExportViewImage` operation and MCP `export_view_image` tool for one explicit native view/sheet PNG. Reuse the existing ExternalEvent queue, captured-target checks, request-ID replay and `get_operation` recovery. Decode/hash the PNG, verify unchanged native state, and return structured file metadata plus an inline MCP image without a model transaction, activation or save.
+- Bound images to 128–4096 pixels and 8 MiB in host-owned private request folders. Reject unsupported/missing/stale targets, preserve partial output on unconfirmed completion and refuse to regenerate changed retained artifacts. The candidate has 26 tools, protocol 9 and build identity `0.10.0-image-export.1`; it requires matching binaries and is not part of published v0.10.0. See [contract](docs/MCP.md#exact-view-and-sheet-images-unreleased) and [verification](verification/view-images.md).
+
 ## 0.10.0 — TimberFold — 2026-10-19
 
 - Add native C# TimberFold inspection, retained previews, fitting, stock layout, inch-unit DWG/DXF cutting files, calibration coupons, source-mapped guides and annotation-only review sheets. Generation preserves source geometry and saved files, and groups native documentation into one Undo item.

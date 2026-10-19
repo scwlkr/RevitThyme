@@ -19,6 +19,8 @@ RevitThyme grows through focused tools, shared operations, inspectable results a
 
 ## Next priorities
 
+- Qualify the unreleased exact-view/sheet [MCP image export](MCP.md#exact-view-and-sheet-images-unreleased), then address explicit save/lifecycle recovery and bounded promotion separately. Do not promote electrical-lab changes before the MCP edit, see and verify loop is qualified.
+
 - Keep user, developer and agent onboarding aligned with behavior through shared docs and automated checks.
 - Improve reproducible public examples and diagnostics.
 - Broaden qualification across machines and representative models before expanding compatibility claims.

@@ -32,6 +32,7 @@ public sealed partial class RevitTools(RevitConnection connection)
         parameterIdentity = "id is the exact document-local edit target. isShared gates sharedGuid; builtInParameter is the native enum name or null. hasValue is native assigned-value state, not a nonempty or cleanup judgment. Compare same-name fields by identity; never edit by name or GUID alone.",
         utilityUnits = "Range offsets, room inset/clearance and dimensions use feet. Range levels: Current, Above, Below, Unlimited, or native Level UniqueId. Native Revit validates floor/ceiling plane order.",
         roomDimensions = "Preview one rectangular room on the active floor plan's level/phase, with four basic native wall finish faces. Send the exact returned preview and its options to create. Tags, existing dimensions and native references are rechecked. No linked/curved/separator/island boundaries.",
+        imageExport = "export_view_image exports exactly one explicit view/sheet UniqueId at pixelSize 128–4096, to a host-owned private PNG. No model transaction, save or view activation. Completion requires native return, decoded PNG/hash and unchanged native snapshot. JSON metadata and verified inline PNG are returned, including on get_operation recovery. Same request ID/arguments replays without re-export; different arguments conflict. Outcomes last until native session shutdown. Files are not model content and are not undone.",
         writes = "Use get_context and native UniqueId/parameter Id. set_parameters requires exact Expected values. Supply a unique requestId per new write. Retry only the same ID/arguments; get_operation retrieves retained outcomes. Unconfirmed edits require polling and native inspection.",
         reversibility = "Rename and parameter batches create one Revit Undo item each. Selection is UI state and restored on failure. No implicit save/sync."
     });
@@ -91,12 +92,29 @@ public sealed partial class RevitTools(RevitConnection connection)
     private static async Task<CallToolResult> Safe(Func<Task<CallToolResult>> action)
     {
         try { return await action(); }
-        catch (Exception error) when (error is OperationException or IOException or ArgumentException or InvalidOperationException or JsonException or System.ComponentModel.Win32Exception or OperationCanceledException)
+        catch (Exception error) when (error is OperationException or IOException or InvalidDataException or ArgumentException or InvalidOperationException or JsonException or System.ComponentModel.Win32Exception or OperationCanceledException)
         { return Reply(new { code = error is OperationException op ? op.Code : error is OperationCanceledException ? "cancelled" : "connection_failed", message = error.Message }, true); }
     }
     private static CallToolResult Reply(object value, bool error = false)
     {
         var json = JsonSerializer.SerializeToElement(value, Protocol.Json);
-        return new() { IsError = error, Content = [new TextContentBlock { Text = json.GetRawText() }], StructuredContent = json };
+        var result = new CallToolResult { IsError = error, Content = [new TextContentBlock { Text = json.GetRawText() }], StructuredContent = json };
+        if (!error && value is OperationResult { Succeeded: true, ImageExport: { } image })
+        {
+            try
+            {
+                using var file = new FileStream(image.Path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                if (file.Length != image.Bytes || file.Length is < 24 or > 8388608) throw new InvalidDataException("Image length changed or exceeds 8 MiB.");
+                var bytes = new byte[(int)file.Length]; file.ReadExactly(bytes);
+                if (!Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).Equals(image.Sha256, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("Image hash changed.");
+                result.Content.Add(ImageContentBlock.FromBytes(bytes, "image/png"));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)
+            {
+                return Reply(new { code = "image_artifact_unavailable", message = "Retained export metadata exists, but its PNG is missing, changed or unreadable. No export was repeated.", operation = value }, true);
+            }
+        }
+        return result;
     }
 }

@@ -4,7 +4,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel
+public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel, IViewImageModel
 {
     public bool TrustedCodeEnabled => host.TrustedCodeEnabled;
     public string TimberFoldEvidenceDirectory => System.IO.Path.Combine(

@@ -4,6 +4,8 @@ The local stdio MCP server gives external clients structured access to shared na
 
 Version 0.10.0 exposes 25 tools, including seven TimberFold controls, through protocol 8. Install matching add-in, CLI and MCP binaries together. The qualified package is `0.10.0-timberfold.4`.
 
+The unreleased source candidate `0.10.0-image-export.1` adds a 26th tool, [`export_view_image`](MCP.md#exact-view-and-sheet-images-unreleased), and uses protocol 9. It returns a verified inline native view/sheet PNG and retained completion metadata. Published v0.10.0 does not contain this operation. Keep candidate testing separate from the installed working host; do not mix protocol versions.
+
 ## Choose a route
 
 | Need | Setup |

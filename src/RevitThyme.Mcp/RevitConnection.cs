@@ -30,7 +30,7 @@ public sealed partial class RevitConnection
         foreach (string path in Directory.Exists(settings.SessionsDirectory) ? Directory.EnumerateFiles(settings.SessionsDirectory, "*.json").Take(1024) : [])
         {
             try { result.Add(new(path, SessionBinding.Load(path))); }
-            catch (Exception ex) when (ex is IOException or ArgumentException or InvalidOperationException or JsonException or System.ComponentModel.Win32Exception) { }
+            catch (Exception ex) when (ex is IOException or InvalidDataException or ArgumentException or InvalidOperationException or JsonException or System.ComponentModel.Win32Exception) { }
         }
         return result.OrderBy(s => s.Binding.ProcessId).ToArray();
     }

@@ -15,12 +15,14 @@ internal static class Program
         try
         {
             if (args is ["--live", var folder]) await Live.Run(folder);
+            else if (args is ["--image-live", var imageFolder]) await ImageExportLive.Run(imageFolder);
+            else if (args is ["--image-baseline", var executable, var inventory]) await ImageExportLive.Baseline(executable, inventory);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
             else if (args is ["--dynamic-live", var dynamicFolder]) await DynamicLive.Run(dynamicFolder);
             else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);
             else if (args is ["--packaged-stdio", var bundle, var manifestSha256, var evidence]) await PackagedStdio.Run(bundle, manifestSha256, evidence);
             else if (args is ["--parameter-identity-live", var identityFolder, var identityStage]) await ParameterIdentityLive.Run(identityFolder, identityStage);
-            else { await Generic(); await ParameterIdentity.Run(); await TimberFoldRuns.Run(); await Stdio(); }
+            else { await Generic(); await ParameterIdentity.Run(); await ImageExportReplies.Run(); await TimberFoldRuns.Run(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }
@@ -83,7 +85,9 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 25-tool discovery", tools.Count == 25);
+        Check("official SDK stdio initialization and 26-tool discovery", tools.Count == 26);
+        Check("image export exposes bounded captured idempotent file operation", tools.Single(t => t.Name == "export_view_image").ProtocolTool.Annotations is { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true }
+            && tools.Single(t => t.Name == "export_view_image").JsonSchema.ToString().Contains("viewId", StringComparison.Ordinal));
         var reconcileTool = tools.Single(t => t.Name == "timberfold_reconcile");
         Check("reconciliation advertises captured idempotent recovery evidence without geometry overrides", reconcileTool.ProtocolTool.Annotations is
             { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true } &&

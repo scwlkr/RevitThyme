@@ -28,7 +28,13 @@ For **Room Dimensions**, use a floor plan with an enclosed rectangular room boun
 
 ![View Range controls and section preview](images/native-view-range.png)
 
-## 4. Choose another interface
+## 4. Try TimberFold
+
+Download [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip) for an original editable six-panel gable example, calibration and DWG/DXF/SVG guides. Open a disposable copy of the RVT, then choose **RevitThyme → Fabrication → TimberFold**. Confirm scale and physical-inch stock settings, Inspect, resolve blockers and Preview. Generate only after reviewing the preview; it creates native review documentation as one Undo item and never saves the source automatically.
+
+Poll retained runs until terminal; acceptance is not completion. `KitReady` reports digital checks, while measured thickness/kerf, calibration cutting, joint/web strength and physical assembly remain outstanding. `ManufacturingReady` is false. Follow the ZIP instructions and [TimberFold guide](timberfold/delivery.md) before cutting; use CUT-only files at their physical-inch scale.
+
+## 5. Choose another interface
 
 - For scripts: use the [CLI](CLI.md).
 - For an external agent: connect the [local MCP server](AGENT-INTEGRATION.md).

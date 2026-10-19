@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.10.0 — TimberFold — 2026-10-19
+
+- Add native C# TimberFold inspection, retained previews, fitting, stock layout, inch-unit DWG/DXF cutting files, calibration coupons, source-mapped guides and annotation-only review sheets. Generation preserves source geometry and saved files, and groups native documentation into one Undo item.
+- Share seven TimberFold controls through the native window, CLI and official-SDK MCP server: inspect, preview, generate, status, cancel, verify and read-only reconcile. The MCP inventory is now 25 tools; protocol 8 requires matching add-in, CLI and MCP binaries. The qualified package is `0.10.0-timberfold.4`.
+- Qualify four original editable buildings, independent native documentation/DWG readback, canonical repeatability, source restoration, export/publication/cancellation recovery and a complete 100-panel generation in 23.35 seconds. Preserve exact candidate provenance and historical evidence in [TimberFold qualification](docs/timberfold/qualification.md).
+- Include the Windows setup and a small physical-test ZIP with calibration, an original six-panel gable example, cutting files and guides. Measured material/kerf, physical cutting, joint/web strength and assembly remain outstanding; `ManufacturingReady` remains false. The C# replacement is accepted. Retire the old active source checkouts and installed launcher after verifying recoverable private source/model/history archives; other add-ins and models remain untouched.
 
 - Add daily read-only checks of deployed website files and GitHub presentation against reviewed baselines. Report unpublished source separately; deployment and baseline approval remain maintainer actions.
 

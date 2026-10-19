@@ -7,6 +7,8 @@ Install, use, and extend RevitThyme.
 - [Installation](INSTALLATION.md)
 - [First steps](QUICK-START.md)
 - [Native tools](NATIVE-UTILITIES.md)
+- [TimberFold cutting kits](timberfold/README.md)
+- [TimberFold download and physical-test instructions](timberfold/delivery.md)
 - [Updates](UPDATES.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
 

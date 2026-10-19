@@ -2,6 +2,8 @@
 
 This is the preserved Python/pyRevit implementation baseline for the authorized C# feature. It is not qualification of a new C# implementation. The owner approved planar exterior-shell scope, four original varied buildings and digital delivery with physical checks outstanding. See [support and acceptance](support.md).
 
+This page records the historical capture. The owner has since accepted the C# replacement. Both old active source checkouts and the installed launcher are now removed after archive member hashes and complete Git history were verified. Recoverable private source/model/history archives and comparison datasets remain retained; current release status is in [delivery status](progress.md). The original observations and hashes below remain unchanged.
+
 ## Preservation receipt
 
 | Item | Observed value |
@@ -66,7 +68,7 @@ Fresh baseline file SHA-256 readings:
 
 All eight existing geometry tests passed using the external pinned virtual environment's Python with `-B`. Temporary DXF/calibration files and Matplotlib caches were redirected into the private artifact directory. Tests cover scale, hole order, material joints at two stock thicknesses, sloped roof fit, current-thickness coupons, retained bars, multisheet completeness and oversized rejection. Log and result: `artifacts/timberfold/baseline-20261019/tests/`.
 
-No Revit process was running at initial inventory. No model was opened/saved, no generation was run, and no add-in installation changed. New C# native behavior, current DWG export and physical assembly remain untested.
+No Revit process was running at initial inventory. No model was opened/saved, no generation was run, and no add-in installation changed. At that baseline checkpoint, new C# native behavior, current DWG export and physical assembly were untested. Later digital results are recorded separately in [qualification](qualification.md); physical assembly remains outstanding.
 
 ## Gaps the replacement must close
 

@@ -55,11 +55,9 @@ const cliCommands = [
     const [command, subcommand] = match[1].split(' ');
     return command.includes('|')
       ? command.split('|')
-      : [
-          /^(update|view-range|room-dimensions)$/.test(command)
-            ? `${command} ${subcommand}`
-            : command,
-        ];
+      : /^(update|view-range|room-dimensions|timberfold)$/.test(command)
+        ? subcommand.split('|').map((name) => `${command} ${name}`)
+        : [command];
   })
   .sort();
 const cliReference = read('docs/CLI.md')

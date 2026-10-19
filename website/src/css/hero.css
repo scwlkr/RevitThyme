@@ -1,0 +1,137 @@
+.home {
+  --paper: #f2f1e9;
+  --ink: #173f37;
+  --muted: #5e7065;
+  --line: #d8ded3;
+  --leaf: #9ab78a;
+  background: var(--ifm-background-color);
+}
+.page-width {
+  width: min(1180px, 90%);
+  margin-inline: auto;
+}
+.eyebrow {
+  font-family: 'Cascadia Code', Consolas, monospace;
+  font-size: 0.69rem;
+  letter-spacing: 0.12em;
+  font-weight: 500;
+  color: var(--muted, #5e7065);
+}
+.hero-section {
+  background: var(--paper);
+  color: var(--ink);
+  padding: 5.1rem 0 4.5rem;
+}
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.12fr 1fr;
+  gap: 5%;
+  align-items: center;
+}
+.hero-copy h1 {
+  font-size: clamp(3.8rem, 6.5vw, 6.5rem);
+  line-height: 0.99;
+  letter-spacing: -0.065em;
+  font-weight: 600;
+  margin: 1.6rem 0 1.7rem;
+}
+.hero-copy h1 em {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  color: #4d7656;
+  letter-spacing: -0.075em;
+}
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #4d7656;
+  border-radius: 50%;
+  margin-right: 9px;
+}
+.hero-description {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  max-width: 470px;
+  color: #4a6256;
+}
+.hero-actions {
+  display: flex;
+  gap: 1.8rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 1.8rem 0 1rem;
+}
+.text-link {
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: inline-flex;
+  gap: 1rem;
+  align-items: center;
+}
+.hero-meta {
+  font-family: Consolas, monospace;
+  color: #5e7065;
+  font-size: 0.69rem;
+  margin-top: 1.3rem;
+}
+.hero-meta span {
+  margin: 0 0.4rem;
+}
+.hero-visual {
+  border: 1px solid #c1cfc0;
+  background: #e6ebde;
+  padding: 1.3rem;
+  color: #315c4c;
+  transform: rotate(-2deg);
+}
+.drawing-topline,
+.drawing-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font:
+    0.6rem Consolas,
+    monospace;
+  letter-spacing: 0.07em;
+}
+.drawing-topline {
+  border-bottom: 1px solid #bccabb;
+  padding-bottom: 1rem;
+}
+.drawing-bottom {
+  border-top: 1px solid #bccabb;
+  padding-top: 1rem;
+  font-family: inherit;
+  letter-spacing: 0;
+  font-size: 0.76rem;
+}
+.model-drawing {
+  width: 100%;
+  height: auto;
+  padding: 0.8rem 0.2rem;
+}
+.drawing-labels {
+  font-size: 9px;
+}
+.technical-strip {
+  border-block: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--muted);
+}
+.technical-strip > .page-width {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  padding-block: 1.3rem;
+  font:
+    0.67rem Consolas,
+    monospace;
+  letter-spacing: 0.07em;
+}
+.technical-strip span:first-child {
+  color: #274a3e;
+  font-weight: 700;
+}

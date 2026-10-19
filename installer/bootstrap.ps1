@@ -3,7 +3,7 @@
 .SYNOPSIS
 Downloads, verifies, and runs the official RevitThyme Windows installer.
 .EXAMPLE
-& ([scriptblock]::Create((irm https://raw.githubusercontent.com/scwlkr/RevitThyme/main/installer/bootstrap.ps1))) -Silent
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/scwlkr/RevitThyme/master/installer/bootstrap.ps1))) -Silent
 .EXAMPLE
 .\bootstrap.ps1 -Version 0.8.0 -DownloadOnly -Destination C:\Offline
 #>

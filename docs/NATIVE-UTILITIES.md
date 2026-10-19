@@ -1,6 +1,6 @@
 # Native utilities
 
-This guide records **View Range and Room Dimensions** from the [2026-10-14 plan](../2026-10-14_NEW_PLAN.md), building on completed C# Foundation and MCP. Both tools use shared Core operations, the native ExternalEvent host and verified Revit transactions. The subsequent [Dynamic execution stage](DYNAMIC-EXECUTION.md) builds on these utilities; Built-in Agent and Exploration remain deferred.
+**View Range and Room Dimensions** use shared Core operations, the native ExternalEvent host and verified Revit transactions. Both tools work through the ribbon, CLI and MCP. [Trusted execution](DYNAMIC-EXECUTION.md) and the optional [built-in Agent](AGENT.md) build on the same foundation. See [first steps](QUICK-START.md) for a guided introduction.
 
 ## View Range
 

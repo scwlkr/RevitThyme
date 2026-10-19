@@ -1,6 +1,8 @@
 [
   { "name": "good first issue", "color": "7057ff", "description": "A small contribution with clear scope and acceptance" },
   { "name": "bug", "color": "d73a4a", "description": "Reproducible incorrect behavior" },
-  { "name": "enhancement", "color": "a2eeef", "description": "A bounded improvement to an authorized stage" },
+  { "name": "enhancement", "color": "a2eeef", "description": "A bounded product improvement with observable acceptance" },
+  { "name": "documentation", "color": "245b50", "description": "Guides, onboarding, website or reference improvements" },
+  { "name": "help wanted", "color": "008672", "description": "A scoped task where contributor help is welcome" },
   { "name": "native verification", "color": "0e8a16", "description": "Requires an isolated licensed Revit test host" }
 ]

@@ -1,0 +1,204 @@
+[data-theme='dark'] .home {
+  --paper: #1b3027;
+  --ink: #e2ecdd;
+  --muted: #b6c7b7;
+  --line: #3b5144;
+}
+[data-theme='dark'] .hero-description,
+[data-theme='dark'] .hero-meta {
+  color: #b8cbb9;
+}
+[data-theme='dark'] .hero-copy h1 em {
+  color: #b0cc96;
+}
+[data-theme='dark'] .hero-visual {
+  background: #233e30;
+  border-color: #4b654e;
+  color: #b1cca1;
+}
+[data-theme='dark'] .technical-strip span:first-child {
+  color: #d0e3c7;
+}
+[data-theme='dark'] .product-image {
+  background: #25392e;
+}
+[data-theme='dark'] .product-image figcaption {
+  color: #bdcdb5;
+}
+@media (min-width: 1500px) {
+  .hero-section {
+    padding-block: 6rem;
+  }
+  .hero-grid {
+    gap: 8%;
+  }
+}
+@media (max-width: 996px) {
+  .hero-section {
+    padding-top: 3.5rem;
+  }
+  .hero-copy h1 {
+    font-size: 4.5rem;
+  }
+  .hero-grid {
+    gap: 3%;
+  }
+  .hero-description {
+    font-size: 0.93rem;
+  }
+  .hero-actions {
+    gap: 1rem;
+  }
+  .section-heading {
+    gap: 6%;
+  }
+  .product-image {
+    padding: 1rem;
+  }
+  .product-image img {
+    height: 280px;
+  }
+  .tool-showcase {
+    gap: 5%;
+  }
+  .utility-note {
+    grid-template-columns: 1fr 2fr;
+  }
+  .utility-note .text-link {
+    grid-column: 2;
+    justify-self: start;
+  }
+  .open-section {
+    gap: 6%;
+  }
+  .interface-story h3,
+  .tool-copy h3 {
+    font-size: 1.9rem;
+  }
+}
+@media (max-width: 700px) {
+  .page-width {
+    width: 89%;
+  }
+  .hero-section {
+    padding-block: 2.7rem;
+  }
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-copy h1 {
+    font-size: clamp(3.7rem, 13vw, 5rem);
+    margin-top: 1.3rem;
+  }
+  .hero-description {
+    font-size: 0.95rem;
+  }
+  .hero-visual {
+    margin: 2rem 0 0.7rem;
+    transform: none;
+    max-width: 430px;
+    width: 100%;
+    justify-self: center;
+  }
+  .model-drawing {
+    max-height: 290px;
+  }
+  .technical-strip > .page-width {
+    justify-content: flex-start;
+    gap: 0.9rem 1.3rem;
+    font-size: 0.6rem;
+  }
+  .technical-strip span:first-child {
+    width: 100%;
+  }
+  .tools-section {
+    padding-block: 3.5rem 2.5rem;
+  }
+  .section-heading {
+    grid-template-columns: 1fr;
+    gap: 1.4rem;
+    margin-bottom: 2rem;
+  }
+  .section-heading > p {
+    font-size: 0.9rem;
+  }
+  .tool-showcase,
+  .tool-showcase--reverse {
+    grid-template-columns: 1fr;
+    padding: 2.2rem 0;
+    gap: 1.8rem;
+  }
+  .tool-showcase--reverse .tool-copy,
+  .tool-showcase--reverse .product-image {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .product-image img {
+    height: 270px;
+  }
+  .tool-copy h3 {
+    font-size: 2.2rem;
+  }
+  .utility-note {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 1rem;
+  }
+  .utility-note .text-link {
+    align-self: start;
+  }
+  .automation-section {
+    padding-block: 3.5rem;
+  }
+  .interface-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .interface-story h3 {
+    font-size: 2.2rem;
+  }
+  .interface-story p {
+    font-size: 0.9rem;
+  }
+  .agent-image {
+    height: 250px;
+  }
+  .open-section {
+    grid-template-columns: 1fr;
+    padding-block: 3.5rem;
+    gap: 2.2rem;
+  }
+  .install-section {
+    padding-block: 3rem;
+  }
+  .install-section h2 {
+    font-size: 2.1rem;
+  }
+  .install-command {
+    padding: 0.8rem;
+    gap: 0.5rem;
+  }
+  .install-command code {
+    font-size: 0.69rem;
+  }
+  .terminal-prompt {
+    display: none;
+  }
+  .download-page {
+    padding-top: 2.6rem;
+  }
+  .download-page h1 {
+    font-size: 3.3rem;
+  }
+  .download-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .download-layout .hero-actions {
+    gap: 1rem;
+  }
+  .download-lead {
+    font-size: 0.95rem;
+  }
+}

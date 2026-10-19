@@ -1,0 +1,11 @@
+node_modules/
+build/
+.docusaurus/
+.generated/
+static/generated/
+static/llms.txt
+static/llms-full.txt
+static/install
+static/install-0.8.1
+static/img/social-card.png
+static/content-manifest.json

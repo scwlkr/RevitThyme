@@ -63,7 +63,7 @@ $null = Invoke-Cli 'preview-accepted.json' @('timberfold','preview','--run-id',$
 $preview = (Wait-Run $previewId 'preview').timberRun
 if ($preview.state -ne 'PreviewReady') { throw "Preview blocked: $($preview.directory)" }
 $generationId = [Guid]::NewGuid().ToString('D')
-$null = Invoke-Cli 'generation-accepted.json' @('timberfold','generate','--preview-run-id',$previewId,'--run-id',$generationId)
+$generationAccepted = Invoke-Cli 'generation-accepted.json' @('timberfold','generate','--preview-run-id',$previewId,'--run-id',$generationId)
 $generation = (Wait-Run $generationId 'generation').timberRun
 if ($generation.state -ne 'KitReady') {
     throw "Native generation $($generation.state): $($generation.diagnostics[0].message). Inspect $($generation.directory)"
@@ -118,8 +118,15 @@ $performance.targetPassed = ($generation.panelCount -eq 100 -and $performance.el
 if ($RequirePerformanceTarget) { Check '100-panel complete generation meets the approved 60-second stage budgets' $performance.targetPassed }
 $performance | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $directory 'performance.json') -Encoding utf8
 $retry = Invoke-Cli 'same-id-retry.json' @('timberfold','generate','--preview-run-id',$previewId,'--run-id',$generationId)
-Check 'same-ID installed retry returns the exact retained generation' ($retry.timberRun.state -eq 'KitReady' -and $retry.timberRun.runId -eq $generationId -and
-    $retry.timberRun.elapsedMilliseconds -eq $generation.elapsedMilliseconds)
+# Dispatch history replays the original acceptance; a fresh status reads the settled run.
+Check 'same-ID installed retry replays the exact original generation acceptance' (
+    [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $directory 'generation-accepted.json'))) -ceq
+    [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $directory 'same-id-retry.json'))) -and
+    $retry.id -eq $generationAccepted.id -and $retry.id -eq $generationId -and $retry.timberRun.runId -eq $generationId)
+$retained = (Invoke-Cli 'same-id-retained-status.json' @('timberfold','status','--run-id',$generationId)).timberRun
+Check 'same-ID retry preserves the settled native generation and elapsed time' ($retained.runId -eq $generationId -and
+    $retained.state -eq 'KitReady' -and $retained.terminal -and $retained.nativeCommitted -and
+    $retained.elapsedMilliseconds -eq $generation.elapsedMilliseconds)
 $after = & (Join-Path $repo 'project.cmd') dev-status -RunFolder $RunFolder | Out-String | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw 'Cannot recover native context after generation; retain this development process.' }
 $identityFields = @('processId','processStart','sessionId','documentId','viewId')

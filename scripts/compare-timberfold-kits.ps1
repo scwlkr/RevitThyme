@@ -23,6 +23,11 @@ function Read-Json([string]$Path) {
     if ((Get-Item -LiteralPath $Path).Length -gt 33554432) { throw "Evidence exceeds 32MiB: $Path" }
     return Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json -AsHashtable -Depth 100
 }
+function Sort-Ordinal([string[]]$Values) {
+    [string[]]$ordered = @($Values)
+    [Array]::Sort($ordered,[StringComparer]::Ordinal)
+    return $ordered
+}
 function Inventory([string]$Root) {
     $files = [Collections.Generic.List[string]]::new()
     $folders = [Collections.Generic.Stack[string]]::new(); $folders.Push($Root)
@@ -38,7 +43,7 @@ function Inventory([string]$Root) {
             if ($files.Count -gt 4096) { throw 'Kit inventory exceeds the retained evidence limit.' }
         }
     }
-    return @($files | Sort-Object -CaseSensitive)
+    return @(Sort-Ordinal ($files.ToArray()))
 }
 function Read-Kit([string]$Directory, [string]$NativeReadback) {
     $kit = Read-Json (Join-Path $Directory 'kit.json')
@@ -49,7 +54,7 @@ function Read-Kit([string]$Directory, [string]$NativeReadback) {
         throw 'Both runs must retain complete digitally verified native kits.'
     }
     $names = @($kit.files | ForEach-Object { $_.name })
-    if (@($names | Sort-Object -Unique).Count -ne $names.Count -or
+    if ([Collections.Generic.HashSet[string]]::new([string[]]$names,[StringComparer]::OrdinalIgnoreCase).Count -ne $names.Count -or
         ($names -join "`n") -cne ((Inventory $Directory) -join "`n")) { throw 'Kit inventory differs from its final manifest.' }
     foreach ($file in $kit.files) {
         if ($file.name -match '[\\:]' -or $file.name -match '(^|/)\.{0,2}(/|$)' -or [IO.Path]::IsPathRooted($file.name)) { throw 'Invalid retained evidence path.' }
@@ -70,7 +75,7 @@ function Read-Kit([string]$Directory, [string]$NativeReadback) {
     $dwgs = @($names | Where-Object { $_ -like 'native-cuts/*.dwg' })
     if (-not $native.passed -or -not $native.sourcePreserved -or -not $native.physicalChecksOutstanding -or
         [IO.Path]::GetFullPath($native.runDirectory) -ne $Directory -or $native.files.Count -ne $dwgs.Count -or
-        (@($native.files | ForEach-Object { 'native-cuts/' + $_.file } | Sort-Object -CaseSensitive) -join "`n") -cne ($dwgs -join "`n")) {
+        ((Sort-Ordinal @($native.files | ForEach-Object { 'native-cuts/' + $_.file })) -join "`n") -cne ($dwgs -join "`n")) {
         throw 'Independent native consumer report does not cover this complete DWG inventory.'
     }
     foreach ($file in $native.files) {

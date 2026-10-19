@@ -64,7 +64,7 @@ function Invoke-Cli([string]$Evidence,[string[]]$Arguments) {
     return $value
 }
 $recoveryId = [Guid]::NewGuid().ToString('D')
-$null = Invoke-Cli 'accepted.json' @('timberfold','reconcile','--generation-run-id',$generationId.ToString('D'),'--run-id',$recoveryId)
+$accepted = Invoke-Cli 'accepted.json' @('timberfold','reconcile','--generation-run-id',$generationId.ToString('D'),'--run-id',$recoveryId)
 $clock = [Diagnostics.Stopwatch]::StartNew()
 do {
     $status = (Invoke-Cli 'status.json' @('timberfold','status','--run-id',$recoveryId)).timberRun
@@ -81,9 +81,17 @@ if ($ExpectAbsent) {
     Check 'installed current native reconciliation verifies the existing complete kit' ($status.state -eq 'KitReady' -and $native.state -eq 'Verified' -and
         $native.sourcePreserved -and $native.nativeReadbackPassed -and $native.observedElements.Count -eq $receipt.createdElements.Count)
 }
-$retry = (Invoke-Cli 'same-id-retry.json' @('timberfold','reconcile','--generation-run-id',$generationId.ToString('D'),'--run-id',$recoveryId)).timberRun
-Check 'same-ID reconciliation returns its original settled outcome' ($retry.runId -eq $recoveryId -and $retry.state -eq $status.state -and
-    $retry.elapsedMilliseconds -eq $status.elapsedMilliseconds)
+$retry = Invoke-Cli 'same-id-retry.json' @('timberfold','reconcile','--generation-run-id',$generationId.ToString('D'),'--run-id',$recoveryId)
+# Acceptance is retained by dispatch ID; status independently reads the settled recovery.
+Check 'same-ID reconciliation replays the exact original acceptance' (
+    [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $directory 'accepted.json'))) -ceq
+    [Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $directory 'same-id-retry.json'))) -and
+    $retry.id -eq $accepted.id -and $retry.id -eq $recoveryId -and $retry.timberRun.runId -eq $recoveryId -and
+    $retry.timberRun.generationRunId -eq $generationId.ToString('D'))
+$retained = (Invoke-Cli 'same-id-retained-status.json' @('timberfold','status','--run-id',$recoveryId)).timberRun
+Check 'same-ID reconciliation preserves its settled outcome elapsed time and original generation' ($retained.runId -eq $recoveryId -and
+    $retained.terminal -and $retained.state -eq $status.state -and $retained.elapsedMilliseconds -eq $status.elapsedMilliseconds -and
+    $retained.generationRunId -eq $status.generationRunId -and $retained.generationRunId -eq $generationId.ToString('D'))
 $verified = (Invoke-Cli 'verification.json' @('timberfold','verify','--run-id',$recoveryId)).timberRun
 Check 'retained recovery evidence re-verifies without rewriting original files' ($verified.state -eq $status.state)
 $after = & (Join-Path $repo 'project.cmd') dev-status -RunFolder $RunFolder | Out-String | ConvertFrom-Json

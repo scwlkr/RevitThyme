@@ -1,6 +1,6 @@
 # TimberFold
 
-The C# feature is being implemented in seven verified slices. Installed exterior-shell inspection and retained cutting-layout previews are qualified through **RevitThyme → Fabrication → TimberFold**, CLI and MCP. The current source adds native DWG kit generation and review documentation; actual native-kit and four-building delivery qualification remain open. The preserved external implementation is still available.
+The C# feature is being implemented in seven verified slices. Installed exterior-shell inspection and retained cutting-layout previews are qualified through **RevitThyme → Fabrication → TimberFold**, CLI and MCP. All four original buildings pass native CLI/MCP DWG kit generation, review documentation, independent readback, repeatability and single Undo. Broader failure/performance tests and complete delivery qualification remain open. The preserved external implementation is still available.
 
 Open a project containing vertical basic exterior walls and planar roofs. Set the model scale and physical stock dimensions in inches, then choose **Inspect**. Review included/excluded source counts, phase/options, unsupported geometry and profile diagnostics. **Open files** gives the complete private source snapshot and diagnostic report when the window samples a larger inventory. Nominal settings do not establish physical fit. Inspection does not create model elements or cutting files and does not save the source.
 

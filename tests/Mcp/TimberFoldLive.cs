@@ -48,7 +48,7 @@ internal static class TimberFoldLive
         using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(210));
         var transport = new StdioClientTransport(new() { Command = executable, Arguments = ["--session", session, "--sessions-directory", Path.Combine(folder, "sessions")],
             Name = "Pinned native TimberFold", StandardErrorLines = line => { lock (callsGate) File.AppendAllText(Path.Combine(evidence, "mcp-stderr.txt"), line + Environment.NewLine); } });
-        Guid runId = Guid.NewGuid(), generationRunId = Guid.NewGuid();
+        Guid runId = Guid.NewGuid(), generationRunId = Guid.NewGuid(), recoveryRunId = Guid.NewGuid();
         try
         {
             await using var client = await McpClient.CreateAsync(new RecordingClientTransport(transport, evidence), cancellationToken: lifetime.Token);
@@ -139,7 +139,9 @@ internal static class TimberFoldLive
             Program.Check("native kit leaves the same fixture open and both source RVTs unsaved", afterGeneration.Target.DocumentId == baseline.Target.DocumentId &&
                 afterGeneration.Target.ViewId == baseline.Target.ViewId && afterGeneration.DocumentPath == model && afterGeneration.IsModified &&
                 Hash(model) == originalHash.ToLowerInvariant() && Hash(original) == originalHash.ToLowerInvariant());
-            Write(Path.Combine(evidence, "complete.json"), new { passed = true, runId, generationRunId, summary, kit, baseline, final, afterGeneration,
+            var reconciliation = await TimberFoldReconciliationLive.Run(kit, recoveryRunId, afterGeneration, original, originalHash,
+                async (tool, args, token) => (await Call(tool, args, token)).Data, lifetime.Token);
+            Write(Path.Combine(evidence, "complete.json"), new { passed = true, runId, generationRunId, recoveryRunId, summary, kit, baseline, final, afterGeneration, reconciliation,
                 statusMilliseconds = controlResults[0].Milliseconds, cancelMilliseconds = controlResults[1].Milliseconds, returnedBeforeNative,
                 physicalChecksOutstanding = true, nativeDxfImportQualifiedByThisHarness = false, calls });
 
@@ -157,7 +159,7 @@ internal static class TimberFoldLive
             }
         }
         catch (Exception error)
-        { Write(Path.Combine(evidence, "failed.json"), new { passed = false, runId, generationRunId, error = error.ToString(), calls }); throw; }
+        { Write(Path.Combine(evidence, "failed.json"), new { passed = false, runId, generationRunId, recoveryRunId, error = error.ToString(), calls }); throw; }
     }
 
     private static void CheckKitEvidence(TimberRunSummary kit)

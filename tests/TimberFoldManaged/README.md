@@ -2,13 +2,13 @@
 
 From `C:\Revit\RevitThyme`, run the verifier with an explicit installed directory,
 the retained signed package directory, its independently recorded manifest SHA256,
-and a fresh evidence directory. This example pins candidate `11b091f`:
+and a fresh evidence directory. This example pins candidate `74f6807`:
 
 ```powershell
 pwsh -NoProfile -File .\scripts\qualify-timberfold-managed-package.ps1 `
-  -InstalledDirectory "$env:LOCALAPPDATA\RevitThyme\foundation\76e7c32ec0e1d9db62c9db2045e89d6a7ccaeb6b7105be853663119befc3bbff" `
-  -PackageDirectory 'C:\Revit\RevitThyme\packages\RevitThyme-0.10.0-timberfold.4-5536e25997da478ebb622a569a77ed31' `
-  -ExpectedManifestSha256 '76E7C32EC0E1D9DB62C9DB2045E89D6A7CCAEB6B7105BE853663119BEFC3BBFF' `
+  -InstalledDirectory "$env:LOCALAPPDATA\RevitThyme\foundation\26830c349927d5c3366d846a9a4c4a2c174722c11596412594878f82656fee2f" `
+  -PackageDirectory 'C:\Revit\RevitThyme\packages\RevitThyme-0.10.0-timberfold.4-30d356a94ebc49298f1af1c692865d06' `
+  -ExpectedManifestSha256 '26830C349927D5C3366D846A9A4C4A2C174722C11596412594878F82656FEE2F' `
   -Destination "C:\Revit\RevitThyme\artifacts\timberfold\managed-package-$([Guid]::NewGuid().ToString('N'))"
 ```
 
@@ -52,7 +52,7 @@ and seven TimberFold controls:
 
 ```powershell
 dotnet run --project tests/Mcp -c Release -- --packaged-stdio `
-  "$env:LOCALAPPDATA\RevitThyme\foundation\76e7c32ec0e1d9db62c9db2045e89d6a7ccaeb6b7105be853663119befc3bbff" `
-  '76E7C32EC0E1D9DB62C9DB2045E89D6A7CCAEB6B7105BE853663119BEFC3BBFF' `
+  "$env:LOCALAPPDATA\RevitThyme\foundation\26830c349927d5c3366d846a9a4c4a2c174722c11596412594878f82656fee2f" `
+  '26830C349927D5C3366D846A9A4C4A2C174722C11596412594878F82656FEE2F' `
   "C:\Revit\RevitThyme\artifacts\timberfold\packaged-mcp-$([Guid]::NewGuid().ToString('N'))"
 ```

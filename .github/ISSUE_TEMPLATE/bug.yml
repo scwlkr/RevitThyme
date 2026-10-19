@@ -1,11 +1,24 @@
 name: Bug report
 description: Report unexpected RevitThyme behavior
 body:
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Affected interface
+      options:
+        - Native ribbon / WPF
+        - CLI
+        - MCP / external agent
+        - Built-in Agent
+        - Installer / updates
+        - Website / documentation
+    validations:
+      required: true
   - type: input
     id: versions
     attributes:
       label: Versions
-      description: RevitThyme, exact Revit build, .NET SDK/runtime and Windows versions
+      description: RevitThyme and Windows versions; exact Revit build and runtime if relevant. Website-only reports do not require Revit.
     validations:
       required: true
   - type: textarea

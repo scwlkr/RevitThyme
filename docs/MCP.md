@@ -1,6 +1,6 @@
 # MCP interface
 
-Twenty-four tools share the native execution host: twelve generic tools, four utility tools, two trusted C# tools and six TimberFold tools. TimberFold supports inspection, retained previews, native kit generation and evidence verification. Physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for acceptance and limits.
+Twenty-five tools share the native execution host: twelve generic tools, four utility tools, two trusted C# tools and seven TimberFold tools. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold supports inspection, retained previews, native kit generation, verification and read-only reconciliation; physical cutting and assembly remain outstanding. Start with [agent integration](AGENT-INTEGRATION.md) for setup; see [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for behavior and limits. Exploration remains deferred.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 

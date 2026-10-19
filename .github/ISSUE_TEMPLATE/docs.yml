@@ -1,0 +1,21 @@
+name: Documentation or setup question
+description: Report a confusing guide, broken link or setup question
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Page, command or setup step
+      description: Link the page or identify the command you are using.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What is unclear or failing?
+      description: Include expected behavior, what happened and relevant versions. Omit private model data, paths and credentials.
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement or sanitized diagnostics

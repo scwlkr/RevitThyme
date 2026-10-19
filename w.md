@@ -19,3 +19,5 @@ For repeated trusted C# iteration, follow [development setup](docs/DEVELOPMENT.m
 Update commands and daily-check behavior are in [UPDATES.md](docs/UPDATES.md). Reuse the packaged bootstrap with the checked release version; installation requires Revit closed. GitHub publication uses the existing Git Credential Manager entry for `https://github.com`; keep credential values out of files/output. Wstack's global setup worker lacks Windows SIGALRM support; preserve these project-owned notes and use the existing Windows project launcher.
 
 For ribbon organization, controls, labels, tooltips or SVG icons, follow [ribbon standards](docs/RIBBON.md) and the reusable `revitthyme-ribbon` skill. Regenerate assets with `scripts/export-ribbon-icons.ps1`; `project.cmd check` checks freshness. `project.cmd ribbon-prepare/start/check/cleanup` uses a separate disposable Revit process.
+
+Website: retain the original wordmark and compact, factual presentation. [Website maintenance](docs/WEBSITE.md) owns the word budget and content checks. Keep detail in the docs; local owner review still precedes deployment.

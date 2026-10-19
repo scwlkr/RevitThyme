@@ -1,13 +1,19 @@
-# RevitThyme project
+# Project overview
 
-The accepted product and architecture are defined by the complete [2026-10-14 plan](2026-10-14_NEW_PLAN.md). It supersedes the Rust/Axum and Expo/Electron replacement direction. RevitThyme is a native C# toolkit with optional AI interfaces.
+RevitThyme is an open-source native toolkit for full Revit 2027. Ribbon tools, CLI, an 18-tool MCP server and the optional built-in Agent share C# operations and a native execution host.
 
-Current work: [WLK-249](https://linear.app/wlkr-labs/issue/WLK-249/implement-windows-installer-and-verified-release-bootstrap-plan-lines), **Install RevitThyme only**, lines 81–85 of the plan. Deliver one Windows setup executable and a verified PowerShell release bootstrap that detect the supported Revit version and install the existing add-in, CLI and MCP together. See [installation](docs/INSTALLATION.md) and [evidence](verification/installation.md). Existing Foundation, MCP, Native utilities and Dynamic execution are preserved; no additional product stage is authorized.
+## Current scope
 
-The repository stays at `C:\Revit\RevitThyme`. Five product projects live under `src`; offline, stdio MCP and actual-Revit test projects live under `tests`. `project.cmd help` owns the developer command inventory. The build uses .NET 10/WPF, the pinned official MCP SDK and locally supplied Revit 2027 SDK binaries, with Autodesk redistribution disabled.
+Available: view/element/parameter inspection, checked renaming, atomic parameter edits, View Range, rectangular Room Dimensions, opt-in trusted C#, dockable Codex Agent, per-user installation and update checks. See [features](FEATURES.md), [roadmap](docs/ROADMAP.md) and [changelog](CHANGELOG.md).
 
-The superseded implementation, prior project decisions and historical verification records are preserved under `legacy/pre-foundation`; private root artifacts and existing installed bundles remain intact. [Migration](docs/MIGRATION.md) records the preservation boundaries. External TimberFold remains independently owned at `C:\Revit\Projects\TimberFold`.
+Six C#/.NET 10 product projects live under `src`, with WPF presentation and separate test projects. See [architecture](docs/ARCHITECTURE.md). Proprietary Autodesk binaries are supplied locally and excluded from distribution. Native tools need no Rust, Electron, pyRevit or AI account.
 
-Built-in Agent and Exploration remain deferred. The MCP server exposes 12 generic, four utility and two explicitly trusted C# execution tools using shared operations. Dynamic code is disabled by default; there is no built-in agent runtime.
+This is pre-1.0 software. Protocol changes require coordinated client/add-in upgrades. Native qualification is scoped to recorded revisions, hosts and fixtures; [verification](verification/README.md) separates this from CI.
 
-For coding workflow read [w.md](w.md); for native execution or packaging read the relevant [architecture](docs/ARCHITECTURE.md), [acceptance](docs/FOUNDATION.md) or [installation](docs/INSTALLATION.md) guide. Working-model save/sync/close and public publication remain separate explicit actions. Local source conversion does not uninstall existing legacy tools.
+## Project workflow
+
+[Contributing](CONTRIBUTING.md) covers public setup and review. `project.cmd help` owns the command inventory. [Isolated development](docs/DEVELOPMENT.md) protects working models. Public GitHub issues and PRs are sufficient; maintainer Linear tracking is supplementary.
+
+The [October 14 plan](2026-10-14_NEW_PLAN.md) is a historical design input. Completed milestones and later improvements are reflected in current guides. [Legacy sources](legacy/README.md) and their evidence remain historical, outside the current build.
+
+[Website maintenance](docs/WEBSITE.md) describes shared content generation and drift checks. [Governance](GOVERNANCE.md) records decisions and release responsibility.

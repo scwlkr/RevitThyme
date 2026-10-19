@@ -1,0 +1,58 @@
+{
+  "name": "revitthyme-website",
+  "version": "0.0.0",
+  "private": true,
+  "description": "RevitThyme product website and documentation",
+  "license": "GPL-3.0-or-later",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "prepare-content": "node scripts/prepare-content.mjs",
+    "prestart": "npm run prepare-content",
+    "start": "node scripts/dev.mjs",
+    "prebuild": "npm run prepare-content",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve --host 127.0.0.1 --port 3100 --no-open",
+    "check": "node scripts/check.mjs",
+    "check:release": "node scripts/check-release.mjs",
+    "check:live": "node scripts/check-live.mjs",
+    "test:publication": "node --test scripts/publication.test.mjs",
+    "record:publication": "node scripts/record-publication.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@docusaurus/theme-mermaid": "3.10.2",
+    "@easyops-cn/docusaurus-search-local": "0.55.3",
+    "cheerio": "1.2.0",
+    "clsx": "2.1.1",
+    "prism-react-renderer": "2.4.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 2 chrome versions",
+      "last 2 firefox versions",
+      "last 2 safari versions"
+    ]
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "prettier": "3.9.10"
+  },
+  "overrides": {
+    "tinypool": "2.2.0",
+    "serialize-javascript": "7.1.2",
+    "postcss-selector-parser": "7.1.6",
+    "uuid@8.3.2": "11.1.1"
+  }
+}

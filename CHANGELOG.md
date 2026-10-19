@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add daily read-only checks of deployed website files and GitHub presentation against reviewed baselines. Report unpublished source separately; deployment and baseline approval remain maintainer actions.
+
+- Rebuild the project website with Docusaurus, native-tool screenshots, local search, accessible navigation and user/developer/agent entry points.
+- Refresh project and contribution guidance; add first steps, CLI, troubleshooting, agent integration, community and governance documentation.
+- Generate website content and agent indexes from canonical repository Markdown. Derive website release metadata and MCP inventory from source; add strict website CI and scheduled drift checks.
+- Prepare updated GitHub presentation settings and a local review workflow; public deployment remains a separate approval step.
+
 ## 0.9.3 — Parameter identity — 2026-10-15
 
 - Add native shared status, nullable shared GUID, nullable built-in parameter identity and native `HasValue` to parameter inspection and readback through the existing CLI and MCP contract. Guard shared GUID access with `IsShared`.
@@ -37,6 +46,8 @@
 - Add executable install/uninstall and bootstrap checks, stable GitHub Release asset names and a manually dispatched review/draft workflow. The installer is unsigned; Built-in Agent and Exploration remain deferred.
 
 ## Unreleased — C# Dynamic execution — 2026-10-14
+
+> Historical milestone note. This and the dated development entries below preserve their original status at the time; they are not the current release backlog. See the first **Unreleased** section for pending changes and the versioned entries above for shipped releases.
 
 - Add opt-in trusted Roslyn C# query/modify through the existing Core, native ExternalEvent, CLI and official-SDK MCP path (18 tools, protocol 4). Queries always roll back; modifications share the native transaction wrapper and one Undo item. Return bounded JSON, mapped compiler diagnostics, source hashes, elapsed time and native change IDs with retained request recovery.
 - Add disposable process/model qualification and an independent 100-point native Cabin Eval with a temporary 14-to-18-foot parameter probe, negative controls and separate execution metrics. Keep Built-in Agent and Exploration deferred.

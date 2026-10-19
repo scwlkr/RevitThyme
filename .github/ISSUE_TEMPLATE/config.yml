@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Installation and troubleshooting
+    url: https://github.com/scwlkr/RevitThyme/blob/master/docs/TROUBLESHOOTING.md
+    about: Check common setup, session and native tool issues first.
+  - name: Private security reporting
+    url: https://github.com/scwlkr/RevitThyme/blob/master/SECURITY.md
+    about: Do not disclose vulnerabilities or credentials in public issues.

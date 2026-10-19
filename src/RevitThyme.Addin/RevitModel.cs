@@ -4,7 +4,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel
+public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel, IViewImageModel
 {
     public bool TrustedCodeEnabled => host.TrustedCodeEnabled;
     public string TimberFoldEvidenceDirectory => System.IO.Path.Combine(
@@ -56,6 +56,7 @@ public sealed partial class RevitModel(UIApplication app, FoundationApplication 
         using var collector = new FilteredElementCollector(Document);
         if (query.CategoryId is not null) collector.OfCategoryId(new ElementId(long.Parse(query.CategoryId, System.Globalization.CultureInfo.InvariantCulture)));
         if (!query.IncludeTypes) collector.WhereElementIsNotElementType();
+        else collector.WherePasses(new LogicalOrFilter(new ElementIsElementTypeFilter(), new ElementIsElementTypeFilter(true)));
         return ElementInspection.Page(collector, query);
     }
     public ElementDetail[] InspectElements(string[] ids, int parameterOffset)

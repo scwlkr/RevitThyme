@@ -96,7 +96,7 @@ function New-CheckRun {
     return @{plan=$plan;launch=$launch}
 }
 function New-CheckBinding($Run, [string]$Name='binding.json') {
-    $binding = [pscustomobject]@{protocolVersion=8;processId=$Run.launch.pid;processStart=$Run.launch.start;
+    $binding = [pscustomobject]@{protocolVersion=9;processId=$Run.launch.pid;processStart=$Run.launch.start;
         sessionId=$Run.launch.session_id;pipeName="RevitThyme-Foundation-$($Run.launch.pid)-$($Run.launch.session_id)";revitVersion='2027'}
     $path = Join-Path (Join-Path $Run.plan.folder 'sessions') $Name
     Write-DevJson $path $binding
@@ -167,7 +167,7 @@ foreach ($field in @('StartTime','ProcessName','Path')) {
         Assert-Refused { Get-DevProcess $run.launch } 'PID was reused or changed'
     }
 }
-foreach ($variant in @('missing','wrong-pid','stale-start','ambiguous','invalid-protocol','invalid-pipe','changed-session')) {
+foreach ($variant in @('missing','wrong-pid','stale-start','ambiguous','invalid-protocol','previous-protocol','invalid-pipe','changed-session')) {
     Test-Case "session discovery rejects $variant binding" {
         $run = New-CheckRun
         if ($variant -ne 'missing') {
@@ -177,6 +177,7 @@ foreach ($variant in @('missing','wrong-pid','stale-start','ambiguous','invalid-
                 'stale-start' { $binding.value.processStart='1' }
                 'ambiguous' { $null = New-CheckBinding $run 'second.json' }
                 'invalid-protocol' { $binding.value.protocolVersion=0 }
+                'previous-protocol' { $binding.value.protocolVersion=8 }
                 'invalid-pipe' { $binding.value.pipeName='Wrong-Pipe' }
                 'changed-session' { $run.launch.session_id=[Guid]::NewGuid().ToString() }
             }

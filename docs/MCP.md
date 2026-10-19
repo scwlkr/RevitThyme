@@ -1,6 +1,6 @@
 # MCP interface
 
-Twenty-five tools share the native execution host: twelve generic tools, four utility tools, two trusted C# tools and seven TimberFold tools. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold supports inspection, retained previews, native kit generation, verification and read-only reconciliation; physical cutting and assembly remain outstanding. Start with [agent integration](AGENT-INTEGRATION.md) for setup; see [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for behavior and limits. Exploration remains deferred.
+Twenty-six source tools share the native execution host: twelve generic tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **Image export is an unreleased candidate (`0.10.0-image-export.1`, protocol 9). Published v0.10.0 remains at 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export.** Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -18,6 +18,7 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `rename_view` | Shared Foundation operation, captured name, verified readback and one Undo |
 | `set_parameters` | Atomic batch of 1–20 expected-value parameter edits and one Undo |
 | `get_operation` | Retrieve the retained native outcome without submitting the edit again |
+| `export_view_image` | Exact native view/sheet PNG, verified inline image and file metadata, unchanged model and retained request recovery; unreleased |
 | `get_view_range` | Four native range planes, level choices and template edit control |
 | `set_view_range` | Exact expected planes, native validity/readback/rollback, one Undo |
 | `preview_room_dimensions` | Read-only rectangular room plan against native wall finish faces and tag bounds |
@@ -33,6 +34,31 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `timberfold_reconcile` | Check an existing committed native kit using a fresh capture; retain separate recovery evidence without recreating documentation |
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
+
+## Exact view and sheet images (unreleased)
+
+After an edit, call `get_context` again, use `list_views` to identify a native view UniqueId, then call:
+
+```json
+{
+  "captureId": "CAPTURE_FROM_GET_CONTEXT",
+  "requestId": "CALLER_GENERATED_GUID",
+  "viewId": "NATIVE_VIEW_UNIQUE_ID",
+  "pixelSize": 1600
+}
+```
+
+`export_view_image` uses the existing serialized ExternalEvent queue and runs outside a model transaction. It exports only that view or sheet, including an inactive view, using native `SetOfViews`; it does not activate a view, change selection, save a model, create an image element or add an Undo item. The captured process/start/session/document/active-view/revision must still match at execution. There is no active-view fallback. An export can inspect an unsaved edit; its returned snapshot must retain the original modified state.
+
+The bounded output is one PNG, 128–4096 pixels on its longest edge and at most 8 MiB. Supported targets are printable plans, sections, elevations, details, drafting views, 3D views and non-placeholder sheets. Templates, schedules, missing IDs and unsupported view classes are rejected. Revit graphics/export restrictions can still refuse an otherwise supported view. There is no batch export, crop override, arbitrary output path, model save or document lifecycle operation in this slice.
+
+`code: image_exported`, `outcome: Unchanged` means native export returned, the PNG decoded, its dimensions/length/SHA-256 were recorded, and the native snapshot remained unchanged. The response contains JSON/structured `imageExport` metadata (exact view identity, private absolute path, SHA-256, bytes, width, height) **and an MCP `image/png` content block**, so an image-capable agent can see the native result directly. Compare native parameter readback as well as pixels; an image alone does not establish model correctness. Native implementation uses Autodesk's [image-export options](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/c2e823a1-6eb0-2bf3-f07b-ed46d8f7b70a.htm) and [Document.ExportImage](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/b98a3e71-39fa-bf7a-cb3d-591d8b1fcd93.htm), checked against the installed 2027 SDK.
+
+Keep the request GUID before submitting. On timeout, cancellation or disconnect, reconnect to the **same native session** and call `get_operation(requestId)`. It returns `pending`, `not_found`, or the retained terminal result; a recovered success includes the verified inline PNG. Poll rather than replacing an uncertain request ID. Identical ID/arguments return the original result without rendering again; conflicting arguments return `id_conflict`. A fresh MCP connection needs a new capture for new operations, but outcome recovery needs no capture. Captures do not survive reconnects. Retained outcomes survive MCP server restarts, not native session shutdown. Native export cannot be interrupted once started; the current 30-second transport deadline can expire before a native callback returns. Recovery shares the existing native pipe and may need to wait until that call returns.
+
+Files live under `%LOCALAPPDATA%\RevitThyme\view-images\SESSION_GUID\REQUEST_GUID`; a create-new ownership marker prevents overwriting a previous attempt. They contain private model imagery and remain until explicitly removed. Output files are not part of Revit Undo. `export_incomplete`/`export_unconfirmed` mean partial files or unverifiable completion, with no automatic regeneration. `image_artifact_unavailable` means the retained PNG is missing, unreadable or hash-changed: metadata is retained and no replacement export occurs. Exact replay is a completion receipt, not a new render or a new check of today's model. Capture and use a new GUID only when intentionally requesting a new image after resolving prior uncertainty.
+
+Native qualification and limits are recorded in [image-export verification](../verification/view-images.md). The signed candidate is installed locally and passed an external SDK run against normal Revit startup, with trusted code disabled. It remains unreleased; published v0.10.0 is unchanged.
 
 ## TimberFold kit runs
 
@@ -83,7 +109,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings other than protocol 8 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. The source candidate uses protocol 9; published v0.10.0 uses protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

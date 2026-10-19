@@ -4,6 +4,8 @@
 
 [mcp.md](mcp.md) records the next stage's official SDK, offline protocol checks, native MCP tasks and three external Codex rounds. Private machine-readable evidence remains under `artifacts/mcp`.
 
+[view-images.md](view-images.md) records the unreleased exact-view/sheet image export, external MCP edit/see/verify loop, request recovery and native preservation checks. It does not establish release or normal installed-host qualification.
+
 Earlier Rust/Electron/pyRevit records are preserved under `legacy/pre-foundation/verification`. They remain evidence for their original revisions, not qualification of the new C# product.
 
 [native-utilities.md](native-utilities.md) records actual ribbon/WPF, native transaction and utility MCP qualification. [dynamic-execution.md](dynamic-execution.md) records Roslyn/transaction/MCP/CLI qualification and independent native Cabin Eval scoring. Their private fixtures/results live under ignored `artifacts/utilities` and `artifacts/dynamic` respectively.

@@ -29,6 +29,8 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            if (request.Operation == OperationKind.ExportViewImage) return ViewImageExecutor.Execute(model, request);
+            if (request.ImageExport is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected imageExport arguments.");
             if (request.Operation == OperationKind.InspectTimberFold) return TimberFoldExecutor.Execute(model, request);
             if (request.TimberFold is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected TimberFold arguments.");
             bool dynamic = request.Operation is OperationKind.RunQuery or OperationKind.RunModify;

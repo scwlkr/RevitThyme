@@ -54,7 +54,7 @@ internal static class PackagedStdio
             }), cancellationToken: lifetime.Token))
             {
                 var tools = await client.ListToolsAsync(cancellationToken: lifetime.Token);
-                Check("installed MCP starts over SDK stdio without Python or pyRevit on PATH", tools.Count == 26);
+                Check("installed MCP starts over SDK stdio without Python or pyRevit on PATH", tools.Count == 29);
                 string[] timber = ["timberfold_inspect", "timberfold_preview", "timberfold_generate", "timberfold_status",
                     "timberfold_cancel", "timberfold_verify", "timberfold_reconcile"];
                 Check("installed server exposes all seven shared TimberFold controls", timber.All(name => tools.Count(t => t.Name == name) == 1));

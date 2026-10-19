@@ -1,6 +1,6 @@
 # MCP interface
 
-Twenty-six source tools share the native execution host: twelve generic tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **Image export is an unreleased candidate (`0.10.0-image-export.1`, protocol 9). Published v0.10.0 remains at 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export.** Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
+Twenty-nine source tools share the native execution host: twelve generic tools, three document-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **The unreleased lifecycle candidate is `0.10.0-lifecycle.1`, protocol 10. Published v0.10.0 remains at 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle.** Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -19,6 +19,9 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `set_parameters` | Atomic batch of 1–20 expected-value parameter edits and one Undo |
 | `get_operation` | Retrieve the retained native outcome without submitting the edit again |
 | `export_view_image` | Exact native view/sheet PNG, verified inline image and file metadata, unchanged model and retained request recovery; unreleased |
+| `open_document` | Explicit local RVT and expected saved hash; open in the background and return native document identity |
+| `activate_document` | Activate an already-open exact document ID/path, with native active-document readback |
+| `save_document` | Save only the exact captured active document with its expected disk hash; verify clean native state and resulting file hash |
 | `get_view_range` | Four native range planes, level choices and template edit control |
 | `set_view_range` | Exact expected planes, native validity/readback/rollback, one Undo |
 | `preview_room_dimensions` | Read-only rectangular room plan against native wall finish faces and tag bounds |
@@ -72,6 +75,20 @@ Cancellation remains cooperative. Once a native callback starts, wait for its de
 
 The pinned actual-SDK harness is `dotnet run --project tests/Mcp/RevitThyme.McpTests.csproj -- --timberfold-live ABSOLUTE_DEV_RUN ABSOLUTE_FIXTURE_RECEIPT`. It checks preview, generation, verification, saved output hashes and source RVT preservation through the immutable installed MCP executable. Run it only against its isolated disposable fixture; it leaves generated native documentation unsaved for inspection. A successful build alone does not establish a native pass.
 
+## Explicit document lifecycle (unreleased)
+
+Start with `get_context` on an open project. Every lifecycle call uses its `captureId` and a new caller-generated `requestId`, and executes on the existing ExternalEvent queue outside a model transaction. The current process/start/session/document/view/revision must still match. The scope is canonical absolute local `.rvt` paths, Revit 2027 and nonworkshared project documents. Reparse aliases, family/linked/workshared projects and unsupported edit modes are refused. Fixture-bound development sessions retain their original single-path guard.
+
+- `open_document(captureId, requestId, path, expectedSha256)` verifies the saved file before opening it in the background. It returns `documentLifecycle.documentId`, path, title, active/modified flags and SHA-256; the current active snapshot and saved file remain unchanged. Already-open clean paths return the existing identity; dirty paths are refused.
+- `activate_document(captureId, requestId, documentId, path)` requires that exact ID/path already be open in the selected session. It does not implicitly open, save or close a file. Success verifies the active native document and returns its fresh snapshot. Refresh context before another action.
+- `save_document(captureId, requestId, documentId, path, expectedSha256)` accepts only the captured active document, exact existing path and expected current disk hash. SaveAs, synchronization and implicit saves of another document are excluded. Native `Save()` runs only if modified; completion verifies `IsModified=false` and hashes the resulting file. The saved disk bytes are outside model Undo.
+
+`outcome: Completed` with `document_opened`, `document_activated` or `document_saved` is verified native lifecycle completion, distinct from a committed model transaction. `performed:false` means the requested native state was already satisfied. A file hash mismatch is `file_changed`; wrong ID/path or inactive save is `wrong_document`; changed captured context is `stale_target`. A native call or post-call verification failure can return `lifecycle_unconfirmed` after opening, activation or saving occurred. Inspect the native state and recover that original ID before continuing.
+
+On interruption reconnect to the same native session and call `get_operation(requestId)` without a capture. Pending/completed outcomes use the same retained history as image export; recovery never repeats the lifecycle action. Identical request/target replay returns its receipt; conflicting arguments return `id_conflict`. History ends at native shutdown. Native file calls or dialogs can outlast the 30-second transport deadline; cancellation cannot interrupt an in-flight save/open. No Home-screen open, explicit close, view switching, cross-session recovery store, arbitrary model promotion or changed-ID budget increase is included.
+
+The native adapter uses Autodesk's [OpenDocumentFile](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/11420983-6d0d-0022-e24c-2361c4e42fba.htm) and [OpenAndActivateDocument](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/3b3d671d-47ec-2ed8-1818-a7c19d01884b.htm) APIs, compiled against the installed Revit 2027 SDK. Source checks and actual-Revit evidence are recorded separately in [lifecycle verification](../verification/document-lifecycle.md).
+
 ## Parameter identity
 
 `inspect_elements` returns each field's exact document-local `id`, existing name/data type/raw value and read-only/truncation flags, plus:
@@ -109,7 +126,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. The source candidate uses protocol 9; published v0.10.0 uses protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. The source candidate uses protocol 10; published v0.10.0 uses protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

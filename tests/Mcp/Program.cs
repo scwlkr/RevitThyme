@@ -18,6 +18,8 @@ internal static class Program
             else if (args is ["--image-live", var imageFolder]) await ImageExportLive.Run(imageFolder);
             else if (args is ["--image-baseline", var executable, var inventory]) await ImageExportLive.Baseline(executable, inventory);
             else if (args is ["--image-installed", var installedFolder]) await ImageExportInstalled.Run(installedFolder);
+            else if (args is ["--lifecycle-live", var lifecycleFolder]) await DocumentLifecycleLive.Run(lifecycleFolder);
+            else if (args is ["--lifecycle-reopened", var lifecycleReopened]) await DocumentLifecycleLive.Run(lifecycleReopened, true);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
             else if (args is ["--dynamic-live", var dynamicFolder]) await DynamicLive.Run(dynamicFolder);
             else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);
@@ -86,7 +88,7 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 26-tool discovery", tools.Count == 26);
+        Check("official SDK stdio initialization and 29-tool discovery", tools.Count == 29);
         Check("image export exposes bounded captured idempotent file operation", tools.Single(t => t.Name == "export_view_image").ProtocolTool.Annotations is { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true }
             && tools.Single(t => t.Name == "export_view_image").JsonSchema.ToString().Contains("viewId", StringComparison.Ordinal));
         var reconcileTool = tools.Single(t => t.Name == "timberfold_reconcile");

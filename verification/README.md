@@ -4,7 +4,7 @@
 
 [mcp.md](mcp.md) records the next stage's official SDK, offline protocol checks, native MCP tasks and three external Codex rounds. Private machine-readable evidence remains under `artifacts/mcp`.
 
-[view-images.md](view-images.md) records the unreleased exact-view/sheet image export, external MCP edit/see/verify loop, request recovery and native preservation checks. It does not establish release or normal installed-host qualification.
+[view-images.md](view-images.md) records the unreleased exact-view/sheet image export, external MCP edit/see/verify loop, retained recovery and normal installed-host qualification. [document-lifecycle.md](document-lifecycle.md) separately tracks the subsequent explicit open/activate/save work. Neither establishes a release.
 
 Earlier Rust/Electron/pyRevit records are preserved under `legacy/pre-foundation/verification`. They remain evidence for their original revisions, not qualification of the new C# product.
 

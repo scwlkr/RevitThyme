@@ -29,6 +29,8 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            if (DocumentLifecycleExecutor.Handles(request.Operation)) return DocumentLifecycleExecutor.Execute(model, request);
+            if (request.DocumentLifecycle is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected documentLifecycle arguments.");
             if (request.Operation == OperationKind.ExportViewImage) return ViewImageExecutor.Execute(model, request);
             if (request.ImageExport is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected imageExport arguments.");
             if (request.Operation == OperationKind.InspectTimberFold) return TimberFoldExecutor.Execute(model, request);

@@ -2,14 +2,16 @@ using System.Collections.Immutable;
 
 namespace RevitThyme.Core;
 
-public enum TimberRunState { Accepted, Capturing, Fitting, Layout, Cutting, PreviewReady, Failed, Cancelled, Unconfirmed }
-public sealed record TimberRunStart(Guid Id, Target Target, TimberFoldProfile Profile, TimberScope? Scope = null);
+public enum TimberRunState { Accepted, Capturing, Fitting, Layout, Cutting, PreviewReady, Failed, Cancelled, Unconfirmed, Guides, Finalizing, KitReady, Reconciling }
+public sealed record TimberRunStart(Guid Id, Target Target, TimberFoldProfile Profile, TimberScope? Scope = null,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] Guid? PreviewRunId = null);
 public sealed record TimberRunSummary(Guid RunId, Target Target, TimberRunState State, string Stage,
     string Directory, string? SourceFingerprint, int PanelCount, int SheetCount,
-    double ElapsedMilliseconds, ImmutableArray<TimberDiagnostic> Diagnostics, bool DiagnosticsTruncated = false)
+    double ElapsedMilliseconds, ImmutableArray<TimberDiagnostic> Diagnostics, bool DiagnosticsTruncated = false,
+    Guid? PreviewRunId = null, bool NativeCommitted = false, Guid? GenerationRunId = null)
 {
-    public bool Terminal => State is TimberRunState.PreviewReady or TimberRunState.Failed or TimberRunState.Cancelled or TimberRunState.Unconfirmed;
+    public bool Terminal => State is TimberRunState.PreviewReady or TimberRunState.KitReady or TimberRunState.Failed or TimberRunState.Cancelled or TimberRunState.Unconfirmed;
     public bool ManufacturingReady => false;
     public bool PhysicalChecksOutstanding => true;
-    public bool NativeImportOutstanding => true;
+    public bool NativeImportOutstanding => State != TimberRunState.KitReady;
 }

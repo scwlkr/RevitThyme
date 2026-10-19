@@ -47,15 +47,23 @@ public sealed partial class TimberFoldWindow : Window
         root.Children.Add(new TextBlock { Text = "Kerf compensation: laser software. Physical cutting and assembly remain untested.",
             TextWrapping = TextWrapping.Wrap, Margin = new(0, 10, 0, 0) });
         root.Children.Add(runIdentity); root.Children.Add(status); root.Children.Add(diagnostics);
-        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new(16, 12, 16, 16) };
-        buttons.Children.Add(openFiles); buttons.Children.Add(inspect); buttons.Children.Add(preview); buttons.Children.Add(cancelRun);
+        var footer = new StackPanel { HorizontalAlignment = HorizontalAlignment.Right, Margin = new(16, 12, 16, 16) };
+        var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new(0, 0, 0, 8) };
+        actions.Children.Add(inspect); actions.Children.Add(preview); actions.Children.Add(generate); actions.Children.Add(verify);
+        footer.Children.Add(actions);
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
+        buttons.Children.Add(reconcile); buttons.Children.Add(openFiles); buttons.Children.Add(cancelRun); footer.Children.Add(buttons);
         openFiles.Click += (_, _) => OpenFiles();
         var close = new Button { Content = "Close", Width = 84, Height = 27, Margin = new(8, 0, 0, 0) };
-        close.Click += (_, _) => Close(); buttons.Children.Add(close); Grid.SetRow(buttons, 1); layout.Children.Add(buttons);
+        close.Click += (_, _) => Close(); buttons.Children.Add(close); Grid.SetRow(footer, 1); layout.Children.Add(footer);
         inspect.Click += async (_, _) => await InspectAsync();
         preview.Click += async (_, _) => await PreviewAsync();
+        generate.Click += async (_, _) => await GenerateAsync();
+        verify.Click += async (_, _) => await VerifyAsync();
+        reconcile.Click += async (_, _) => await ReconcileAsync();
         cancelRun.Click += async (_, _) => await CancelAsync();
         runTimer.Tick += PollRun;
+        WatchSettings();
         Closed += (_, _) => { windowClosed = true; runTimer.Stop(); runTimer.Tick -= PollRun; };
         Loaded += async (_, _) => await InspectAsync();
     }

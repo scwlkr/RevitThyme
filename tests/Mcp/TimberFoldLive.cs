@@ -45,14 +45,14 @@ internal static class TimberFoldLive
         Write(Path.Combine(evidence, "inputs.json"), new { folder, fixtureReceipt, plan, launch, fixtureSha256 = originalHash,
             installedMcpSha256 = Hash(executable), testAssemblySha256 = Hash(typeof(TimberFoldLive).Assembly.Location) });
         var calls = new List<object>(); object callsGate = new();
-        using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(100));
+        using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(210));
         var transport = new StdioClientTransport(new() { Command = executable, Arguments = ["--session", session, "--sessions-directory", Path.Combine(folder, "sessions")],
             Name = "Pinned native TimberFold", StandardErrorLines = line => { lock (callsGate) File.AppendAllText(Path.Combine(evidence, "mcp-stderr.txt"), line + Environment.NewLine); } });
-        Guid runId = Guid.NewGuid();
+        Guid runId = Guid.NewGuid(), generationRunId = Guid.NewGuid();
         try
         {
             await using var client = await McpClient.CreateAsync(new RecordingClientTransport(transport, evidence), cancellationToken: lifetime.Token);
-            Program.Check("native installed MCP advertises the 22 current tools", (await client.ListToolsAsync(cancellationToken: lifetime.Token)).Count == 22);
+            Program.Check("native installed MCP advertises the 25 current tools", (await client.ListToolsAsync(cancellationToken: lifetime.Token)).Count == 25);
             var before = await Call("get_context"); var baseline = Property(Property(before.Data, "result"), "snapshot").Deserialize<Snapshot>(Core.Protocol.Json)!;
             Program.Check("native MCP capture is the exact disposable fixture and launch document", baseline.Target.ProcessId == binding.ProcessId &&
                 baseline.Target.ProcessStart == binding.ProcessStart && baseline.Target.SessionId == sessionId && baseline.DocumentPath == model && !baseline.IsWorkshared &&
@@ -115,7 +115,31 @@ internal static class TimberFoldLive
             Program.Check("native status/cancel bypass a real pending API callback within one second", returnedBeforeNative &&
                 controlResults.All(r => r.Milliseconds < 1000 && Property(r.Data, "timberRun").Deserialize<TimberRunSummary>(Core.Protocol.Json) is
                     { State: TimberRunState.PreviewReady } completed && completed.RunId == runId));
-            Write(Path.Combine(evidence, "complete.json"), new { passed = true, runId, summary, baseline, final,
+            var verifiedPreview = await Call("timberfold_verify", new() { ["runId"] = runId.ToString() });
+            Program.Check("native MCP verifies retained preview evidence without modifying the source", Property(verifiedPreview.Data, "timberRun")
+                .Deserialize<TimberRunSummary>(Core.Protocol.Json) is { State: TimberRunState.PreviewReady } checkedPreview && checkedPreview.RunId == runId);
+            using var generationBudget = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token); generationBudget.CancelAfter(TimeSpan.FromSeconds(90));
+            var generated = await Call("timberfold_generate", new() { ["captureId"] = Text(after.Data, "captureId"),
+                ["requestId"] = generationRunId.ToString(), ["previewRunId"] = runId.ToString() }, generationBudget.Token);
+            var kit = Property(generated.Data, "timberRun").Deserialize<TimberRunSummary>(Core.Protocol.Json)!;
+            while (!kit.Terminal)
+            {
+                await Task.Delay(100, generationBudget.Token);
+                kit = Property((await Call("timberfold_status", new() { ["runId"] = generationRunId.ToString() }, generationBudget.Token)).Data,
+                    "timberRun").Deserialize<TimberRunSummary>(Core.Protocol.Json)!;
+            }
+            Program.Check("native MCP generation commits a verified kit with the exact preview inventory", kit is
+                { State: TimberRunState.KitReady, NativeCommitted: true, NativeImportOutstanding: false, PhysicalChecksOutstanding: true, ManufacturingReady: false } &&
+                kit.RunId == generationRunId && kit.PreviewRunId == runId && kit.PanelCount == summary.PanelCount && kit.SheetCount == summary.SheetCount);
+            CheckKitEvidence(kit);
+            var verifiedKit = await Call("timberfold_verify", new() { ["runId"] = generationRunId.ToString() });
+            Program.Check("native MCP verification rechecks the complete generated kit", Property(verifiedKit.Data, "timberRun")
+                .Deserialize<TimberRunSummary>(Core.Protocol.Json) is { State: TimberRunState.KitReady, NativeCommitted: true } checkedKit && checkedKit.RunId == generationRunId);
+            var afterGeneration = Property(Property((await Call("get_context")).Data, "result"), "snapshot").Deserialize<Snapshot>(Core.Protocol.Json)!;
+            Program.Check("native kit leaves the same fixture open and both source RVTs unsaved", afterGeneration.Target.DocumentId == baseline.Target.DocumentId &&
+                afterGeneration.Target.ViewId == baseline.Target.ViewId && afterGeneration.DocumentPath == model && afterGeneration.IsModified &&
+                Hash(model) == originalHash.ToLowerInvariant() && Hash(original) == originalHash.ToLowerInvariant());
+            Write(Path.Combine(evidence, "complete.json"), new { passed = true, runId, generationRunId, summary, kit, baseline, final, afterGeneration,
                 statusMilliseconds = controlResults[0].Milliseconds, cancelMilliseconds = controlResults[1].Milliseconds, returnedBeforeNative,
                 physicalChecksOutstanding = true, nativeDxfImportQualifiedByThisHarness = false, calls });
 
@@ -133,7 +157,25 @@ internal static class TimberFoldLive
             }
         }
         catch (Exception error)
-        { Write(Path.Combine(evidence, "failed.json"), new { passed = false, runId, error = error.ToString(), calls }); throw; }
+        { Write(Path.Combine(evidence, "failed.json"), new { passed = false, runId, generationRunId, error = error.ToString(), calls }); throw; }
+    }
+
+    private static void CheckKitEvidence(TimberRunSummary kit)
+    {
+        using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(kit.Directory, "kit.json")));
+        Program.Check("native MCP kit manifest retains digital-only acceptance and native readback", Text(manifest.RootElement, "state") == "DigitalKitVerified" &&
+            !Property(manifest.RootElement, "manufacturingReady").GetBoolean() && Property(manifest.RootElement, "physicalChecksOutstanding").GetBoolean() &&
+            Property(manifest.RootElement, "nativeReadbackPassed").GetBoolean());
+        foreach (var file in Property(manifest.RootElement, "files").EnumerateArray())
+        {
+            string path = Path.GetFullPath(Path.Combine(kit.Directory, Text(file, "name")));
+            Program.Check("native MCP generated file hash matches " + Text(file, "name"), path.StartsWith(kit.Directory + Path.DirectorySeparatorChar,
+                StringComparison.OrdinalIgnoreCase) && new FileInfo(path).Length == Property(file, "bytes").GetInt64() && Hash(path) == Text(file, "sha256"));
+        }
+        var receipt = JsonSerializer.Deserialize<TimberNativeKitReceipt>(File.ReadAllText(Path.Combine(kit.Directory, "native-receipt.json")), Core.Protocol.Json)!;
+        Program.Check("native MCP receipt records committed geometry, readback and actual DWG files", receipt is
+            { State: TimberNativeKitState.Committed, SourcePreserved: true, NativeReadbackPassed: true } && receipt.RunId == kit.RunId &&
+            receipt.CreatedElements.Length > 0 && receipt.Files.Any(f => f.Role == "CutDwg") && receipt.Files.Any(f => f.Role == "CalibrationDwg"));
     }
 
     private sealed record Reply(JsonElement Data, double Milliseconds);

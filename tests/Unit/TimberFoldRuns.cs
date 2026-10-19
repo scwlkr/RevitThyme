@@ -11,12 +11,15 @@ internal static class TimberFoldRuns
         var capture = dispatcher.CaptureTimberAsync(new(Guid.NewGuid(), model.Base.Target, new()));
         check("TimberFold capture waits for the native callback without touching the model", !capture.IsCompleted && model.Extractions == 0);
         if (capture.IsFaulted) return;
+        model.ExtractionDelayMilliseconds = 25;
         dispatcher.ExecuteNext(model);
         var captured = await capture;
+        check("native extraction timing includes work performed inside the callback", captured.NativeMilliseconds is >= 15);
         model.Source.Faces[0].RingsFeet[0][0] = new(999, 999);
         check("native callback hands owned immutable bytes to background work", model.Extractions == 1 &&
             captured.Context.Target == model.Base.Target && captured.Decode().Faces[0].RingsFeet[0][0] == new TimberPoint2(0, 0) && model.Base.Transactions == 0);
         await QueuedCancellation(check);
+        await NativeCancellation(check);
         await CompletedPreview(check);
         await BoundedFailure(check);
         await SharedOperations(check);
@@ -43,6 +46,17 @@ internal static class TimberFoldRuns
             dispatcher.Stop();
         }
         if (Directory.Exists(root)) Directory.Delete(root, true);
+    }
+
+    private static async Task NativeCancellation(Action<string, bool> check)
+    {
+        await using var dispatcher = new OperationDispatcher(); var model = new NativeBoundary();
+        using var cancelled = new CancellationTokenSource(); bool reached = false;
+        model.DuringExtraction = token => { reached = token.CanBeCanceled; cancelled.Cancel(); token.ThrowIfCancellationRequested(); };
+        var pending = dispatcher.CaptureTimberAsync(new(Guid.NewGuid(), model.Base.Target, new()), cancelled.Token);
+        dispatcher.ExecuteNext(model); bool stopped = false;
+        try { await pending; } catch (OperationCanceledException) { stopped = true; }
+        check("capture carries cooperative cancellation into the native extraction boundary", reached && stopped && model.Extractions == 0 && model.Base.Transactions == 0);
     }
 
     private static async Task BoundedFailure(Action<string, bool> check)
@@ -90,6 +104,55 @@ internal static class TimberFoldRuns
                 File.Exists(Path.Combine(result.Directory, "cutting", "CUT-001.dxf")));
             check("completed preview retries return the retained result without a second extraction",
                 runs.Start(request).State == TimberRunState.PreviewReady && model.Extractions == 1);
+            string producerPath = Path.Combine(result.Directory, "producer.json");
+            bool producerVerified = false;
+            if (File.Exists(producerPath))
+            {
+                using var producer = System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(producerPath));
+                var record = producer.RootElement;
+                producerVerified = record.GetProperty("schema").GetInt32() == 1 && record.GetProperty("protocol").GetInt32() == Protocol.Version &&
+                    !string.IsNullOrWhiteSpace(record.GetProperty("productVersion").GetString()) &&
+                    record.GetProperty("coreSha256").GetString() == Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(
+                        File.ReadAllBytes(typeof(TimberRunCoordinator).Assembly.Location))) &&
+                    DateTimeOffset.TryParse(record.GetProperty("createdUtc").GetString(), out _);
+            }
+            check("retained preview identifies its exact producer binary version protocol and creation time", producerVerified);
+            string measurementsPath = Path.Combine(result.Directory, "run-timings.json");
+            bool stagesVerified = false;
+            if (File.Exists(measurementsPath))
+            {
+                using var measurements = System.Text.Json.JsonDocument.Parse(File.ReadAllBytes(measurementsPath));
+                var data = measurements.RootElement;
+                var stages = data.GetProperty("stages").EnumerateArray().ToArray();
+                stagesVerified = data.GetProperty("state").GetString() == "PreviewReady" &&
+                    new[] { "Capturing", "Fitting", "Layout", "Cutting" }.All(name => stages.Any(s => s.GetProperty("stage").GetString() == name)) &&
+                    stages.All(s => double.IsFinite(s.GetProperty("milliseconds").GetDouble()) && s.GetProperty("milliseconds").GetDouble() >= 0) &&
+                    stages.Sum(s => s.GetProperty("milliseconds").GetDouble()) <= data.GetProperty("elapsedMilliseconds").GetDouble() + .000001 &&
+                    data.GetProperty("nativeExtractionMilliseconds").GetDouble() >= 0;
+            }
+            check("retained run timings cover every completed stage and distinguish actual extraction from queue-inclusive durations", stagesVerified);
+            if (producerVerified)
+            {
+                byte[] producerBytes = File.ReadAllBytes(producerPath);
+                string previewPath = Path.Combine(result.Directory, "preview.json");
+                byte[] previewBytes = File.ReadAllBytes(previewPath);
+                try
+                {
+                    File.AppendAllText(producerPath, " ");
+                    check("explicit verification rejects changed producer evidence", runs.Verify(request.Id).State == TimberRunState.Unconfirmed);
+                    File.WriteAllBytes(producerPath, producerBytes);
+                    var legacy = System.Text.Json.Nodes.JsonNode.Parse(previewBytes)!;
+                    legacy["schema"] = 1;
+                    var evidence = (System.Text.Json.Nodes.JsonArray)legacy["evidence"]!;
+                    evidence.Remove(evidence.Single(e => e!["name"]!.GetValue<string>() == "producer.json"));
+                    File.WriteAllText(previewPath, legacy.ToJsonString());
+                    File.Delete(producerPath);
+                    await using var legacyHost = new TimberRunCoordinator(root, dispatcher);
+                    check("legacy completed previews remain verifiable without producer metadata or native execution",
+                        legacyHost.Verify(request.Id).State == TimberRunState.PreviewReady && model.Extractions == 1);
+                }
+                finally { File.WriteAllBytes(producerPath, producerBytes); File.WriteAllBytes(previewPath, previewBytes); }
+            }
             bool conflict = false;
             try { runs.Start(request with { Profile = request.Profile with { ThicknessInches = .25 } }); }
             catch (OperationException error) { conflict = error.Code == "id_conflict"; }
@@ -151,6 +214,8 @@ internal static class TimberFoldRuns
     {
         internal FakeModel Base { get; } = new();
         internal int Extractions;
+        internal int ExtractionDelayMilliseconds;
+        internal Action<CancellationToken>? DuringExtraction;
         internal TimberSnapshot Source;
         internal NativeBoundary() => Source = new(Base.Target, "native-source", "phase", [],
             [new("wall", "unique-wall", TimberCategory.Wall, TimberDisposition.Included, "Exterior", ["face"], [], "wall-geometry")],
@@ -160,6 +225,9 @@ internal static class TimberFoldRuns
         public string ReadViewName() => Base.ReadViewName();
         public IChange BeginChange() => Base.BeginChange();
         public string TimberFoldEvidenceDirectory => throw new InvalidOperationException("Capture must not use inspection storage.");
-        public TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope) { Extractions++; return Source; }
+        public TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope)
+        { Extractions++; if (ExtractionDelayMilliseconds > 0) Thread.Sleep(ExtractionDelayMilliseconds); return Source; }
+        public TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope, CancellationToken cancellationToken)
+        { DuringExtraction?.Invoke(cancellationToken); return ExtractTimberFold(profile, scope); }
     }
 }

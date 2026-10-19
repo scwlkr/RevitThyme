@@ -36,6 +36,9 @@ public static class Program
                 revitthyme get-operation --session ABSOLUTE_FILE --request-id GUID --json
                 revitthyme timberfold inspect --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
                 revitthyme timberfold preview --run-id GUID --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
+                revitthyme timberfold generate --preview-run-id GUID --run-id GUID --session ABSOLUTE_FILE [--json]
+                revitthyme timberfold reconcile --generation-run-id GUID --run-id NEW_GUID --session ABSOLUTE_FILE [--json]
+                revitthyme timberfold verify --run-id GUID --session ABSOLUTE_FILE [--json]
                 revitthyme timberfold status|cancel --run-id GUID --session ABSOLUTE_FILE [--json]
 
                 Version reports distinguish the CLI/development build from installed RevitThyme.

@@ -50,8 +50,29 @@ internal static class TimberFoldRuns
                 !body.GetProperty("timberRun").GetProperty("manufacturingReady").GetBoolean() &&
                 preview.StructuredContent?.GetRawText() == preview.Content.OfType<TextContentBlock>().Single().Text);
             client.Requests.Clear();
+            string generationId = "a8a57d8e-26d1-4fc3-aee3-01c5f96addcb";
+            var generated = await tools.TimberFoldGenerate(context.CaptureId, generationId, runId);
+            Program.Check("MCP generation sends its new ID and captured preview target without fabrication overrides", generated.IsError != true &&
+                client.Requests is [{ Operation: OperationKind.GenerateTimberFold, TimberFold: null, IsWrite: true } generate] &&
+                generate.Id == Guid.Parse(generationId) && generate.OperationId == Guid.Parse(runId) && generate.Target == client.Snapshot.Target);
+            client.Requests.Clear();
+            string recoveryId = "3ea4ed1b-eaad-4733-bd25-81432b65b76b";
+            var reconciled = await tools.TimberFoldReconcile(context.CaptureId, recoveryId, generationId);
+            Program.Check("MCP reconciliation keeps the fresh capture separate from the original generation ID", reconciled.IsError != true &&
+                client.Requests is [{ Operation: OperationKind.ReconcileTimberFold, TimberFold: null, IsWrite: true } recovery] &&
+                recovery.Id == Guid.Parse(recoveryId) && recovery.OperationId == Guid.Parse(generationId) && recovery.Target == client.Snapshot.Target);
+            client.Requests.Clear();
+            var verified = await tools.TimberFoldVerify(generationId);
+            Program.Check("MCP verification rechecks retained evidence without a capture or model payload", verified.IsError != true &&
+                client.Requests is [{ Operation: OperationKind.VerifyTimberFoldRun, Target: null, TimberFold: null, IsWrite: false } verify] &&
+                verify.OperationId == Guid.Parse(generationId));
+            client.Requests.Clear();
             var invalid = new[] { await tools.TimberFoldStatus("bad"), await tools.TimberFoldCancel(Guid.Empty.ToString()),
-                await tools.TimberFoldPreview(context.CaptureId, "bad") };
+                await tools.TimberFoldPreview(context.CaptureId, "bad"), await tools.TimberFoldVerify("bad"),
+                await tools.TimberFoldGenerate(context.CaptureId, generationId, "bad"),
+                await tools.TimberFoldGenerate(context.CaptureId, runId, runId),
+                await tools.TimberFoldReconcile(context.CaptureId, "bad", generationId),
+                await tools.TimberFoldReconcile(context.CaptureId, generationId, generationId) };
             Program.Check("MCP invalid run IDs fail before any host request", invalid.All(r => r.IsError == true &&
                 Data(r).GetProperty("code").GetString() == "invalid_id") && client.Requests.Count == 0);
             using var cancellationSource = new CancellationTokenSource(); cancellationSource.Cancel();

@@ -1,6 +1,6 @@
 # MCP interface
 
-Twelve generic tools, four utility tools, two trusted C# tools and four TimberFold tools share the native execution host. TimberFold currently supports inspection and retained previews; final kit generation remains under implementation. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for acceptance and limits.
+Twenty-four tools share the native execution host: twelve generic tools, four utility tools, two trusted C# tools and six TimberFold tools. TimberFold supports inspection, retained previews, native kit generation and evidence verification. Physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for acceptance and limits.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -26,10 +26,25 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `run_modify` | Explicitly trusted Roslyn C# method body, native change IDs, rollback on failure and one Undo |
 | `timberfold_inspect` | Captured exterior-shell accounting and private evidence, without model changes |
 | `timberfold_preview` | Accept a retained request/run ID; capture, fit, nest and stage digital DXF preview files |
+| `timberfold_generate` | Generate from an unchanged captured target and verified preview ID; native kit documentation and exports in one Undo group, without model save |
 | `timberfold_status` | Inspect retained progress or terminal evidence without a native callback/capture |
 | `timberfold_cancel` | Request cooperative cancellation by run ID, preserving previous outputs |
+| `timberfold_verify` | Rehash and validate retained preview or kit evidence by run ID, without native edits or a capture |
+| `timberfold_reconcile` | Check an existing committed native kit using a fresh capture; retain separate recovery evidence without recreating documentation |
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
+
+## TimberFold kit runs
+
+Call `get_context`, then `timberfold_preview(captureId, requestId, profile?, scope?)` with a caller-generated GUID. Poll `timberfold_status(runId)` until `PreviewReady` or a failure state. Preview writes private nominal-inch cutting files but does not edit the model.
+
+For generation, capture fresh context from the same unchanged source and call `timberfold_generate(captureId, requestId, previewRunId)`. Use a new generation GUID distinct from the preview ID. The preview supplies every fabrication setting and scope; generation accepts no overrides. Changed settings require a new preview. The captured target must still match the preview's document, view and revision. The returned generation run retains `previewRunId`; poll its new ID through `Guides` and `Finalizing` to `KitReady` or a failure state.
+
+`KitReady` means digital files and native readback passed. The model contains native review geometry, views/sheets and imported drawings under one Undo group; it is never automatically saved. `manufacturingReady` remains false and `physicalChecksOutstanding` remains true. `timberfold_verify(runId)` checks the retained file inventory and hashes again without model edits; changed or missing evidence downgrades verified readiness.
+
+Cancellation remains cooperative. Once a native callback starts, wait for its definitive commit or rollback receipt; cancellation cannot turn a confirmed commit into a cancelled run. On uncertain submission or publication, retain the original request/run ID, poll status and `get_operation`, and inspect the retained evidence. Never submit a replacement generation ID to retry an uncertain native edit. Closing the native settings window does not cancel the run.
+
+The pinned actual-SDK harness is `dotnet run --project tests/Mcp/RevitThyme.McpTests.csproj -- --timberfold-live ABSOLUTE_DEV_RUN ABSOLUTE_FIXTURE_RECEIPT`. It checks preview, generation, verification, saved output hashes and source RVT preservation through the immutable installed MCP executable. Run it only against its isolated disposable fixture; it leaves generated native documentation unsaved for inspection. A successful build alone does not establish a native pass.
 
 ## Parameter identity
 
@@ -68,7 +83,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings other than protocol 6 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and bindings other than protocol 8 are rejected. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

@@ -10,10 +10,27 @@ public enum TimberFitState { Blocked, GeometryFitted }
 public sealed record TimberJointRecord(string OwnerPanelId, string ReceiverPanelId,
     ImmutableArray<ImmutableArray<TimberPoint2>> RemovedRingsInches, double RemovedAreaSquareInches,
     string RemovedTwiceGridArea, double ClearanceUInches, double ClearanceVInches, double ClearanceDepthInches,
-    double CellGridEnclosureExcessAreaSum, double CellAxisBoxExpansionAreaSum);
+    double CellGridEnclosureExcessAreaSum, double CellAxisBoxExpansionAreaSum)
+{
+    public TimberBoundaryRefinement? Refinement { get; init; }
+}
+public sealed record TimberRoofExposureRecord(string PanelId, string SourceId, string FaceId, ImmutableArray<string> CoveringPanelIds,
+    double SourceAreaSquareInches, double ExposedAreaSquareInches, ImmutableArray<ImmutableArray<TimberPoint2>> RemovedRingsInches,
+    double RemovedAreaSquareInches, string RemovedTwiceGridArea, string GridAreaDiscrepancy, double CellGridEnclosureExcessAreaSum)
+{
+    public TimberBoundaryRefinement? Refinement { get; init; }
+}
+public sealed record TimberWallEnvelopeRecord(string PanelId, string SourceId, string FaceId, ImmutableArray<string> RoofPanelIds,
+    ImmutableArray<ImmutableArray<TimberPoint2>> AddedRingsInches, double AddedAreaSquareInches, string AddedTwiceGridArea,
+    double SearchWorldUpInches, string ContactRule)
+{
+    public TimberBoundaryRefinement? Refinement { get; init; }
+}
 public sealed record TimberFittedDraft(TimberFitState State, TimberPanelDraft Draft,
     ImmutableArray<TimberJointRecord> Joints, TimberAssemblyVerification Verification,
     ImmutableArray<TimberDiagnostic> Diagnostics)
 {
+    public ImmutableArray<TimberRoofExposureRecord> RoofExposure { get; init; } = [];
+    public ImmutableArray<TimberWallEnvelopeRecord> WallEnvelope { get; init; } = [];
     public bool ManufacturingReady => false;
 }

@@ -6,7 +6,8 @@ using System.Text.Json;
 namespace RevitThyme.Core;
 
 internal sealed record TimberPreviewResult(string Fingerprint, int PanelCount, int SheetCount,
-    ImmutableArray<TimberDiagnostic> Diagnostics, byte[]? Manifest);
+    ImmutableArray<TimberDiagnostic> Diagnostics, byte[]? Manifest, TimberPreviewInputs? Inputs = null);
+internal sealed record TimberPreviewInputs(TimberFittedDraft Fitted, TimberStockPlan Stock, TimberCutStaging Cutting, TimberScope Scope);
 
 internal static class TimberPreviewPipeline
 {
@@ -23,16 +24,20 @@ internal static class TimberPreviewPipeline
         if (manifestStream.Length > 1048576) throw new InvalidDataException("Preview manifest exceeds its size limit.");
         var preview = JsonSerializer.Deserialize<Preview>(manifestStream, Protocol.Json)
             ?? throw new InvalidDataException("Preview manifest is missing.");
-        if (preview.Schema != 1 || preview.State != "PreviewVerified" || preview.ManufacturingReady ||
+        var expectedEvidence = preview.Schema == 1
+            ? new[] { "cutting-result.json", "fitted.json", "layout.json", "snapshot.json" }
+            : ["cutting-result.json", "fitted.json", "layout.json", "producer.json", "snapshot.json"];
+        if (preview.Schema is not (1 or 2) || preview.State != "PreviewVerified" || preview.ManufacturingReady ||
             !preview.NativeImportOutstanding || !preview.PhysicalChecksOutstanding || preview.Profile != request.Profile ||
             preview.PanelCount != summary.PanelCount || preview.SheetCount != summary.SheetCount ||
             preview.SourceFingerprint != summary.SourceFingerprint || preview.Evidence is null ||
             preview.CuttingFiles.IsDefaultOrEmpty || preview.CuttingFiles.Length != preview.SheetCount + 2 ||
             preview.Evidence.Any(e => e is null || !ValidHash(e.Sha256) || e.Bytes <= 0) ||
             preview.CuttingFiles.Any(f => f is null || !ValidHash(f.Sha256) || f.Bytes <= 0) ||
-            !preview.Evidence.Select(e => e.Name).Order().SequenceEqual(new[] { "cutting-result.json", "fitted.json", "layout.json", "snapshot.json" }))
+            !preview.Evidence.Select(e => e.Name).Order().SequenceEqual(expectedEvidence))
             throw new InvalidDataException("Preview manifest differs from retained run settings or inventory.");
         foreach (var evidence in preview.Evidence) Check(directory, evidence.Name, evidence.Sha256, evidence.Bytes);
+        if (preview.Schema >= 2) _ = TimberRunProvenance.Read(directory);
         string cutting = Path.Combine(directory, "cutting");
         var expected = Enumerable.Range(1, preview.SheetCount).Select(n => $"CUT-{n:000}.dxf")
             .Append("CALIBRATION.dxf").Append("cut-staging.json").Order(StringComparer.Ordinal).ToArray();
@@ -74,15 +79,15 @@ internal static class TimberPreviewPipeline
         Save("timings.json", timings);
         if (!cut.Staged) return Result(fitted.Draft.Panels.Length, stock.SheetCount, cut.Diagnostics);
         ct.ThrowIfCancellationRequested();
-        var evidence = new[] { "snapshot.json", "fitted.json", "layout.json", "cutting-result.json" }.Select(name =>
+        var evidence = new[] { "snapshot.json", "fitted.json", "layout.json", "cutting-result.json", "producer.json" }.Select(name =>
         {
             using var stream = File.OpenRead(Path.Combine(store.DirectoryFor(request.Id), name));
             return new Evidence(name, Convert.ToHexStringLower(SHA256.HashData(stream)), stream.Length);
         }).ToArray();
-        var manifest = new Preview(1, "PreviewVerified", false, true, true, source.DocumentFingerprint,
+        var manifest = new Preview(2, "PreviewVerified", false, true, true, source.DocumentFingerprint,
             request.Profile, fitted.Draft.Panels.Length, stock.SheetCount, cut.Files, evidence);
         return new(source.DocumentFingerprint, fitted.Draft.Panels.Length, stock.SheetCount, fitted.Diagnostics,
-            JsonSerializer.SerializeToUtf8Bytes(manifest, Protocol.Json));
+            JsonSerializer.SerializeToUtf8Bytes(manifest, Protocol.Json), new(fitted, stock, cut, scope));
 
         TimberPreviewResult Result(int panels, int sheets, ImmutableArray<TimberDiagnostic> diagnostics) =>
             new(source.DocumentFingerprint, panels, sheets, diagnostics, null);

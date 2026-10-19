@@ -8,7 +8,12 @@ namespace RevitThyme.Addin;
 public static class NativeTimberExtraction
 {
     public static TimberSnapshot Extract(Document doc, Target target, TimberFoldProfile profile, TimberScope? scope)
+        => ExtractCancellable(doc, target, profile, scope, CancellationToken.None);
+
+    internal static TimberSnapshot ExtractCancellable(Document doc, Target target, TimberFoldProfile profile, TimberScope? scope,
+        CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var diagnostics = new List<TimberDiagnostic>(profile.Validate());
         var sources = new List<TimberSource>(); var faces = new List<TimberFace>();
         var openings = new List<TimberOpening>();
@@ -21,10 +26,12 @@ public static class NativeTimberExtraction
         var planarFeet = 0.00001 * profile.ScaleDenominator / 12;
         using var options = new Options { DetailLevel = ViewDetailLevel.Fine, ComputeReferences = true, IncludeNonVisibleObjects = false };
         using var collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
-        var elements = collector.Where(e => e.Category?.CategoryType == CategoryType.Model)
+        var documentedAnnotationIds = NativeTimberKitOwnership.VerifiedAnnotationIds(doc, cancellationToken);
+        var elements = collector.Where(e => e.Category?.CategoryType == CategoryType.Model && !documentedAnnotationIds.Contains(e.Id.Value))
             .OrderBy(e => e.Id.Value).ToArray();
         foreach (var element in elements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var category = Category(element); var id = Id(element);
             var reason = Exclusion(element, category, chosen);
             if (reason is not null)
@@ -37,9 +44,9 @@ public static class NativeTimberExtraction
                     if (element is Wall w && (w.WallType.Kind != WallKind.Basic ||
                         w.CrossSection != WallCrossSection.Vertical || w.Location is not LocationCurve { Curve: Line }))
                         throw new InvalidOperationException("Only vertical, straight, basic native walls are supported.");
-                    ExtractHost((HostObject)element, category, options, chordFeet, planarFeet, faces, diagnostics);
+                    ExtractHost((HostObject)element, category, options, chordFeet, planarFeet, faces, diagnostics, cancellationToken);
                 }
-                catch (Exception ex) when (ex is not OutOfMemoryException)
+                catch (Exception ex) when (ex is not (OutOfMemoryException or OperationCanceledException))
                 { diagnostics.Add(new("native_host_geometry", TimberSeverity.Error, ex.Message, id)); }
                 var blocked = diagnostics.Skip(errorStart).Any(d => d.Severity == TimberSeverity.Error);
                 sources.Add(Source(element, category, blocked ? TimberDisposition.Unsupported : TimberDisposition.Included,
@@ -61,6 +68,7 @@ public static class NativeTimberExtraction
         }
         foreach (var element in elements.Where(e => Category(e) is TimberCategory.Window or TimberCategory.Door || e is Opening))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (sources.Any(s => s.Id == Id(element))) continue;
             NativeTimberOpenings.Extract(doc, element, chosen.Includes.Contains(Id(element)), options,
                 chordFeet, faces, sources, openings, diagnostics);
@@ -68,6 +76,7 @@ public static class NativeTimberExtraction
         // Host source records retain the IDs of every resolved opening as well as their faces.
         for (var i = 0; i < sources.Count; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var source = sources[i];
             var ownFaces = faces.Where(f => f.SourceId == source.Id).ToArray();
             var ownOpenings = openings.Where(o => o.SourceId == source.Id || o.HostSourceId == source.Id).ToArray();
@@ -87,7 +96,7 @@ public static class NativeTimberExtraction
     }
 
     private static void ExtractHost(HostObject host, TimberCategory category, Options options,
-        double chordFeet, double planarFeet, List<TimberFace> faces, List<TimberDiagnostic> diagnostics)
+        double chordFeet, double planarFeet, List<TimberFace> faces, List<TimberDiagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var id = Id(host); var isRoof = category == TimberCategory.Roof;
         IList<Reference> references;
@@ -97,6 +106,7 @@ public static class NativeTimberExtraction
         var resolved = new List<TimberFace>(); var unresolved = 0;
         foreach (var reference in references)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Face? native;
             try { native = host.GetGeometryObjectFromReference(reference) as Face; }
             catch (Autodesk.Revit.Exceptions.InvalidOperationException) { unresolved++; continue; }
@@ -114,6 +124,7 @@ public static class NativeTimberExtraction
             foreach (var solid in NativeTimberGeometry.Solids(geometry))
             foreach (Face native in solid.Faces)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var uv = native.GetBoundingBox();
                 if (native.ComputeNormal((uv.Min + uv.Max) / 2).Z <= 1e-8) continue;
                 if (native is not PlanarFace plane) throw new InvalidOperationException("Roof contains a nonplanar upward solid face.");

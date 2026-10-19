@@ -11,27 +11,39 @@ public static partial class TimberFabrication
     {
         var draft = Draft(snapshot, profile, scope, cancellationToken);
         var diagnostics = draft.Diagnostics.ToList(); var joints = new List<TimberJointRecord>();
+        var exposure = new List<TimberRoofExposureRecord>();
+        var wallEnvelope = new List<TimberWallEnvelopeRecord>();
         var fitted = new List<TimberPanel>();
         if (draft.State == TimberDraftState.Blocked) return Result();
         if (profile.JointClearanceInches <= 0)
         { diagnostics.Add(new("joint_clearance", TimberSeverity.Error, "Joint fitting requires positive physical clearance.")); return Result(); }
         var budget = new TimberPrismBudget(cancellationToken);
-        foreach (var source in draft.Panels.OrderBy(p => p.Kind == TimberFaceKind.Roof ? 0 : 1).ThenBy(p => p.Id, StringComparer.Ordinal))
+        var boundaryBudget = new TimberBoundaryBudget();
+        var exposed = TimberRoofExposure.Apply(draft, snapshot, profile, exposure, diagnostics, boundaryBudget, cancellationToken);
+        Dictionary<string, TimberPanel>? grownWalls = null;
+        foreach (var source in exposed.OrderBy(p => p.Kind == TimberFaceKind.Roof ? 0 : 1).ThenBy(p => p.Id, StringComparer.Ordinal))
         {
             cancellationToken.ThrowIfCancellationRequested();
             var receiver = source;
             try
             {
+                if (source.Kind == TimberFaceKind.Wall)
+                {
+                    // Roof ownership is finalized before its finite material can cap wall growth.
+                    // Original wall contours remain the evidence for upper-storey continuation.
+                    grownWalls ??= TimberRoofExposureWalls.Apply(fitted.Concat(exposed.Where(p => p.Kind == TimberFaceKind.Wall)).ToImmutableArray(),
+                        snapshot, profile, wallEnvelope, diagnostics, boundaryBudget, cancellationToken).Where(p => p.Kind == TimberFaceKind.Wall).ToDictionary(p => p.Id);
+                    receiver = grownWalls[source.Id];
+                }
                 foreach (var owner in fitted)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var before = Encode(receiver);
                     var shadow = TimberJointShadow.Create(owner, receiver, before, profile.JointClearanceInches, budget);
-                    var after = Clipper.Difference(before, shadow.Cuts, FillRule.NonZero);
-                    var removed = Clipper.Difference(before, after, FillRule.NonZero);
+                    var partition = TimberGridBoolean.Difference(before, shadow.Cuts, budget);
+                    var after = partition.Output; var removed = partition.Changed;
                     if (removed.Count == 0) continue;
-                    if (TimberContours.TwiceArea(before) - TimberContours.TwiceArea(after) != TimberContours.TwiceArea(removed))
-                        throw new TimberPrismUnresolved("joint_area_loss", "Joint difference does not conserve exact grid material area.");
+                    boundaryBudget.Charge(receiver.Id, partition.Refinement);
                     var pieces = TimberContours.Pieces(after);
                     if (pieces.Length != 1) throw new TimberPrismUnresolved("joint_topology_loss",
                         $"Joint {owner.Id} → {receiver.Id} would erase or split its receiving panel.");
@@ -46,7 +58,7 @@ public static partial class TimberFabrication
                     var canonicalRemoved = new Paths64(TimberContours.Pieces(removed).SelectMany(p => p));
                     joints.Add(new(owner.Id, receiver.Id, Decode(canonicalRemoved), TimberContours.Area(removed),
                         TimberContours.TwiceArea(removed).ToString(CultureInfo.InvariantCulture), shadow.ClearanceU, shadow.ClearanceV,
-                        shadow.ClearanceDepth, shadow.GridExcessAreaSum, shadow.AxisBoxExpansionAreaSum));
+                        shadow.ClearanceDepth, shadow.GridExcessAreaSum, shadow.AxisBoxExpansionAreaSum) { Refinement = partition.Refinement });
                 }
             }
             catch (TimberPrismUnresolved ex)
@@ -73,7 +85,7 @@ public static partial class TimberFabrication
             var resultDraft = draft with { State = passed ? TimberDraftState.ContoursValidated : TimberDraftState.Blocked,
                 Panels = output, OpeningMap = openingMap, Diagnostics = diagnostics.ToImmutableArray() };
             return new(passed ? TimberFitState.GeometryFitted : TimberFitState.Blocked, resultDraft, joints.ToImmutableArray(),
-                verification, diagnostics.ToImmutableArray());
+                verification, diagnostics.ToImmutableArray()) { RoofExposure = exposure.ToImmutableArray(), WallEnvelope = wallEnvelope.ToImmutableArray() };
         }
     }
     private static Paths64 Encode(TimberPanel panel) => TimberContours.Encode(panel.RingsInches.Select(r => r.ToArray()).ToArray(), 0, 0, 1, true);

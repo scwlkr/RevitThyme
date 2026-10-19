@@ -6,11 +6,12 @@ using IxMilia.Dxf.Entities;
 namespace RevitThyme.Core;
 
 // The supported interchange dialect is pinned to IxMilia.Dxf 0.8.4, AC1027.
-// Geometry contains only closed, zero-width, planar CUT lightweight polylines.
+// Geometry contains only closed, zero-width, planar lightweight polylines.
 internal static class TimberDxfWriter
 {
-    internal static byte[] Write(IEnumerable<IEnumerable<TimberPoint2>> contours)
+    internal static byte[] Write(IEnumerable<IEnumerable<TimberPoint2>> contours, string layer = "CUT")
     {
+        if (layer is not ("CUT" or "REFERENCE")) throw new ArgumentException("Unsupported TimberFold drawing layer.", nameof(layer));
         var drawing = new DxfFile();
         drawing.Header.SetDefaults();
         drawing.Header.Version = DxfAcadVersion.R2013;
@@ -22,7 +23,7 @@ internal static class TimberDxfWriter
         drawing.ViewPorts.Clear();
         foreach (var contour in contours)
             drawing.Entities.Add(new DxfLwPolyline(contour.Select(p => new DxfLwPolylineVertex { X = p.X, Y = p.Y }))
-            { Layer = "CUT", IsClosed = true });
+            { Layer = layer, IsClosed = true });
         using var stream = new MemoryStream();
         drawing.Save(stream, asText: true);
         // Save overwrites these four standard time variables. Normalize only their

@@ -45,6 +45,16 @@ function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabr
     return $folder
 }
 
+Check 'native-kit candidate keeps the complete managed geometry and DXF payload' {
+    $candidate = New-PackageFixture '0.10.0-timberfold.4' -TimberFold -Fabrication -CutFiles
+    $manifest = Assert-FoundationPackage $candidate
+    if ($manifest.version -ne '0.10.0-timberfold.4') { throw 'Wrong native-kit candidate accepted.' }
+}
+Check 'native-kit candidate refuses a missing managed DXF dependency' {
+    $candidate = New-PackageFixture '0.10.0-timberfold.4' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
 Check 'TimberFold cut-file candidate includes managed DXF in all execution payloads' {
     $candidate = New-PackageFixture '0.10.0-timberfold.3' -TimberFold -Fabrication -CutFiles
     $manifest = Assert-FoundationPackage $candidate

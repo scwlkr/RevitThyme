@@ -82,10 +82,25 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 22-tool discovery", tools.Count == 22);
+        Check("official SDK stdio initialization and 25-tool discovery", tools.Count == 25);
+        var reconcileTool = tools.Single(t => t.Name == "timberfold_reconcile");
+        Check("reconciliation advertises captured idempotent recovery evidence without geometry overrides", reconcileTool.ProtocolTool.Annotations is
+            { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true } &&
+            reconcileTool.JsonSchema.ToString().Contains("generationRunId", StringComparison.Ordinal) &&
+            reconcileTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal) &&
+            !reconcileTool.JsonSchema.ToString().Contains("directory", StringComparison.OrdinalIgnoreCase));
         var previewTool = tools.Single(t => t.Name == "timberfold_preview");
         var statusTool = tools.Single(t => t.Name == "timberfold_status");
         var cancelTool = tools.Single(t => t.Name == "timberfold_cancel");
+        var generateTool = tools.Single(t => t.Name == "timberfold_generate");
+        var verifyTool = tools.Single(t => t.Name == "timberfold_verify");
+        Check("TimberFold generation advertises captured reversible writes and retained verification is read-only", generateTool.ProtocolTool.Annotations is
+            { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true } && verifyTool.ProtocolTool.Annotations?.ReadOnlyHint == true &&
+            generateTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal) &&
+            generateTool.JsonSchema.ToString().Contains("previewRunId", StringComparison.Ordinal) &&
+            !generateTool.JsonSchema.ToString().Contains("stockWidthInches", StringComparison.OrdinalIgnoreCase) &&
+            verifyTool.JsonSchema.ToString().Contains("runId", StringComparison.Ordinal) &&
+            !verifyTool.JsonSchema.ToString().Contains("captureId", StringComparison.Ordinal));
         Check("TimberFold preview/cancel declare idempotent private writes and status is read-only", previewTool.ProtocolTool.Annotations is
                 { ReadOnlyHint: false, IdempotentHint: true } && cancelTool.ProtocolTool.Annotations is { ReadOnlyHint: false, IdempotentHint: true } &&
             statusTool.ProtocolTool.Annotations?.ReadOnlyHint == true);

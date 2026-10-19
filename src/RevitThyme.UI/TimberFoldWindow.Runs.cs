@@ -9,6 +9,12 @@ public sealed partial class TimberFoldWindow
 {
     private readonly Button preview = new() { Content = "_Preview", Width = 84, Height = 27, Margin = new(8, 0, 0, 0),
         ToolTip = "Fit the current exterior shell, plan stock and retain a digital preview." };
+    private readonly Button generate = new() { Content = "_Generate", Width = 84, Height = 27, Margin = new(8, 0, 0, 0), IsEnabled = false,
+        ToolTip = "Create native kit documentation from the displayed ready preview and its retained settings. One Undo group; no model save. Changed settings require a new preview." };
+    private readonly Button verify = new() { Content = "_Verify", Width = 84, Height = 27, Margin = new(8, 0, 0, 0), IsEnabled = false,
+        ToolTip = "Recheck the retained run's evidence and file hashes without editing the model." };
+    private readonly Button reconcile = new() { Content = "_Reconcile", Width = 84, Height = 27, Margin = new(0, 0, 8, 0), IsEnabled = false,
+        ToolTip = "Check an existing committed kit against the current document and retain separate recovery evidence. Missing or changed kits remain unconfirmed; no new model elements or save." };
     private readonly Button cancelRun = new() { Content = "_Cancel", Width = 84, Height = 27, Margin = new(8, 0, 0, 0), IsEnabled = false,
         ToolTip = "Request cancellation at the next run boundary; retained files remain available." };
     private readonly TextBox runIdentity = new() { IsReadOnly = true, BorderThickness = new(0), Background = System.Windows.Media.Brushes.Transparent,
@@ -16,7 +22,7 @@ public sealed partial class TimberFoldWindow
         ToolTip = "Retained run ID. Closing this window leaves the run and its files available." };
     private readonly DispatcherTimer runTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private Guid? retainedRunId;
-    private bool nativeActionBusy, polling, cancelling, cancellationRequested, windowClosed;
+    private bool nativeActionBusy, polling, cancelling, cancellationRequested, windowClosed, previewSettingsChanged;
     public TimberRunSummary? CurrentRun { get; private set; }
     public Guid? RetainedRunId => retainedRunId;
     private bool HasActiveRun => retainedRunId is not null && CurrentRun is not { Terminal: true };
@@ -32,20 +38,7 @@ public sealed partial class TimberFoldWindow
             if (windowClosed) return context;
             if (!context.Succeeded || context.Snapshot is not { } snapshot)
             { status.Text = context.Message; return context; }
-            retainedRunId = Guid.NewGuid(); CurrentRun = null; cancellationRequested = false;
-            runIdentity.Text = $"Run {retainedRunId:D}"; diagnostics.Text = "";
-            status.Text = "Starting preview…"; UpdateActions();
-            var result = await client.ExecuteAsync(new(retainedRunId.Value, OperationKind.PreviewTimberFold,
-                snapshot.Target, TimberFold: new(profile)));
-            if (windowClosed) return result;
-            if (result.TimberRun is { } run) ShowRun(run);
-            else
-            {
-                status.Text = result.Message;
-                if (result.Outcome == Outcome.Unconfirmed) runTimer.Start();
-                else { retainedRunId = null; runIdentity.Text = ""; }
-            }
-            return result;
+            return await SubmitRunAsync(new(Guid.NewGuid(), OperationKind.PreviewTimberFold, snapshot.Target, TimberFold: new(profile)));
         }
         catch (Exception error)
         {
@@ -53,6 +46,59 @@ public sealed partial class TimberFoldWindow
             if (retainedRunId is not null && !windowClosed) runTimer.Start();
             return null;
         }
+        finally { nativeActionBusy = false; UpdateActions(); }
+    }
+
+    public async Task<OperationResult?> GenerateAsync()
+    {
+        if (nativeActionBusy || HasActiveRun || windowClosed || CurrentRun is not { State: TimberRunState.PreviewReady } parent) return null;
+        if (previewSettingsChanged)
+        { status.Text = "Settings changed. Create a new preview before generating the native kit."; return null; }
+        nativeActionBusy = true; UpdateActions();
+        try { return await SubmitRunAsync(new(Guid.NewGuid(), OperationKind.GenerateTimberFold, parent.Target, OperationId: parent.RunId)); }
+        catch (Exception error)
+        {
+            status.Text = $"{error.Message}\nChecking retained run status…";
+            if (!windowClosed) runTimer.Start();
+            return null;
+        }
+        finally { nativeActionBusy = false; UpdateActions(); }
+    }
+
+    private async Task<OperationResult> SubmitRunAsync(OperationRequest request)
+    {
+        if (request.Operation == OperationKind.PreviewTimberFold) previewSettingsChanged = false;
+        retainedRunId = request.Id; CurrentRun = null; cancellationRequested = false;
+        runIdentity.Text = $"Run {request.Id:D}"; diagnostics.Text = "";
+        status.Text = request.Operation == OperationKind.GenerateTimberFold ? "Starting native kit…" :
+            request.Operation == OperationKind.ReconcileTimberFold ? "Checking existing native kit…" : "Starting preview…";
+        UpdateActions();
+        var result = await client.ExecuteAsync(request);
+        if (windowClosed) return result;
+        if (result.TimberRun is { } run) ShowRun(run);
+        else
+        {
+            status.Text = result.Message;
+            if (result.Outcome == Outcome.Unconfirmed) runTimer.Start();
+            else { retainedRunId = null; runIdentity.Text = ""; }
+        }
+        return result;
+    }
+
+    public async Task<OperationResult?> VerifyAsync()
+    {
+        if (nativeActionBusy || HasActiveRun || windowClosed || CurrentRun is not { Terminal: true } current) return null;
+        nativeActionBusy = true; UpdateActions();
+        try
+        {
+            var result = await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.VerifyTimberFoldRun, OperationId: current.RunId));
+            if (!windowClosed && retainedRunId == current.RunId)
+            {
+                if (result.TimberRun is { } run) ShowRun(run); else status.Text = result.Message;
+            }
+            return result;
+        }
+        catch (Exception error) { if (!windowClosed) status.Text = error.Message; return null; }
         finally { nativeActionBusy = false; UpdateActions(); }
     }
 
@@ -74,6 +120,28 @@ public sealed partial class TimberFoldWindow
         }
         catch (Exception error) { status.Text = error.Message; return null; }
         finally { cancelling = false; UpdateActions(); }
+    }
+
+    public async Task<OperationResult?> ReconcileAsync()
+    {
+        if (nativeActionBusy || HasActiveRun || windowClosed || CurrentRun is not { Terminal: true } current ||
+            current.GenerationRunId is null && current.PreviewRunId is null) return null;
+        nativeActionBusy = true; UpdateActions();
+        try
+        {
+            var context = await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect));
+            if (windowClosed) return context;
+            if (!context.Succeeded || context.Snapshot is not { } snapshot) { status.Text = context.Message; return context; }
+            return await SubmitRunAsync(new(Guid.NewGuid(), OperationKind.ReconcileTimberFold, snapshot.Target,
+                OperationId: current.GenerationRunId ?? current.RunId));
+        }
+        catch (Exception error)
+        {
+            status.Text = $"{error.Message}\nChecking retained recovery status…";
+            if (!windowClosed) runTimer.Start();
+            return null;
+        }
+        finally { nativeActionBusy = false; UpdateActions(); }
     }
 
     private async void PollRun(object? sender, EventArgs args)
@@ -106,7 +174,7 @@ public sealed partial class TimberFoldWindow
         {
             // A query's own pending/not_found rejection does not settle the original start.
             runTimer.Stop(); retainedRunId = null; CurrentRun = null;
-            status.Text = $"Preview start rejected: {original.Message}\nYou may start a new preview.";
+            status.Text = $"Run start rejected: {original.Message}\nYou may start a new preview.";
         }
         else status.Text = "Start not yet confirmed. Keep this window open to check again; use the displayed run ID for recovery. " +
             "A new preview remains blocked while the original request is unresolved.";
@@ -118,10 +186,12 @@ public sealed partial class TimberFoldWindow
         if (CurrentRun is { } current && current.RunId == run.RunId &&
             ((current.Terminal && !run.Terminal) || current.ElapsedMilliseconds > run.ElapsedMilliseconds)) return;
         CurrentRun = run; retainedRunId = run.RunId;
-        runIdentity.Text = $"Run {run.RunId:D}";
+        runIdentity.Text = $"Run {run.RunId:D}" + (run.GenerationRunId is { } generation ? $"\nGeneration {generation:D}" :
+            run.PreviewRunId is { } parent ? $"\nPreview {parent:D}" : "");
         status.Text = $"{run.Stage}{(cancellationRequested && !run.Terminal ? " · cancellation requested" : "")}\n" +
             $"{run.PanelCount} panels · {run.SheetCount} sheets · {run.ElapsedMilliseconds / 1000:0.0} s\n" +
-            "Native import and physical cutting/assembly remain outstanding.";
+            (run.NativeImportOutstanding ? "Native import remains outstanding. " : "Native kit verified. ") +
+            "Physical cutting/assembly remain outstanding.";
         diagnostics.Text = string.Join(Environment.NewLine, run.Diagnostics.Select(d => $"{d.Severity} [{d.SourceId ?? "scope"}]: {d.Message}"));
         if (run.DiagnosticsTruncated) diagnostics.Text += "\nOpen files for complete diagnostics.";
         if (run.Terminal) runTimer.Stop(); else runTimer.Start();
@@ -132,10 +202,30 @@ public sealed partial class TimberFoldWindow
     {
         bool editable = !windowClosed && !nativeActionBusy && !HasActiveRun;
         inspect.IsEnabled = preview.IsEnabled = editable;
+        generate.IsEnabled = editable && !previewSettingsChanged && CurrentRun?.State == TimberRunState.PreviewReady;
+        verify.IsEnabled = editable && CurrentRun is { Terminal: true };
+        reconcile.IsEnabled = editable && CurrentRun is { Terminal: true } current &&
+            (current.GenerationRunId is not null || current.PreviewRunId is not null);
         cancelRun.IsEnabled = !windowClosed && !nativeActionBusy && HasActiveRun && !cancelling && !cancellationRequested;
         openFiles.IsEnabled = !windowClosed && (CurrentRun?.Directory is not null || CurrentInspection?.Evidence is not null);
         foreach (var number in numbers.Values) number.IsEnabled = editable;
         rotation.IsEnabled = grain.IsEnabled = measuredStock.IsEnabled = measuredThickness.IsEnabled = editable;
+    }
+
+    private void WatchSettings()
+    {
+        foreach (var number in numbers.Values) number.TextChanged += SettingsChanged;
+        rotation.SelectionChanged += SettingsChanged; grain.SelectionChanged += SettingsChanged;
+        measuredStock.Checked += SettingsChanged; measuredStock.Unchecked += SettingsChanged;
+        measuredThickness.Checked += SettingsChanged; measuredThickness.Unchecked += SettingsChanged;
+    }
+
+    private void SettingsChanged(object sender, RoutedEventArgs args)
+    {
+        if (CurrentRun?.State != TimberRunState.PreviewReady) return;
+        previewSettingsChanged = true;
+        status.Text = "Settings changed. Create a new preview before generating the native kit.";
+        UpdateActions();
     }
 
     private void OpenFiles()

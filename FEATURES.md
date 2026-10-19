@@ -8,7 +8,7 @@
 | View Range | Native four-plane editor with WPF section preview, exact expected values, template guards and one Undo |
 | Room Dimensions | Two associative finish-face dimensions for rectangular rooms, tag clearance, duplicate guards and one Undo |
 | CLI | Native operations, separate CLI/development/registered versions, installed-copy updates and automatic global `rthyme` command with JSON/text and meaningful exits |
-| MCP | Official C# SDK stdio server, 18 tools, explicit connection and structured native results/errors |
+| MCP | Official C# SDK stdio server, 25 source tools, explicit connection and structured native results/errors; new TimberFold operations remain under native qualification |
 | Trusted C# | Opt-in Roslyn method bodies through MCP/CLI; rollback queries, atomic modifications, bounded JSON/diagnostics, native change IDs and retained recovery |
 | Development sessions | Local signing and fixture-copy launches with process/session/document pinning; prompt-free startup, revised C# in one process, native modification and Undo qualified on Revit 2027.3. See [development setup](docs/DEVELOPMENT.md) and [native evidence](verification/development-signing.md). |
 | Cabin Eval | Independent 100-point native evaluator with temporary length probe and negative controls in a disposable fixture |
@@ -19,6 +19,6 @@
 | Built-in Agent | Dockable Codex chat, ChatGPT sign-in, streaming, approvals, interruption, saved sessions and ordinary skills, pinned to this Revit process |
 | Updates | Quiet daily native check, manual ribbon/CLI check, registered-installation comparison, verified installer download and close-Revit installation |
 | Verification | Portable unit/stdio checks, pinned actual-Revit and three external Codex rounds |
-| TimberFold development | C# profile/scope inspection through native controls, CLI and MCP; complete private source/diagnostic evidence, original fixture builders and explicit unsupported geometry. Kit generation and four-building native qualification remain in progress. See [TimberFold](docs/timberfold/README.md). |
+| TimberFold development | Native controls, CLI/MCP inspection and qualified gable previews; managed four-building fitting/layout/cutting/guides, sealed native generation, retained timing/provenance and separate read-only reconciliation. Complete native kits, Undo, recovery, performance and installation qualification remain in progress. See [TimberFold](docs/timberfold/README.md). |
 
 Version 0.9.3 adds shared status, nullable shared GUID, nullable built-in identity and native `HasValue` to parameter inspection/readback through CLI and MCP. Exact parameter IDs, raw values, pagination and expected-value edit safeguards remain in place. It includes the native ribbon, Built-in Agent and [release checker](docs/UPDATES.md), using the existing installer. The installer is unsigned and supports full Revit 2027. Exploration remains deferred as described in the [roadmap](docs/ROADMAP.md). Earlier functionality is preserved in `legacy/pre-foundation` for migration.

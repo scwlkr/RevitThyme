@@ -5,7 +5,7 @@ namespace RevitThyme.Core;
 
 public enum OperationKind { Inspect, RenameView, ListViews, QueryElements, InspectElements, GetSelection, SetSelection, SetParameters, GetOperation,
     GetViewRange, SetViewRange, PreviewRoomDimensions, CreateRoomDimensions, RunQuery, RunModify, InspectTimberFold,
-    PreviewTimberFold, GetTimberFoldRun, CancelTimberFoldRun }
+    PreviewTimberFold, GetTimberFoldRun, CancelTimberFoldRun, GenerateTimberFold, VerifyTimberFoldRun, ReconcileTimberFold }
 public enum Outcome { Inspected, Applied, Unchanged, Rejected, RolledBack, Unconfirmed }
 public sealed record Target(int ProcessId, string ProcessStart, string SessionId,
     string DocumentId, string ViewId, long Revision);
@@ -22,7 +22,8 @@ public sealed record OperationRequest(Guid Id, OperationKind Operation,
 {
     public bool IsWrite => Operation is OperationKind.RenameView or OperationKind.SetParameters or OperationKind.SetSelection
         or OperationKind.SetViewRange or OperationKind.CreateRoomDimensions or OperationKind.RunModify or OperationKind.RunQuery
-        or OperationKind.InspectTimberFold or OperationKind.PreviewTimberFold or OperationKind.CancelTimberFoldRun;
+        or OperationKind.InspectTimberFold or OperationKind.PreviewTimberFold or OperationKind.CancelTimberFoldRun or OperationKind.GenerateTimberFold
+        or OperationKind.ReconcileTimberFold;
     public bool EquivalentTo(OperationRequest other) => JsonSerializer.Serialize(this, Protocol.Json) == JsonSerializer.Serialize(other, Protocol.Json);
 }
 public sealed record OperationResult(Guid Id, Outcome Outcome, string Code, string Message,
@@ -42,7 +43,7 @@ public interface IOperationClient
 }
 public static class Protocol
 {
-    public const int Version = 6;
+    public const int Version = 8;
     public const int MaxBytes = 65536;
     public static readonly JsonSerializerOptions Json = CreateOptions();
     private static JsonSerializerOptions CreateOptions()

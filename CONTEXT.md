@@ -41,3 +41,6 @@ Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 | Physical qualification | Measured cutting and assembly checks on the actual stock and laser setup |
 | Inspection evidence | Complete retained source snapshot and diagnostics underlying a bounded inspection summary |
 | Unconfirmed generation | A run whose native commit or final publication cannot yet be reconciled safely |
+| Reconciliation | A current check of an already committed kit that retains separate evidence without recreating documentation |
+| Roof exposure | The part of a source roof surface visible on the combined building shell |
+| Boundary refinement | An explicitly bounded and recorded contour adjustment at an operation intersection |

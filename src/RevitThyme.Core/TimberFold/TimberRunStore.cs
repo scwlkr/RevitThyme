@@ -2,7 +2,7 @@ using System.Text.Json;
 
 namespace RevitThyme.Core;
 
-internal sealed class TimberRunStore
+internal sealed partial class TimberRunStore
 {
     private readonly string root;
     internal TimberRunStore(string root)
@@ -13,28 +13,35 @@ internal sealed class TimberRunStore
     }
     internal string DirectoryFor(Guid id) => Path.Combine(root, id.ToString("D"));
     internal bool Exists(Guid id) => Directory.Exists(DirectoryFor(id)) || File.Exists(DirectoryFor(id));
-    internal void Claim(Guid id, byte[] request, TimberRunSummary summary)
+    internal TimberRunStart ReadRequest(Guid id) => JsonSerializer.Deserialize<TimberRunStart>(
+        ReadBounded(Path.Combine(DirectoryFor(id), "request.json"), 16384), Protocol.Json)
+        ?? throw new InvalidDataException("Retained request is missing.");
+    internal void Claim(Guid id, byte[] request, TimberRunSummary summary, string requestName = "request.json")
     {
+        if (requestName is not ("request.json" or "reconciliation-request.json")) throw new InvalidDataException("Invalid owned request name.");
         string temporary = Path.Combine(root, ".run-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(temporary);
         try
         {
-            WriteNewFile(Path.Combine(temporary, "request.json"), request);
+            WriteNewFile(Path.Combine(temporary, requestName), request);
             WriteNewFile(Path.Combine(temporary, "run.json"), JsonSerializer.SerializeToUtf8Bytes(summary, Protocol.Json));
+            WriteNewFile(Path.Combine(temporary, "producer.json"), TimberRunProvenance.Capture());
             Directory.Move(temporary, DirectoryFor(id));
         }
         finally
         {
-            // Only these two exact files can exist in this privately owned sibling.
+            // Only these three exact files can exist in this privately owned sibling.
             if (Directory.Exists(temporary))
             {
-                foreach (string file in new[] { "request.json", "run.json" }) File.Delete(Path.Combine(temporary, file));
+                foreach (string file in new[] { requestName, "run.json", "producer.json" }) File.Delete(Path.Combine(temporary, file));
                 Directory.Delete(temporary);
             }
         }
     }
     internal void RequireSameRequest(Guid id, byte[] request)
     {
+        if (File.Exists(Path.Combine(DirectoryFor(id), "reconciliation-request.json")))
+            throw new OperationException("id_conflict", "Run ID belongs to a reconciliation request.");
         byte[] retained = ReadBounded(Path.Combine(DirectoryFor(id), "request.json"), 16384);
         if (!retained.SequenceEqual(request)) throw new OperationException("id_conflict", "Run ID was already used with different arguments.");
     }
@@ -42,6 +49,7 @@ internal sealed class TimberRunStore
     {
         string directory = DirectoryFor(id);
         if (!Exists(id)) throw new OperationException("not_found", "Run ID is not retained.");
+        if (File.Exists(Path.Combine(directory, "reconciliation-request.json"))) return ReadReconciliation(id, verifyPreview);
         try
         {
             var request = JsonSerializer.Deserialize<TimberRunStart>(ReadBounded(Path.Combine(directory, "request.json"), 16384), Protocol.Json);
@@ -57,23 +65,44 @@ internal sealed class TimberRunStore
                 { return summary with { State = TimberRunState.Unconfirmed, Stage = "Preview evidence changed",
                     Diagnostics = [new("run_evidence", TimberSeverity.Error, error.Message)] }; }
             }
+            if (summary.State == TimberRunState.KitReady)
+            {
+                if (!verifyPreview) return summary with { State = TimberRunState.Unconfirmed,
+                    Stage = "Run is not owned by this host; inspect status before retrying" };
+                try { TimberGenerationFiles.CheckRecovery(directory, request, summary); }
+                catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException or InvalidDataException)
+                { return summary with { State = TimberRunState.Unconfirmed, Stage = "Digital kit evidence changed",
+                    Diagnostics = [new("run_evidence", TimberSeverity.Error, error.Message)] }; }
+            }
             return summary.Terminal ? summary : summary with { State = TimberRunState.Unconfirmed,
                 Stage = "Run is not owned by this host; inspect retained evidence before retrying" };
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or JsonException or InvalidDataException)
         { throw new OperationException("run_unconfirmed", "Retained run evidence could not be verified: " + error.Message); }
     }
-    internal void WriteStatus(TimberRunSummary summary)
+    internal void WriteStatus(TimberRunSummary summary) => WriteContext(summary.RunId, "run.json", JsonSerializer.SerializeToUtf8Bytes(summary, Protocol.Json));
+    internal void WriteMeasurements(Guid id, byte[] bytes) => WriteContext(id, "run-timings.json", bytes);
+    private void WriteContext(Guid id, string name, byte[] bytes)
     {
-        string directory = DirectoryFor(summary.RunId), temporary = Path.Combine(directory, ".status-" + Guid.NewGuid().ToString("N"));
+        string directory = DirectoryFor(id), temporary = Path.Combine(directory, ".context-" + Guid.NewGuid().ToString("N"));
         try
         {
-            WriteNewFile(temporary, JsonSerializer.SerializeToUtf8Bytes(summary, Protocol.Json));
-            File.Move(temporary, Path.Combine(directory, "run.json"), true);
+            WriteNewFile(temporary, bytes);
+            File.Move(temporary, Path.Combine(directory, name), true);
         }
         finally { File.Delete(temporary); }
     }
     internal void WriteNew(Guid id, string name, ReadOnlySpan<byte> bytes) => WriteNewFile(Path.Combine(DirectoryFor(id), name), bytes);
+    internal void PublishNew(Guid id, string name, ReadOnlySpan<byte> bytes)
+    {
+        string temporary = Path.Combine(DirectoryFor(id), ".publish-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            WriteNewFile(temporary, bytes); // Flush before the success filename becomes visible.
+            File.Move(temporary, Path.Combine(DirectoryFor(id), name), false);
+        }
+        finally { File.Delete(temporary); }
+    }
     private static void WriteNewFile(string path, ReadOnlySpan<byte> bytes)
     {
         using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read);

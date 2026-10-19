@@ -4,15 +4,17 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel
+public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel
 {
     public bool TrustedCodeEnabled => host.TrustedCodeEnabled;
     public string TimberFoldEvidenceDirectory => System.IO.Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "RevitThyme", "TimberFold", "inspections");
     public TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope)
+        => ExtractTimberFold(profile, scope, CancellationToken.None);
+    public TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope, CancellationToken cancellationToken)
     {
         var captured = Capture();
-        return NativeTimberExtraction.Extract(Document, captured.Target, profile, scope);
+        return NativeTimberExtraction.ExtractCancellable(Document, captured.Target, profile, scope, cancellationToken);
     }
     public OperationResult ExecuteCode(OperationRequest request) => NativeDynamicExecution.Run(app, this, request);
     private Document Document => app.ActiveUIDocument?.Document

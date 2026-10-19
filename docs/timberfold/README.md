@@ -1,6 +1,6 @@
 # TimberFold
 
-The C# feature is being implemented in seven verified slices. The current source supports exterior-shell inspection and retained cutting-layout previews through **RevitThyme → Fabrication → TimberFold**, CLI and MCP. Final DWG kits, native review documentation and four-building delivery qualification remain open; the preserved external implementation is still available.
+The C# feature is being implemented in seven verified slices. Installed exterior-shell inspection and retained cutting-layout previews are qualified through **RevitThyme → Fabrication → TimberFold**, CLI and MCP. The current source adds native DWG kit generation and review documentation; actual native-kit and four-building delivery qualification remain open. The preserved external implementation is still available.
 
 Open a project containing vertical basic exterior walls and planar roofs. Set the model scale and physical stock dimensions in inches, then choose **Inspect**. Review included/excluded source counts, phase/options, unsupported geometry and profile diagnostics. **Open files** gives the complete private source snapshot and diagnostic report when the window samples a larger inventory. Nominal settings do not establish physical fit. Inspection does not create model elements or cutting files and does not save the source.
 
@@ -8,6 +8,9 @@ Open a project containing vertical basic exterior walls and planar roofs. Set th
 rthyme timberfold inspect --session ABSOLUTE_SESSION_JSON --json
 rthyme timberfold inspect --session ABSOLUTE_SESSION_JSON --profile ABSOLUTE_PROFILE_JSON --scope ABSOLUTE_SCOPE_JSON --json
 rthyme timberfold preview --session ABSOLUTE_SESSION_JSON --run-id NEW_GUID --json
+rthyme timberfold generate --session ABSOLUTE_SESSION_JSON --preview-run-id PREVIEW_GUID --run-id NEW_GENERATION_GUID --json
+rthyme timberfold reconcile --session ABSOLUTE_SESSION_JSON --generation-run-id GENERATION_GUID --run-id NEW_RECOVERY_GUID --json
+rthyme timberfold verify --session ABSOLUTE_SESSION_JSON --run-id SAME_GUID --json
 rthyme timberfold status --session ABSOLUTE_SESSION_JSON --run-id SAME_GUID --json
 rthyme timberfold cancel --session ABSOLUTE_SESSION_JSON --run-id SAME_GUID --json
 ```
@@ -18,8 +21,20 @@ Choose **Preview** to capture the current source, fit nominal-thickness panels, 
 
 Keep the original run ID after a lost response. Poll status or recover the original write with `get_operation`; never issue a new ID for an uncertain request. Same-ID retries require identical source target and settings. Completed evidence survives host restart; interrupted runs remain unconfirmed and native work is never resumed automatically. Cancellation is cooperative; individual Autodesk calls cannot be forcibly interrupted. Closing the native window stops its polling without cancelling a run.
 
+New runs retain `producer.json` with product version, protocol, exact Core binary hash/module identity, available installed-package manifest hash and UTC creation time. Schema-2 preview/kit manifests cover that record with their file hashes; changed producer evidence invalidates verification. Legacy schema-1 completed evidence remains readable. Repeatability compares canonical geometry, layout, cutting and guide content; producer timestamps, native target context and native document/run identities remain provenance rather than canonical content.
+
+`run-timings.json` records live stage wall times, including queue/scheduling and file IO, with native extraction/finalization durations measured inside their API callbacks. Native durations overlap the stage wall times; do not add both groups. This is mutable execution metadata alongside `run.json`, separate from the immutable cutting/guide inventory. `timings.json` retains the computation/layout/cutting measurements covered by the final manifest.
+
 MCP also exposes `timberfold_preview(captureId, requestId, profile?, scope?)`, `timberfold_status(runId)` and `timberfold_cancel(runId)`. Status/cancel need no fresh capture and use separate process-bound control channels. Native work remains on Revit's callback; geometry, layout and file processing run in the background. Previous run folders are never overwritten.
 
-This source uses protocol 6; install matching host, CLI and MCP together after qualification. Older installed clients/hosts cannot acquire new operations by reconnecting.
+Generation uses the retained preview settings and its exact source target. It recomputes the kit, stages source-mapped SVG/reference guides, then creates annotation-only drafting views, native labels and sheets in one Undo group. CUT views export inch-unit DWGs and are independently read back before commit. The requested documentation intentionally modifies the unsaved document; building geometry and the saved source file remain protected. Generation never saves the source. `KitReady` reports digital verification with physical checks outstanding. An uncertain commit or publication remains `Unconfirmed`; preserve its run ID and inspect retained receipts before another write.
+
+Explicit verification rehashes the retained preview or kit evidence without modifying Revit. It checks the delivered files, rather than re-measuring a physical assembly or reconciling later manual model edits. A late cancellation cannot undo a confirmed native commit. Use Revit Undo for the complete documented kit.
+
+Choose **Reconcile** for an uncertain generation or a later check of an existing native kit. The CLI and MCP `timberfold_reconcile(captureId, requestId, generationRunId)` also accept the retained generation ID after reopening the window. Reconciliation uses a fresh current capture of the same process/session/document; a different active view is allowed. It checks the definitive commit receipt, sealed generation inputs, current native contours, labels, sheets and source geometry. It writes a separate recovery run and manifest, leaving the original run, files and timings unchanged. Missing commit evidence, changed inputs or an absent/edited native kit remain unconfirmed. It never recreates documentation or saves the model. Legacy kits without the new input seal cannot be republished automatically.
+
+Native reference views use a recorded 48× internal coordinate transform and a matching view scale to preserve small projected details in Revit. The `native-reference-inputs` folder contains these reference-only import derivatives. Original guide files and every cutting/calibration output retain physical-inch dimensions.
+
+This source uses protocol 8; install matching host, CLI and MCP together after qualification. Older installed clients/hosts cannot acquire new operations by reconnecting.
 
 Development references: [spec](spec.md), [preserved baseline](baseline.md), [library evaluation](geometry-libraries.md), [isolated native workflow](../DEVELOPMENT.md), and the original fixture builders under the test project. Actual new C# Revit qualification and physical fabrication must be reported separately from source/build tests.

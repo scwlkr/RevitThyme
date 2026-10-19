@@ -1,7 +1,7 @@
 namespace RevitThyme.Core;
 
 // Queue contains data only. The host drains it from ExternalEvent.Execute on Revit's thread.
-public sealed partial class OperationDispatcher : IOperationClient, ITimberCaptureQueue, IAsyncDisposable
+public sealed partial class OperationDispatcher : IOperationClient, ITimberCaptureQueue, ITimberFinalizationQueue, ITimberReconciliationQueue, IAsyncDisposable
 {
     private readonly TimberRunCoordinator? timberRuns;
     public OperationDispatcher(string? timberRunDirectory = null)
@@ -82,6 +82,8 @@ public sealed partial class OperationDispatcher : IOperationClient, ITimberCaptu
             catch (OperationCanceledException) { capture.Completion.TrySetCanceled(capture.Cancellation); }
             catch (Exception error) { capture.Completion.TrySetException(error); }
         }
+        if (pending is FinalizationPending finalization) ExecuteFinalization(model, finalization);
+        if (pending is ReconciliationPending reconciliation) ExecuteReconciliation(model, reconciliation);
     }
     public void RejectPending(string code, string message)
     {
@@ -89,6 +91,10 @@ public sealed partial class OperationDispatcher : IOperationClient, ITimberCaptu
             while (queue.TryDequeue(out var pending))
                 if (pending is Pending operation) operation.Completion.TrySetResult(OperationResult.Reject(operation.Request, code, message));
                 else if (pending is CapturePending capture) capture.Completion.TrySetException(new OperationException(code, message));
+                else if (pending is FinalizationPending finalization)
+                    finalization.Completion.TrySetResult(FinalizationRejected(finalization.Request, code, message));
+                else if (pending is ReconciliationPending reconciliation)
+                    reconciliation.Completion.TrySetException(new OperationException(code, message));
     }
     public void Stop()
     {

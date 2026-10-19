@@ -29,16 +29,35 @@ internal static class TimberFoldCliRuns
                 client.Requests is [{ Operation: OperationKind.Inspect }, var preview] &&
                 preview.Operation == OperationKind.PreviewTimberFold && preview.Id == runId && preview.Target == client.Snapshot.Target &&
                 preview.TimberFold is not null && preview.OperationId is null && preview.IsWrite);
-            foreach (var command in new[] { "status", "cancel" })
+            foreach (var command in new[] { "status", "cancel", "verify" })
             {
                 client.Requests.Clear(); output.GetStringBuilder().Clear();
                 exit = await RevitThyme.Cli.Program.RunAsync(["timberfold", command, "--run-id", runId.ToString(), "--session", session, "--json"], output, error, _ => client);
                 var reply = JsonSerializer.Deserialize<OperationResult>(output.ToString(), Protocol.Json)!;
                 check("CLI " + command + " uses the retained run without inspection or a capture", exit == 0 &&
                     client.Requests is [{ Target: null, TimberFold: null } query] && query.OperationId == runId && query.Id != runId &&
-                    query.Operation == (command == "status" ? OperationKind.GetTimberFoldRun : OperationKind.CancelTimberFoldRun) &&
+                    query.Operation == (command == "status" ? OperationKind.GetTimberFoldRun : command == "cancel" ?
+                        OperationKind.CancelTimberFoldRun : OperationKind.VerifyTimberFoldRun) &&
                     query.IsWrite == (command == "cancel") && reply.TimberRun?.RunId == runId && !reply.TimberRun.ManufacturingReady);
             }
+            client.Requests.Clear(); output.GetStringBuilder().Clear();
+            var generationId = Guid.Parse("d634def7-1932-47f0-8b70-c7c20146bd68");
+            try { exit = await RevitThyme.Cli.Program.RunAsync(["timberfold", "generate", "--preview-run-id", runId.ToString(),
+                "--run-id", generationId.ToString(), "--session", session, "--json"], output, error, _ => client); }
+            catch (ArgumentException) { exit = 2; }
+            check("CLI generation uses the retained preview target and distinct caller run ID without resending settings", exit == 0 &&
+                client.Requests is [{ Operation: OperationKind.GetTimberFoldRun, OperationId: var parent }, var generate] &&
+                parent == runId && generate.Operation == OperationKind.GenerateTimberFold && generate.Id == generationId &&
+                generate.OperationId == runId && generate.Target == client.Snapshot.Target && generate.TimberFold is null && generate.IsWrite);
+            client.Requests.Clear(); output.GetStringBuilder().Clear();
+            var recoveryId = Guid.Parse("c3872dc6-447f-41de-bad4-d1325a4864a3");
+            try { exit = await RevitThyme.Cli.Program.RunAsync(["timberfold", "reconcile", "--generation-run-id", generationId.ToString(),
+                "--run-id", recoveryId.ToString(), "--session", session, "--json"], output, error, _ => client); }
+            catch (ArgumentException) { exit = 2; }
+            check("CLI reconciliation captures the current target and keeps a distinct recovery and generation ID", exit == 0 &&
+                client.Requests is [{ Operation: OperationKind.Inspect }, var reconcile] && reconcile.Operation.ToString() == "ReconcileTimberFold" &&
+                reconcile.Id == recoveryId && reconcile.OperationId == generationId && reconcile.Target == client.Snapshot.Target &&
+                reconcile.TimberFold is null && reconcile.IsWrite);
             string profileFile = Path.Combine(directory, "profile.json"), scopeFile = Path.Combine(directory, "scope.json");
             try
             {
@@ -52,7 +71,13 @@ internal static class TimberFoldCliRuns
                     output.ToString().Contains(runId.ToString(), StringComparison.Ordinal) && output.ToString().Contains("Manufacturing readiness: false", StringComparison.Ordinal));
                 foreach (var invalid in new[] {
                     new[] { "preview", "--run-id", "bad" }, new[] { "status", "--run-id", Guid.Empty.ToString() },
-                    new[] { "cancel" }, new[] { "status", "--run-id", runId.ToString(), "--profile", profileFile } })
+                    new[] { "cancel" }, new[] { "status", "--run-id", runId.ToString(), "--profile", profileFile },
+                    new[] { "generate", "--run-id", runId.ToString() },
+                    new[] { "generate", "--run-id", runId.ToString(), "--preview-run-id", runId.ToString() },
+                    new[] { "reconcile", "--run-id", runId.ToString() },
+                    new[] { "reconcile", "--run-id", runId.ToString(), "--generation-run-id", runId.ToString() },
+                    new[] { "reconcile", "--run-id", runId.ToString(), "--generation-run-id", generationId.ToString(), "--profile", profileFile },
+                    new[] { "verify", "--run-id", runId.ToString(), "--scope", scopeFile } })
                 {
                     int calls = client.Requests.Count; bool rejected = false;
                     try { await RevitThyme.Cli.Program.RunAsync(["timberfold", .. invalid, "--session", session], output, error, _ => client); }

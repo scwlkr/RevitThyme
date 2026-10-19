@@ -8,6 +8,13 @@ public sealed record TimberFoldReply(TimberFoldProfile Profile, TimberInspection
 public interface ITimberFoldModel : IModel
 {
     TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope);
+    TimberSnapshot ExtractTimberFold(TimberFoldProfile profile, TimberScope? scope, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var snapshot = ExtractTimberFold(profile, scope);
+        cancellationToken.ThrowIfCancellationRequested();
+        return snapshot;
+    }
     string TimberFoldEvidenceDirectory { get; }
 }
 

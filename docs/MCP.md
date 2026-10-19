@@ -58,7 +58,7 @@ Keep the request GUID before submitting. On timeout, cancellation or disconnect,
 
 Files live under `%LOCALAPPDATA%\RevitThyme\view-images\SESSION_GUID\REQUEST_GUID`; a create-new ownership marker prevents overwriting a previous attempt. They contain private model imagery and remain until explicitly removed. Output files are not part of Revit Undo. `export_incomplete`/`export_unconfirmed` mean partial files or unverifiable completion, with no automatic regeneration. `image_artifact_unavailable` means the retained PNG is missing, unreadable or hash-changed: metadata is retained and no replacement export occurs. Exact replay is a completion receipt, not a new render or a new check of today's model. Capture and use a new GUID only when intentionally requesting a new image after resolving prior uncertainty.
 
-Native qualification and limits are recorded in [image-export verification](../verification/view-images.md). This candidate has not been released or installed over the normal working host.
+Native qualification and limits are recorded in [image-export verification](../verification/view-images.md). The signed candidate is installed locally and passed an external SDK run against normal Revit startup, with trusted code disabled. It remains unreleased; published v0.10.0 is unchanged.
 
 ## TimberFold kit runs
 

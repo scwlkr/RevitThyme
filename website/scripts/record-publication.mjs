@@ -4,11 +4,11 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { execFileSync } from 'node:child_process';
 import { root, origin } from './content.mjs';
-import { digest, validatePublication } from './publication.mjs';
+import { publicationFiles, validatePublication } from './publication.mjs';
 
 const { values } = parseArgs({
   options: Object.fromEntries(
-    ['build', 'source', 'site-source', 'site-version', 'approval'].map((key) => [
+    ['build', 'source', 'site-source', 'site-version', 'approval', 'output'].map((key) => [
       key,
       { type: 'string' },
     ]),
@@ -32,25 +32,7 @@ if (
   'commit'
 )
   throw new Error('--source must identify a locally available source commit');
-const files = {};
-function walk(dir) {
-  for (const entry of fs
-    .readdirSync(dir, { withFileTypes: true })
-    .sort((a, b) => a.name.localeCompare(b.name))) {
-    const file = path.join(dir, entry.name);
-    if (entry.isSymbolicLink()) throw new Error(`Symlinks are not publication files: ${file}`);
-    if (entry.isDirectory()) walk(file);
-    else if (entry.isFile()) {
-      const relative = path.relative(build, file).split(path.sep).join('/');
-      const url =
-        relative === '404.html'
-          ? '/404'
-          : `/${path.basename(file) === 'index.html' ? relative.slice(0, -10) : relative}`;
-      files[url] = digest(fs.readFileSync(file));
-    }
-  }
-}
-walk(build);
+const files = publicationFiles(build);
 const record = {
   schema: 1,
   origin,
@@ -62,7 +44,7 @@ const record = {
 };
 validatePublication(record);
 fs.writeFileSync(
-  path.join(root, '.github/website-publication.json'),
+  values.output ? path.resolve(values.output) : path.join(root, '.github/website-publication.json'),
   `${JSON.stringify(record, null, 2)}\n`,
 );
 console.log(

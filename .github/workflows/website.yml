@@ -27,6 +27,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run format:check
       - run: npm run test:publication
+      - run: npm run test:publish
       - run: npm run build
       - run: npm run check
       - name: Verify advertised public release on scheduled/default-branch reviews

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { parseArgs } from 'node:util';
 import { load } from 'cheerio';
 import { root } from './content.mjs';
 import {
@@ -11,7 +12,10 @@ import {
 } from './publication.mjs';
 
 const read = (name) => JSON.parse(fs.readFileSync(path.join(root, '.github', name), 'utf8'));
-const publication = read('website-publication.json');
+const { values } = parseArgs({ options: { publication: { type: 'string' } } });
+const publication = values.publication
+  ? JSON.parse(fs.readFileSync(path.resolve(values.publication), 'utf8'))
+  : read('website-publication.json');
 const settings = read('repository-presentation.json');
 validatePublication(publication);
 if (settings.repository !== 'scwlkr/RevitThyme') throw new Error('Unexpected repository');

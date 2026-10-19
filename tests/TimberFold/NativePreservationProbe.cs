@@ -15,7 +15,7 @@ public static class NativePreservationProbe
 {
     private const BindingFlags Hidden = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
     private sealed record ParameterRow(long Id, string Name, string Storage, bool HasValue, string? Value);
-    private sealed record Row(long Id, string UniqueId, string Type, string Name, long TypeId, string? Category, long OwnerViewId,
+    private sealed record Row(long Id, string UniqueId, string Type, string Name, long TypeId, string? Category, string? CategoryType, long OwnerViewId,
         bool ViewSpecific, Guid[] EntitySchemas, ParameterRow[] Parameters);
     private sealed record Change(string Operation, string[] Transactions, long[] Modified, long[] Deleted, long[] Added);
 
@@ -188,7 +188,7 @@ public static class NativePreservationProbe
         .Concat(new FilteredElementCollector(doc).WhereElementIsElementType().ToElementIds()).OrderBy(id => id.Value).Select(id =>
         {
             ct.ThrowIfCancellationRequested(); var e = doc.GetElement(id);
-            return new Row(id.Value, e.UniqueId, e.GetType().FullName!, e.Name, e.GetTypeId().Value, e.Category?.Name, e.OwnerViewId.Value,
+            return new Row(id.Value, e.UniqueId, e.GetType().FullName!, e.Name, e.GetTypeId().Value, e.Category?.Name, e.Category?.CategoryType.ToString(), e.OwnerViewId.Value,
                 e.ViewSpecific, e.GetEntitySchemaGuids().Order().ToArray(), e.Parameters.Cast<Parameter>().OrderBy(p => p.Id.Value)
                 .Select(p => new ParameterRow(p.Id.Value, p.Definition.Name, p.StorageType.ToString(), p.HasValue, p.StorageType switch
                 {

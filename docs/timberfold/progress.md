@@ -25,7 +25,7 @@ The active goal is [the complete C# feature spec](spec.md), tracked in [Deliver 
 
 ## Implementation slices
 
-Native continuation resumed after a later journal showed valid licensing and normal startup. The pinned protocol-8 gable run reached documentation/readback, then safely rolled back because a CAD-created `Material` was incorrectly counted as new source geometry. A native public-extraction regression reproduces that issue and preserves the unowned-import blocking gate. The narrow material-metadata correction is undergoing candidate qualification; complete native acceptance remains outstanding.
+Native continuation resumed after a later journal showed valid licensing and normal startup. Protocol-8 gable generation reached documentation/readback, then safely rolled back because CAD material metadata and native sheets were counted as source geometry. A complete native documentation inventory isolated these classifications; the public-extraction regression distinguishes both from an unowned import, which must still block. The metadata/view correction is undergoing candidate qualification; complete native acceptance remains outstanding.
 
 The current full repository check passes 451 Unit, 68 MCP, 13 Agent, 6 WPF behavior and 46 development-safety checks with zero build warnings/errors. All four original managed output controls pass. Focused Standards/Spec reviews found and resolved completed-kit reconciliation, coordinator storage-lock responsiveness, ownership-tag content binding and ownership-scan cancellation issues. Actual native generation, recovery, Undo, full-output performance and complete-feature installation acceptance remain outstanding.
 

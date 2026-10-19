@@ -27,10 +27,10 @@ public static class NativeTimberExtraction
         using var options = new Options { DetailLevel = ViewDetailLevel.Fine, ComputeReferences = true, IncludeNonVisibleObjects = false };
         using var collector = new FilteredElementCollector(doc).WhereElementIsNotElementType();
         var documentedAnnotationIds = NativeTimberKitOwnership.VerifiedAnnotationIds(doc, cancellationToken);
-        // Revit marks Material metadata as model-category elements, including
-        // render materials created by view-only CAD import. They carry no source
-        // geometry; the independent preservation catalog still audits them all.
-        var elements = collector.Where(e => e is not Material && e.Category?.CategoryType == CategoryType.Model && !documentedAnnotationIds.Contains(e.Id.Value))
+        // Revit marks Material metadata and sheets as model-category elements.
+        // Views reference the separately enumerated building; neither is source
+        // geometry. The independent preservation catalog still audits them all.
+        var elements = collector.Where(e => e is not (Material or View) && e.Category?.CategoryType == CategoryType.Model && !documentedAnnotationIds.Contains(e.Id.Value))
             .OrderBy(e => e.Id.Value).ToArray();
         foreach (var element in elements)
         {

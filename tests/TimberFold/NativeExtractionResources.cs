@@ -46,6 +46,13 @@ public static class NativeExtractionResources
             before.GetProperty("documentFingerprint").GetString() == afterMaterial.GetProperty("documentFingerprint").GetString() &&
             before.GetProperty("faces").GetRawText() == afterMaterial.GetProperty("faces").GetRawText() &&
             before.GetProperty("openings").GetRawText() == afterMaterial.GetProperty("openings").GetRawText();
+        var sheet = ViewSheet.Create(doc, ElementId.InvalidElementId);
+        doc.Regenerate();
+        var afterSheet = Capture();
+        bool sheetIsDocumentation = Sources(before).SequenceEqual(Sources(afterSheet)) &&
+            before.GetProperty("documentFingerprint").GetString() == afterSheet.GetProperty("documentFingerprint").GetString() &&
+            before.GetProperty("faces").GetRawText() == afterSheet.GetProperty("faces").GetRawText() &&
+            before.GetProperty("openings").GetRawText() == afterSheet.GetProperty("openings").GetRawText();
         var cutPath = Path.Combine(retainedGeneration, "cutting", "CUT-001.dxf");
         using var stage = JsonDocument.Parse(File.ReadAllBytes(Path.Combine(retainedGeneration, "cutting", "cut-staging.json")));
         var cut = Get(stage.RootElement, "files").EnumerateArray().Single(f => Get(f, "name").GetString() == "CUT-001.dxf");
@@ -64,11 +71,13 @@ public static class NativeExtractionResources
             .Any(d => d.GetProperty("sourceId").GetString() == importIdentity && d.GetProperty("code").GetString() == "unsupported_architecture");
         return new
         {
-            passed = materialIsMetadata && unknownImportBlocks && doc.ActiveView.Id.Value == viewId &&
+            passed = materialIsMetadata && sheetIsDocumentation && unknownImportBlocks && doc.ActiveView.Id.Value == viewId &&
                 savedHash == Hash(doc.PathName),
-            materialIsMetadata, unknownImportBlocks, materialId = material.Id.Value, importId = importId.Value,
+            materialIsMetadata, sheetIsDocumentation, unknownImportBlocks, materialId = material.Id.Value, sheetId = sheet.Id.Value, importId = importId.Value,
             beforeSources = Sources(before).Length, afterMaterialSources = Sources(afterMaterial).Length,
+            afterSheetSources = Sources(afterSheet).Length,
             addedMaterialSourceIds = Sources(afterMaterial).Except(Sources(before)).ToArray(),
+            addedSheetSourceIds = Sources(afterSheet).Except(Sources(afterMaterial)).ToArray(),
             callerMustVerifyQueryRollback = true, installedAddin = addin.Location,
             installedAddinSha256 = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(addin.Location)))
         };

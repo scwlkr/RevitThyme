@@ -54,6 +54,8 @@ public sealed partial class RevitModel
     }
     private static void AssertLocalFile(string path)
     {
+        if (new DriveInfo(Path.GetPathRoot(path)!).DriveType != DriveType.Fixed)
+            throw new OperationException("unsupported_path", "Use a local fixed-drive RVT; mapped network and removable drives are outside this scope.");
         if (!File.Exists(path)) throw new OperationException("file_missing", "The explicit local RVT does not exist.");
         for (string? current = path; current is not null; current = Path.GetDirectoryName(current))
             if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)

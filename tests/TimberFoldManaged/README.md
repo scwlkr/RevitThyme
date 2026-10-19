@@ -2,13 +2,15 @@
 
 From `C:\Revit\RevitThyme`, run the verifier with an explicit installed directory,
 the retained signed package directory, its independently recorded manifest SHA256,
-and a fresh evidence directory. This example pins candidate `74f6807`:
+and a fresh evidence directory. This example pins source candidate
+`0fffdf8397da507c10911e77a6fb1bb81120b4e1`, version `0.10.0-timberfold.4`, protocol 8.
+Set the package path to the separately retained signed package:
 
 ```powershell
 pwsh -NoProfile -File .\scripts\qualify-timberfold-managed-package.ps1 `
-  -InstalledDirectory "$env:LOCALAPPDATA\RevitThyme\foundation\26830c349927d5c3366d846a9a4c4a2c174722c11596412594878f82656fee2f" `
-  -PackageDirectory 'C:\Revit\RevitThyme\packages\RevitThyme-0.10.0-timberfold.4-30d356a94ebc49298f1af1c692865d06' `
-  -ExpectedManifestSha256 '26830C349927D5C3366D846A9A4C4A2C174722C11596412594878F82656FEE2F' `
+  -InstalledDirectory "$env:LOCALAPPDATA\RevitThyme\foundation\ae21953451541c57ee55b28202d00de94a761314c57dd446724e6c4803df91c5" `
+  -PackageDirectory 'ABSOLUTE_RETAINED_PACKAGE_DIRECTORY' `
+  -ExpectedManifestSha256 'AE21953451541C57EE55B28202D00DE94A761314C57DD446724E6C4803DF91C5' `
   -Destination "C:\Revit\RevitThyme\artifacts\timberfold\managed-package-$([Guid]::NewGuid().ToString('N'))"
 ```
 
@@ -20,7 +22,9 @@ The launcher also requires valid matching Core Authenticode publishers. The
 expected manifest hash must come from retained candidate evidence, rather than
 being inferred from the directory being tested.
 
-The public `TimberFabrication.Fit` → stock → DXF staging/readback → guides seam runs
+The final candidate passes both replay passes with 36 identical canonical files,
+all 89 payload files validated before/after, and all 12 command-lookup probes
+confirmed absent. The public `TimberFabrication.Fit` → stock → DXF staging/readback → guides seam runs
 twice for four immutable, original procedural captures. Literal expected panel and
 opening counts are gable 6/3, irregular 10/4, multistorey 10/5 and flat 18/7. Source
 identities, mappings and input hashes must survive. An independent BCL comparator
@@ -52,7 +56,7 @@ and seven TimberFold controls:
 
 ```powershell
 dotnet run --project tests/Mcp -c Release -- --packaged-stdio `
-  "$env:LOCALAPPDATA\RevitThyme\foundation\26830c349927d5c3366d846a9a4c4a2c174722c11596412594878f82656fee2f" `
-  '26830C349927D5C3366D846A9A4C4A2C174722C11596412594878F82656FEE2F' `
+  "$env:LOCALAPPDATA\RevitThyme\foundation\ae21953451541c57ee55b28202d00de94a761314c57dd446724e6c4803df91c5" `
+  'AE21953451541C57EE55B28202D00DE94A761314C57DD446724E6C4803DF91C5' `
   "C:\Revit\RevitThyme\artifacts\timberfold\packaged-mcp-$([Guid]::NewGuid().ToString('N'))"
 ```

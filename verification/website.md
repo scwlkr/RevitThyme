@@ -30,6 +30,8 @@ Patched transitive overrides remove the reported `tinypool`, serialization, sele
 
 ## Preservation and remaining gates
 
+The owner rejected the first visual pass as too wordy and promotional. The revision restores the supplied wordmark, removes the slogan/showcase layout and uses a short tool index. A homepage word budget and original-logo check now enforce those constraints. Documentation generation, search and source-contract checks remain in place.
+
 No model, Revit process, installed add-in, global agent configuration or production hosting was changed. No credentials were added. Website CI is prepared locally; hosted CI has not run before publication/branch landing. Additional Revit versions, publisher signing and another-machine native compatibility remain separate product qualification work.
 
 The source/local audit is complete. Owner review still controls production deployment, repository landing and the staged GitHub presentation settings.

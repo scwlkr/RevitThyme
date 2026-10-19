@@ -213,6 +213,23 @@ for (const doc of index) {
 }
 const home = cache.get(path.join(build, 'index.html'));
 const download = cache.get(path.join(build, 'download/index.html'));
+const homeCopy = home('main').clone();
+homeCopy.find('.install-command').remove();
+const homeWords = homeCopy.text().trim().split(/\s+/).filter(Boolean).length;
+requireThat(
+  homeWords <= 100,
+  `Homepage has ${homeWords} words; keep explanations in the docs (100-word limit)`,
+);
+requireThat(
+  home('.navbar__logo img').attr('src') === '/generated/branding/revitthyme-logo.svg',
+  'Use the original supplied RevitThyme wordmark',
+);
+requireThat(
+  fs
+    .readFileSync(path.join(build, 'generated/branding/revitthyme-logo.svg'))
+    .equals(fs.readFileSync(path.join(root, 'assets/branding/revitthyme-logo.svg'))),
+  'Published wordmark differs from the original',
+);
 requireThat(home.text().includes(metadata.tag), 'Homepage version differs from source');
 requireThat(
   download.text().includes(metadata.version),

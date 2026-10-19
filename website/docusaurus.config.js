@@ -3,11 +3,11 @@ const { themes } = require('prism-react-renderer');
 /** @type {import('@docusaurus/types').Config} */
 module.exports = {
   title: 'RevitThyme',
-  tagline: 'Native Revit tools. Open to more.',
+  tagline: 'Native tools for Revit',
   url: 'https://revitthyme.wlkrlabs.com',
   baseUrl: '/',
   trailingSlash: true,
-  favicon: 'img/favicon.svg',
+  favicon: 'generated/favicon.svg',
   organizationName: 'scwlkr',
   projectName: 'RevitThyme',
   onBrokenLinks: 'throw',
@@ -56,40 +56,24 @@ module.exports = {
     metadata: [{ name: 'theme-color', content: '#174445' }],
     colorMode: { defaultMode: 'light', respectPrefersColorScheme: true },
     navbar: {
-      title: 'RevitThyme',
-      logo: { alt: '', src: 'img/favicon.svg', width: 30, height: 30 },
+      logo: {
+        alt: 'RevitThyme',
+        src: 'generated/branding/revitthyme-logo.svg',
+        srcDark: 'generated/branding/revitthyme-logo-dark.svg',
+        width: 150,
+        height: 45,
+      },
       items: [
-        { to: '/docs/features/', label: 'Features', position: 'left' },
-        { type: 'docSidebar', sidebarId: 'docs', label: 'Documentation', position: 'left' },
+        { type: 'docSidebar', sidebarId: 'docs', label: 'Docs', position: 'left' },
         { to: '/docs/contributing/', label: 'Contribute', position: 'left' },
-        { href: 'https://github.com/scwlkr/RevitThyme', label: 'GitHub ↗', position: 'right' },
-        { to: '/download/', label: 'Download', position: 'right', className: 'nav-download' },
+        { href: 'https://github.com/scwlkr/RevitThyme', label: 'GitHub', position: 'left' },
       ],
     },
     footer: {
-      style: 'dark',
       links: [
         {
-          title: 'Use RevitThyme',
           items: [
-            { label: 'Install', to: '/download/' },
-            { label: 'First steps', to: '/docs/quick-start/' },
-            { label: 'Troubleshooting', to: '/docs/troubleshooting/' },
-          ],
-        },
-        {
-          title: 'Build with it',
-          items: [
-            { label: 'Contributing', to: '/docs/contributing/' },
-            { label: 'MCP reference', to: '/docs/mcp/' },
-            { label: 'Architecture', to: '/docs/architecture/' },
-          ],
-        },
-        {
-          title: 'Open source',
-          items: [
-            { label: 'Source on GitHub', href: 'https://github.com/scwlkr/RevitThyme' },
-            { label: 'Changelog', to: '/docs/changelog/' },
+            { label: 'Releases', to: '/docs/changelog/' },
             { label: 'Security', to: '/docs/security/' },
             {
               label: 'GPL-3.0-or-later',
@@ -98,8 +82,7 @@ module.exports = {
           ],
         },
       ],
-      copyright:
-        'RevitThyme · A WLKR LABS project. Independent software; not affiliated with or endorsed by Autodesk.',
+      copyright: 'RevitThyme · WLKR LABS',
     },
     prism: {
       theme: themes.github,

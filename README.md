@@ -2,9 +2,7 @@
 
 ![RevitThyme](assets/branding/revitthyme-logo.svg)
 
-**Native Revit tools. Open to more.**
-
-Practical tools for everyday BIM work, with a shared C# operation layer for the ribbon, command line and agents. Native tools work without an AI account; connect through MCP or the optional docked Agent when you want to automate.
+Open-source C# tools for Revit 2027. Use View Range and Room Dimensions from the ribbon, or shared operations through the CLI and MCP. The optional docked Agent uses Codex; native tools need no AI account.
 
 [![Toolkit checks](https://github.com/scwlkr/RevitThyme/actions/workflows/ci.yml/badge.svg)](https://github.com/scwlkr/RevitThyme/actions/workflows/ci.yml)
 [![Documentation checks](https://github.com/scwlkr/RevitThyme/actions/workflows/website.yml/badge.svg)](https://github.com/scwlkr/RevitThyme/actions/workflows/website.yml)

@@ -20,7 +20,9 @@ const known = new Set(files);
 const generated = path.join(website, '.generated/docs');
 const index = [];
 const metadata = product();
-const social = new Resvg(fs.readFileSync(path.join(website, 'static/img/social-card.svg')), {
+const logo = fs.readFileSync(path.join(root, 'assets/branding/revitthyme-logo.svg'), 'utf8');
+const socialSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#ffffff"/><g transform="translate(80 150) scale(10)">${logo}</g><text x="80" y="470" font-size="32" fill="#174445" font-family="Arial">Native tools for Revit 2027</text></svg>`;
+const social = new Resvg(socialSvg, {
   font: { loadSystemFonts: true, defaultFontFamily: 'Arial' },
 });
 mkdirWrite(path.join(website, 'static/img/social-card.png'), social.render().asPng());
@@ -64,6 +66,23 @@ fs.cpSync(path.join(root, 'docs/images'), path.join(website, 'static/generated/i
 fs.cpSync(path.join(root, 'assets/branding'), path.join(website, 'static/generated/branding'), {
   recursive: true,
 });
+const darkColors = {
+  '#0E3538': '#d3e3dc',
+  '#174445': '#d3e3dc',
+  '#255E5B': '#a4c5b7',
+  '#306F66': '#a4c5b7',
+  '#4F7C4D': '#a0bd8c',
+};
+mkdirWrite(
+  path.join(website, 'static/generated/branding/revitthyme-logo-dark.svg'),
+  logo.replace(/#[0-9A-F]{6}/g, (color) => darkColors[color] ?? color),
+);
+mkdirWrite(
+  path.join(website, 'static/generated/favicon.svg'),
+  logo
+    .replace(/viewBox="[^"]+"/, 'viewBox="1.45 28.41 24 23.1"')
+    .replace(/width="[^"]+" height="[^"]+"/, 'width="32" height="32"'),
+);
 mkdirWrite(
   path.join(website, 'static/llms.txt'),
   `# RevitThyme\n\n> Open-source native Revit 2027 toolkit. C#/.NET, WPF, CLI and ${metadata.toolCount}-tool MCP. Release ${metadata.tag}. Pre-1.0; GPL-3.0-or-later.\n\nNative tools do not require AI. Trusted C# is opt-in and not sandboxed. Read session targeting and recovery before writes.\n\n## Documentation\n\n${index.map((doc) => `- [${doc.title}](${origin}${doc.route}): ${doc.file}`).join('\n')}\n\n## Full text\n\n- [Complete documentation](${origin}/llms-full.txt)\n- [Source](${repository})\n`,

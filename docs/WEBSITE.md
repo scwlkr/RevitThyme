@@ -2,6 +2,10 @@
 
 The website is a Docusaurus application in `website/`. It builds static files and has no separate editorial database. Root Markdown, `docs/` and `verification/` are canonical sources for GitHub, the website and agent indexes.
 
+## Presentation
+
+Use the supplied `assets/branding/revitthyme-logo.svg` wordmark. Keep the homepage under 100 words of main text, excluding the install command. State what the software does, provide installation and source links, and show native UI where useful. Put explanations in the docs. Use normal headings, links and compact tables; avoid slogans, promotional sections and decorative product drawings. Dark artwork is a palette variant of the original, not a separate logo.
+
 ## Run locally
 
 Use Node.js 22+ (24 in CI) and npm:

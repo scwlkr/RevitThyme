@@ -70,7 +70,7 @@ internal static class UiLifecycleLive
             var context = await Context();
             Program.Check("native Home context has valid capture and no invented document/view", context.Id.Length > 0 && !context.Snapshot.HasDocument && context.Snapshot.Target.ViewId == "" && context.Snapshot.DocumentPath == "" && !context.Snapshot.CanModify);
             Program.Check("native Home fixture hashes and source intact", Hash(a) == original && Hash(b) == original && Hash(source) == original);
-            Program.Check("native server advertises 31 typed tools", (await client.ListToolsAsync()).Count == 31);
+            Program.Check("native server advertises 32 typed tools", (await client.ListToolsAsync()).Count == 32);
             await Call("list_views", new() { ["captureId"] = context.Id }, "no_document");
             var openedA = await Lost("open_document", (cap, id) => Args(cap, a, hash: original, id: id), "document_opened"); string aid = Doc(openedA).DocumentId;
             context = await Context(); Program.Check("Home background open does not implicitly activate", !context.Snapshot.HasDocument && !Doc(openedA).IsActive && Hash(a) == original);

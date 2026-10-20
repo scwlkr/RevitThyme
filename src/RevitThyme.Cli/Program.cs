@@ -26,6 +26,7 @@ public static class Program
                 revitthyme update install [--version VERSION]
                 revitthyme sessions [--directory ABSOLUTE_PATH] [--json]
                 revitthyme inspect --session ABSOLUTE_FILE [--json]
+                revitthyme list-documents --session ABSOLUTE_FILE [--capture PREVIOUS_RESULT --offset OFFSET] [--limit 50] [--request-id GUID] --json
                 revitthyme inspect-elements --session ABSOLUTE_FILE --element UNIQUE_ID [--capture PREVIOUS_RESULT --parameter-offset OFFSET] [--json]
                 revitthyme rename-view --session ABSOLUTE_FILE --capture ABSOLUTE_FILE --name NAME [--json]
                 revitthyme view-range get --session ABSOLUTE_FILE --json
@@ -59,6 +60,7 @@ public static class Program
         string[] allowed = command switch
         {
             "sessions" => ["--directory", "--json"], "inspect" => ["--session", "--json"],
+            "list-documents" => ["--session", "--capture", "--offset", "--limit", "--request-id", "--json"],
             "inspect-elements" => ["--session", "--element", "--capture", "--parameter-offset", "--json"],
             "rename-view" => ["--session", "--capture", "--name", "--json"],
             "view-range-get" => ["--session", "--json"],
@@ -85,6 +87,36 @@ public static class Program
         var client = clientFactory?.Invoke(binding) ?? new PipeClient(binding);
         OperationRequest request;
         if (command == "inspect") request = new(Guid.NewGuid(), OperationKind.Inspect);
+        else if (command == "list-documents")
+        {
+            if (!int.TryParse(options.GetValueOrDefault("--offset") ?? "0", NumberStyles.Integer, CultureInfo.InvariantCulture, out int offset)
+                || offset is < 0 or > 4096
+                || !int.TryParse(options.GetValueOrDefault("--limit") ?? "50", NumberStyles.Integer, CultureInfo.InvariantCulture, out int limit)
+                || limit is < 1 or > 100)
+                throw new ArgumentException("Use offset 0–4096 and limit 1–100.");
+            Guid id = Guid.NewGuid();
+            if (options.TryGetValue("--request-id", out var suppliedId) && (!Guid.TryParse(suppliedId, out id) || id == Guid.Empty))
+                throw new ArgumentException("request-id must be a non-empty GUID.");
+            OperationResult context;
+            if (options.ContainsKey("--capture")) context = ReadCapture(Required(options, "--capture"), binding);
+            else
+            {
+                if (offset != 0) throw new ArgumentException("Use --capture with the previous document page to continue.");
+                context = await client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect));
+            }
+            if (!context.Succeeded)
+            {
+                await output.WriteLineAsync(JsonSerializer.Serialize(context, Protocol.Json));
+                await error.WriteLineAsync(context.Message); return 1;
+            }
+            var page = context.Documents;
+            if (offset > 0 && (page is null || page.NextOffset != offset))
+                throw new ArgumentException("Continuation requires the previous document page and its exact nextOffset.");
+            if (page is not null && (page.InventoryToken is not { Length: 64 } token || !token.All(Uri.IsHexDigit)))
+                throw new ArgumentException("Document page capture must contain a valid inventoryToken.");
+            request = new(id, OperationKind.ListDocuments, context.Snapshot!.Target,
+                DocumentQuery: new(offset, limit, page?.InventoryToken));
+        }
         else if (command == "inspect-elements")
         {
             int offset = int.Parse(options.GetValueOrDefault("--parameter-offset") ?? "0", CultureInfo.InvariantCulture);
@@ -131,6 +163,8 @@ public static class Program
                 await output.WriteLineAsync($"{s.DocumentTitle} / {s.ViewName} ({s.ViewType}, view {s.ViewElementId.ToString(CultureInfo.InvariantCulture)})");
             if (result.Details is { } details)
                 await output.WriteLineAsync(JsonSerializer.Serialize(details, Protocol.Json));
+            if (result.Documents is { } documents)
+                await output.WriteLineAsync(JsonSerializer.Serialize(documents, Protocol.Json));
         }
         if (!result.Succeeded) { await error.WriteLineAsync(result.Message); return 1; }
         return 0;

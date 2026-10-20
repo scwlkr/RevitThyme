@@ -4,7 +4,7 @@ The local stdio MCP server gives external clients structured access to shared na
 
 Version 0.10.0 exposes 25 tools, including seven TimberFold controls, through protocol 8. Install matching add-in, CLI and MCP binaries together. The qualified package is `0.10.0-timberfold.4`.
 
-The unreleased source candidate `0.10.0-lifecycle.3` provides 31 tools, including Home-aware document open/activate, explicit save, clean close with explicit active-document handoff, exact view/sheet activation and [`export_view_image`](MCP.md#exact-view-and-sheet-images-unreleased), and uses protocol 12. Active close requires a different already-open clean document selected explicitly; last-document close to Home is refused. It returns a verified inline native view/sheet PNG and retained completion metadata. Published v0.10.0 does not contain these operations. Keep candidate testing separate from the installed working host; do not mix protocol versions.
+The unreleased source candidate `0.10.0-lifecycle.4` provides 32 tools, including read-only session document discovery at Home, Home-aware document open/activate, explicit save, clean close with explicit active-document handoff, exact view/sheet activation and [`export_view_image`](MCP.md#exact-view-and-sheet-images-unreleased), and uses protocol 13. Active close requires a different already-open clean document selected explicitly; last-document close to Home is refused. It returns a verified inline native view/sheet PNG and retained completion metadata. Published v0.10.0 does not contain these operations. Keep candidate testing separate from the installed working host; do not mix protocol versions.
 
 ## Choose a route
 

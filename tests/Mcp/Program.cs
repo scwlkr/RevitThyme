@@ -23,6 +23,7 @@ internal static class Program
             else if (args is ["--ui-lifecycle-live", var uiLifecycleFolder]) await UiLifecycleLive.Run(uiLifecycleFolder);
             else if (args is ["--active-close-live", var closeFolder]) await ActiveCloseLive.Run(closeFolder);
             else if (args is ["--modal-recovery-live", var modalFolder]) await ModalRecoveryLive.Run(modalFolder);
+            else if (args is ["--documents-live", var documentsFolder]) await DocumentDiscoveryLive.Run(documentsFolder);
             else if (args is ["--close-cancellation-baseline", var baselineFolder]) await ActiveCloseLive.Run(baselineFolder, true);
             else if (args is ["--lifecycle-reopened", var lifecycleReopened]) await DocumentLifecycleLive.Run(lifecycleReopened, true);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
@@ -93,7 +94,12 @@ internal static class Program
     {
         await using var client = await Client(directory: Path.Combine(Path.GetTempPath(), "absent-" + Guid.NewGuid()));
         var tools = await client.ListToolsAsync();
-        Check("official SDK stdio initialization and 31-tool discovery", tools.Count == 31);
+        Check("official SDK stdio initialization and 32-tool discovery", tools.Count == 32);
+        var documentsTool = tools.Single(t => t.Name == "list_documents");
+        Check("document discovery exposes retained read and stable continuation without lifecycle flags", documentsTool.ProtocolTool.Annotations is { ReadOnlyHint: true, IdempotentHint: true }
+            && documentsTool.JsonSchema.ToString().Contains("requestId", StringComparison.Ordinal)
+            && documentsTool.JsonSchema.ToString().Contains("inventoryToken", StringComparison.Ordinal)
+            && !documentsTool.JsonSchema.ToString().Contains("expectedSha256", StringComparison.Ordinal));
         Check("image export exposes bounded captured idempotent file operation", tools.Single(t => t.Name == "export_view_image").ProtocolTool.Annotations is { ReadOnlyHint: false, DestructiveHint: false, IdempotentHint: true }
             && tools.Single(t => t.Name == "export_view_image").JsonSchema.ToString().Contains("viewId", StringComparison.Ordinal));
         var reconcileTool = tools.Single(t => t.Name == "timberfold_reconcile");

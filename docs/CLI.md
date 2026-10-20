@@ -26,6 +26,17 @@ rthyme inspect --session $session --json
 
 Captures contain private model paths and metadata. Model events invalidate them; reopening creates a new document identity.
 
+## Discover open documents (unreleased)
+
+The `0.10.0-lifecycle.4` candidate adds a read-only command, including at Home. Install matching protocol-13 binaries first:
+
+```powershell
+rthyme list-documents --session $session --limit 1 --request-id CALLER_GUID --json > C:\Test\documents.json
+rthyme list-documents --session $session --capture C:\Test\documents.json --offset NEXT_OFFSET --limit 1 --json
+```
+
+Use each page's exact `nextOffset`; its captured target and inventory token must still agree with native state. Open/close or metadata changes require a new capture and first page. A returned ID identifies an already-open document; listing does not activate or authorize editing it. Flags include dirty, active, family, linked, workshared, read-only and saved-path state. No file is hashed or saved. Supplying `--request-id` lets callers retain the original read identity for recovery; recovered pages describe the original point in time. Keep captures private.
+
 ## Inspect parameters
 
 ```powershell
@@ -41,6 +52,7 @@ Replace 20 with the actual returned `nextParameterOffset`; stop at null. Paramet
 | --- | --- |
 | `sessions` | Discover bindings; optional `--directory ABSOLUTE_PATH` |
 | `inspect` | Read document/view context, optionally to a JSON capture |
+| `list-documents` | Read visible session document IDs/flags; continue with exact `--capture PREVIOUS_RESULT --offset NEXT_OFFSET` |
 | `inspect-elements` | Read paged parameters for `--element UNIQUE_ID` |
 | `rename-view` | Rename the exact view using `--capture ABSOLUTE_FILE` and `--name NAME` |
 | `view-range get` | Read all four planes into JSON |

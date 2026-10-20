@@ -25,6 +25,7 @@ internal static class Program
             else if (args is ["--modal-recovery-live", var modalFolder]) await ModalRecoveryLive.Run(modalFolder);
             else if (args is ["--documents-live", var documentsFolder]) await DocumentDiscoveryLive.Run(documentsFolder);
             else if (args is ["--document-scope-live", var scopeFolder]) await DocumentDiscoveryScopeLive.Run(scopeFolder);
+            else if (args is ["--restricted-documents-live", var restrictedFolder]) await RestrictedDocumentsLive.Run(restrictedFolder);
             else if (args is ["--close-cancellation-baseline", var baselineFolder]) await ActiveCloseLive.Run(baselineFolder, true);
             else if (args is ["--lifecycle-reopened", var lifecycleReopened]) await DocumentLifecycleLive.Run(lifecycleReopened, true);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);

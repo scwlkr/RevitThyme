@@ -23,9 +23,10 @@ public sealed partial class RevitTools
         Safe(() => Run(captureId, new(Id(requestId), OperationKind.SaveDocument, DocumentLifecycle: new(path, documentId, expectedSha256)), cancellationToken));
 
     [McpServerTool(Name = "close_document", ReadOnly = false, Destructive = false, Idempotent = true),
-        Description("Close exactly one clean BACKGROUND nonworkshared local project by native documentId, canonical path and expected disk hash. Requires fresh get_context capture, including at Home for a background document. Refuses dirty documents; no implicit save or discard. Active documents return close_blocked before side effects; explicitly activate another open document first. Recover original requestId through get_operation, without submitting the close again. No automatic fallback document close.")]
-    public Task<CallToolResult> CloseDocument(string captureId, string requestId, string documentId, string path, string expectedSha256, CancellationToken cancellationToken = default) =>
-        Safe(() => Run(captureId, new(Id(requestId), OperationKind.CloseDocument, DocumentLifecycle: new(path, documentId, expectedSha256)), cancellationToken));
+        Description("Close one exact clean nonworkshared local project by documentId/path/expectedSha256. Background close preserves the active context, including Home. To close the captured active document, supply activateBeforeClose with a DIFFERENT already-open clean document's documentId/path/expectedSha256. Synchronously activates that exact document then directly closes the target; no posted native command, implicit open/save/discard or fallback. Last-active close to Home is unsupported. Partial activation/cancelled close is Unconfirmed; inspect and recover the original requestId without resubmission.")]
+    public Task<CallToolResult> CloseDocument(string captureId, string requestId, string documentId, string path, string expectedSha256,
+        CloseActivationTarget? activateBeforeClose = null, CancellationToken cancellationToken = default) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.CloseDocument, DocumentLifecycle: new(path, documentId, expectedSha256, activateBeforeClose)), cancellationToken));
 
     [McpServerTool(Name = "activate_view", ReadOnly = false, Destructive = false, Idempotent = true),
         Description("Switch to one explicit printable non-template native view/sheet UniqueId in the captured active nonworkshared document. Requires fresh capture and request GUID. No model transaction, save or fallback to another document; verifies exact active view and unchanged modified state. Refresh context afterwards. Recover original requestId after interruption.")]

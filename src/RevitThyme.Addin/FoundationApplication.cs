@@ -65,6 +65,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
                 JsonSerializer.Serialize(file, Binding, Protocol.Json);
             app.ControlledApplication.DocumentChanged += Changed;
             app.ControlledApplication.DocumentClosing += Closing;
+            app.ControlledApplication.DocumentClosed += Closed;
             app.ViewActivated += Activated; app.Idling += Idle;
             AgentPanel = new(Operations, () => AgentConfiguration());
             app.RegisterDockablePane(AgentPane.Id, "RevitThyme Agent", new AgentPane(AgentPanel));
@@ -135,9 +136,16 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private void Changed(object? sender, DocumentChangedEventArgs e) => Revision++;
     private void Closing(object? sender, DocumentClosingEventArgs e)
     {
-        if (fixtureDocumentId is not null && fixturePath is not null
-            && string.Equals(fixturePath, e.Document.PathName, StringComparison.OrdinalIgnoreCase)) fixtureClosed = true;
-        documents.Remove(e.Document); Revision++;
+        Revision++;
+    }
+    private void Closed(object? sender, DocumentClosedEventArgs e)
+    {
+        // DocumentClosing can be cancelled by another add-in. Retire only objects actually closed.
+        foreach (var document in documents.Keys.Where(d => !d.IsValidObject).ToArray())
+        {
+            if (documents[document] == fixtureDocumentId) fixtureClosed = true;
+            documents.Remove(document);
+        }
     }
     private void Activated(object? sender, ViewActivatedEventArgs e) => Revision++;
     private void Idle(object? sender, IdlingEventArgs e)
@@ -158,6 +166,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     {
         app.ControlledApplication.DocumentChanged -= Changed;
         app.ControlledApplication.DocumentClosing -= Closing;
+        app.ControlledApplication.DocumentClosed -= Closed;
         app.ViewActivated -= Activated; app.Idling -= Idle;
         Stop(); return Result.Succeeded;
     }

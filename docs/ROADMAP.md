@@ -19,7 +19,7 @@ RevitThyme grows through focused tools, shared operations, inspectable results a
 
 ## Next priorities
 
-- Document open/activate/save landed in PR #39 after the exact-view/sheet image-export work. Review the qualified [Home, background close and view-switching slice](../verification/ui-lifecycle.md), then establish request-specific command ownership before active/last-document close. Modal recovery and bounded model promotion remain separate; keep changes above 512 native IDs independent. Preserve the earlier [image](../verification/view-images.md) and [document lifecycle](../verification/document-lifecycle.md) evidence.
+- Document open/activate/save and the [Home, background close and view-switching slice](../verification/ui-lifecycle.md) landed in PRs #39/#40. The next candidate adds synchronous active close only with an explicitly selected already-open clean handoff document, and preserves identities when a third-party add-in cancels close. Last-document close to Home still needs request-specific native command ownership; no posted Close fallback is included. Modal recovery and bounded model promotion remain separate; keep changes above 512 native IDs independent. Preserve the earlier [image](../verification/view-images.md) and [document lifecycle](../verification/document-lifecycle.md) evidence.
 
 - Keep user, developer and agent onboarding aligned with behavior through shared docs and automated checks.
 - Improve reproducible public examples and diagnostics.

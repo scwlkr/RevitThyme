@@ -1,6 +1,8 @@
 namespace RevitThyme.Core;
 
-public sealed record DocumentLifecycleRequest(string Path, string? DocumentId = null, string? ExpectedSha256 = null);
+public sealed record CloseActivationTarget(string DocumentId, string Path, string ExpectedSha256);
+public sealed record DocumentLifecycleRequest(string Path, string? DocumentId = null, string? ExpectedSha256 = null,
+    CloseActivationTarget? ActivateBeforeClose = null);
 public sealed record DocumentLifecycleResult(string DocumentId, string Path, string Title, bool IsActive,
     bool IsModified, string Sha256, bool Performed);
 public interface IDocumentLifecycleModel : IModel
@@ -30,8 +32,10 @@ internal static class DocumentLifecycleExecutor
                     : request.Operation == OperationKind.CloseDocument
                     ? after.Target.DocumentId != result.DocumentId && !result.IsActive && !result.IsModified
                         && string.Equals(result.Sha256, options.ExpectedSha256, StringComparison.OrdinalIgnoreCase)
-                        && before.Target.DocumentId == after.Target.DocumentId && before.Target.ViewId == after.Target.ViewId
-                        && SamePath(before.DocumentPath, after.DocumentPath) && before.IsModified == after.IsModified
+                        && (options.ActivateBeforeClose is { } next
+                            ? after.Target.DocumentId == next.DocumentId && SamePath(after.DocumentPath, next.Path) && !after.IsModified
+                            : before.Target.DocumentId == after.Target.DocumentId && before.Target.ViewId == after.Target.ViewId
+                                && SamePath(before.DocumentPath, after.DocumentPath) && before.IsModified == after.IsModified)
                     : after.Target.DocumentId == result.DocumentId && SamePath(after.DocumentPath, result.Path) && result.IsActive
                       && (request.Operation != OperationKind.SaveDocument || !after.IsModified && !result.IsModified));
             if (!verified) return new(request.Id, Outcome.Unconfirmed, "lifecycle_unconfirmed", "Native lifecycle state did not match the request. Inspect and recover this ID before continuing.", after, DocumentLifecycle: result);
@@ -57,6 +61,11 @@ internal static class DocumentLifecycleExecutor
             return OperationResult.Reject(request, "invalid_lifecycle", "Use a canonical absolute local RVT path; open/save/close require its expected SHA-256, activate/save/close require its exact document ID.");
         var before = model.Capture();
         if (before.Target != request.Target) return OperationResult.Reject(request, "stale_target", "Active document, view or revision changed. Capture again.");
+        if (options.ActivateBeforeClose is { } next && (request.Operation != OperationKind.CloseDocument
+            || !before.HasDocument || options.DocumentId != before.Target.DocumentId || !SamePath(options.Path, before.DocumentPath)
+            || string.IsNullOrWhiteSpace(next.DocumentId) || next.DocumentId.Length > 200 || next.DocumentId == options.DocumentId
+            || !ValidPath(next.Path) || SamePath(next.Path, options.Path) || !ValidHash(next.ExpectedSha256)))
+            return OperationResult.Reject(request, "invalid_lifecycle", "ActivateBeforeClose is only for closing the captured active document; name a different already-open document by exact ID/path/hash.");
         if (before.HasDocument && (!before.CanModify || before.IsWorkshared) || !before.HasDocument && request.Operation == OperationKind.SaveDocument)
             return OperationResult.Reject(request, "lifecycle_blocked", "Use an editable nonworkshared project outside a transaction/edit mode; Home supports open, activation and clean background close.");
         if (request.Operation == OperationKind.SaveDocument && (options.DocumentId != before.Target.DocumentId || !SamePath(options.Path, before.DocumentPath)))

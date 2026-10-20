@@ -9,7 +9,7 @@ $root = Split-Path $PSScriptRoot -Parent
 . (Join-Path $PSScriptRoot 'common.ps1')
 $package = Assert-NativeHostPath $PackageDirectory
 $manifest = Assert-FoundationPackage $package
-if ($manifest.version -notin @('0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2')) { throw 'Setup requires a complete installer package.' }
+if ($manifest.version -notin @('0.8.0-install','0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3')) { throw 'Setup requires a complete installer package.' }
 $productVersion = if ($manifest.product_version) { [string]$manifest.product_version } elseif ($manifest.version -eq '0.9.0-agent') { '0.9.0' } else { '0.8.1' }
 if ($productVersion -notmatch '^\d+\.\d+\.\d+$') { throw 'Setup requires a stable product version.' }
 if (-not $OutputDirectory) { $OutputDirectory = Join-Path $root ('artifacts\installer\'+[Guid]::NewGuid().ToString('N')) }

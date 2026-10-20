@@ -64,6 +64,15 @@ Check 'Home lifecycle candidate keeps the complete native toolkit payload' {
     $candidate = New-PackageFixture '0.10.0-lifecycle.2' -TimberFold -Fabrication -CutFiles
     $null = Assert-FoundationPackage $candidate
 }
+Check 'active-close lifecycle candidate keeps the complete native toolkit payload' {
+    $candidate = New-PackageFixture '0.10.0-lifecycle.3' -TimberFold -Fabrication -CutFiles
+    $null = Assert-FoundationPackage $candidate
+}
+Check 'active-close lifecycle candidate refuses a missing existing toolkit dependency' {
+    $candidate = New-PackageFixture '0.10.0-lifecycle.3' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
 Check 'Home lifecycle candidate refuses a missing existing toolkit dependency' {
     $candidate = New-PackageFixture '0.10.0-lifecycle.2' -TimberFold -Fabrication -CutFiles
     Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')

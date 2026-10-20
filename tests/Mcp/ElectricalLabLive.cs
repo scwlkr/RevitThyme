@@ -58,7 +58,7 @@ internal sealed partial class ElectricalLabLive
         final = await Context(); Program.Check("electrical workflow finishes clean on exact persisted study in A", final.Snapshot.Target.DocumentId == reopenedId
             && final.Snapshot.DocumentPath == Text("a") && final.Snapshot.Target.ViewId == studyUid && !final.Snapshot.IsModified); Preserve(); Payloads();
         Save("complete.json", new { passed = true, binding, savedA, savedB = Text("bSourceSha256"), sourceSha256 = Text("sourceSha256"), final.Snapshot, studyUid, qaName,
-            baseline, finalInventory = finalValue, studyAnnotations, nativeAddedIds = added.Order(), duplicate, copy, saved, calls,
+            baseline, finalInventory = finalValue, studyAnnotations, nativeAddedIds = added.Order(), duplicate, copy, saved, transcriptName, resumeSource, calls,
             resultSource = "immutable installed official SDK; Roslyn native transaction bodies; typed lifecycle/image operations; completed outcomes recovered without interrupted-loss claim" });
     }
 }

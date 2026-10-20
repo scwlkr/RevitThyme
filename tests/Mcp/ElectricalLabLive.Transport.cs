@@ -18,6 +18,8 @@ internal sealed partial class ElectricalLabLive
     private readonly object logGate = new();
     private readonly HashSet<long> added = [];
     private readonly Dictionary<string, string> scripts;
+    private string transcriptName = "transcript.json";
+    private object? resumeSource;
     private McpClient client = null!, observer = null!;
     private string studyUid = "", qaName = "RevitThyme Electrical QA " + Guid.NewGuid().ToString("N")[..8], savedA;
     private string[] annotationUids = [];
@@ -37,7 +39,7 @@ internal sealed partial class ElectricalLabLive
     }
     private static JsonElement Read(string path) { using var json = JsonDocument.Parse(File.ReadAllText(path)); return json.RootElement.Clone(); }
     private void Save(string name, object value) => File.WriteAllText(Path.Combine(folder, name), JsonSerializer.Serialize(value, Protocol.Json));
-    private void Log(object value) { lock (logGate) { calls.Add(value); Save("transcript.json", calls); } }
+    private void Log(object value) { lock (logGate) { calls.Add(value); Save(transcriptName, calls); } }
     private static string Hash(string path) { using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete); return Convert.ToHexStringLower(SHA256.HashData(stream)); }
     private static string Digest(string text) => Convert.ToHexStringLower(SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(text)));
     private async Task<McpClient> Client(string role) => await McpClient.CreateAsync(new StdioClientTransport(new()
@@ -50,6 +52,9 @@ internal sealed partial class ElectricalLabLive
         {
             var reply = await Program.Call(client, name, args).WaitAsync(TimeSpan.FromSeconds(45));
             Log(new { phase = "returned", name, args, milliseconds = watch.Elapsed.TotalMilliseconds, reply.Data, reply.Result.IsError });
+            if (expected is null or "inspected" or "applied" or "document_opened" or "document_activated" or "document_saved" or "document_closed" or "view_activated" or "image_exported")
+                if (reply.Data.TryGetProperty("code", out var code) && code.GetString() is "transport_lost" or "pending" && args?.TryGetValue("requestId", out var originalId) == true)
+                    await RecordBlocked(name, originalId!.ToString()!, reply.Data);
             if (expected != "any") Program.Check("electrical " + name + (expected is null ? " succeeds" : ": " + expected), expected is null ? reply.Result.IsError != true
                 : reply.Data.GetProperty("code").GetString() == expected && reply.Result.IsError == (expected is not ("inspected" or "applied" or "document_opened" or "document_activated" or "document_saved" or "document_closed" or "view_activated" or "image_exported")));
             if (name == "export_view_image" && reply.Result.IsError != true)

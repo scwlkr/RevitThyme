@@ -10,6 +10,8 @@
 
 [active-close.md](active-close.md) tracks explicit active-document handoff and third-party close-cancellation recovery. It keeps last-document close to Home as a separate unresolved boundary.
 
+[modal-recovery.md](modal-recovery.md) records original-request recovery while native test dialogs block document opening, including real transport timeout and external MCP server loss.
+
 Earlier Rust/Electron/pyRevit records are preserved under `legacy/pre-foundation/verification`. They remain evidence for their original revisions, not qualification of the new C# product.
 
 [native-utilities.md](native-utilities.md) records actual ribbon/WPF, native transaction and utility MCP qualification. [dynamic-execution.md](dynamic-execution.md) records Roslyn/transaction/MCP/CLI qualification and independent native Cabin Eval scoring. Their private fixtures/results live under ignored `artifacts/utilities` and `artifacts/dynamic` respectively.

@@ -107,15 +107,15 @@ public sealed class DiscoveryProbe : IExternalApplication, IExternalEventHandler
     {
         if (active is null || !active.IsValidObject || !active.Equals(app.ActiveUIDocument?.Document) || active.PathName != Text("a")
             || active.IsModified || active.IsWorkshared || active.IsFamilyDocument) throw new InvalidDataException("Owned A is no longer exact clean active project.");
-        if (app.Application.Documents.Cast<Document>().Any(d => !owned.Contains(d))) throw new InvalidDataException("Unexpected document: preserve it.");
+        if (app.Application.Documents.Cast<Document>().Any(d => !owned.Any(o => o.IsValidObject && o.Equals(d)))) throw new InvalidDataException("Unexpected document: preserve it.");
         VerifyFiles();
     }
     private void CloseOwned(Document? document, UIApplication app)
     {
         if (document is null || !document.IsValidObject) return;
-        if (!owned.Contains(document) || document.Equals(app.ActiveUIDocument?.Document)) throw new InvalidDataException("Cannot close unowned or active document.");
-        if (document == background && (document.PathName != Text("b") || document.IsModified)) throw new InvalidDataException("Preserve changed background copy.");
-        if (document != background && !string.IsNullOrEmpty(document.PathName)) throw new InvalidDataException("Preserve unexpectedly saved fixture.");
+        if (!owned.Any(o => ReferenceEquals(o, document)) || document.Equals(app.ActiveUIDocument?.Document)) throw new InvalidDataException("Cannot close unowned or active document.");
+        if (ReferenceEquals(document, background) && (document.PathName != Text("b") || document.IsModified)) throw new InvalidDataException("Preserve changed background copy.");
+        if (!ReferenceEquals(document, background) && !string.IsNullOrEmpty(document.PathName)) throw new InvalidDataException("Preserve unexpectedly saved fixture.");
         if (!document.Close(false)) throw new InvalidDataException("Explicit test fixture cleanup was refused.");
     }
     private void VerifyFiles()

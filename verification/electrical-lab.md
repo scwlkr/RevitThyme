@@ -1,6 +1,6 @@
 # Electrical-lab MCP loop
 
-The current-source electrical-lab workflow passed in actual Revit through the external official MCP SDK, including bounded edits, native image export, explicit save, close/reopen, stale-document refusal and original-request recovery. It required explicit agent intervention in Revit's missing-reference warning and staged continuation after harness failures. This is not an unattended, uninterrupted run or historical fixture acceptance.
+The current-source electrical-lab workflow passed in actual Revit through the external official MCP SDK, including bounded edits, native image export, explicit save, close/reopen, stale-document refusal and original-request recovery. The latest run passed 418 assertions in one client invocation, continuously polling through two transport timeouts. Explicit agent intervention in Revit's missing-reference warning was still required. Earlier staged continuation and failures retain their separate provenance; neither run establishes unattended operation or historical fixture acceptance.
 
 The installed `0.10.0-lifecycle.5` host remained unchanged: protocol 13 / 32 tools, native source `9e3db84e3c29e31230b217a7bad151d15538e187`, manifest `332c26eff5341ea26b66651bbd8f492dc3953bc82db7e1df46e0366dc8d43809`. Prior [startup/image](view-images.md), [lifecycle](document-lifecycle.md), [modal recovery](modal-recovery.md) and [restricted-document](restricted-documents.md) evidence retains its original provenance. No installation qualification was repeated.
 
@@ -14,7 +14,24 @@ The later source differs from the historical reference: all four working views a
 
 Consequently `currentSourceWorkflow=passed`, while `historicalAcceptance=false` and `historicalFineAcceptance=false` remain explicit. Historical raw-footer conformity and older derived display/range booleans are not requalified by preserving the later source. No source restoration or settings changes were made.
 
-## Actual Revit results — 2026-10-20
+## Continuous Pending recovery — 2026-10-20
+
+Fresh run `9a14c7ec-4a40-4176-a6d3-8c1be3e34d2f` used owned PID 6732/start 639281094019556116/session `75a20311-28d7-4c07-9700-47b3e747c7ad`, harness source `d3f46825b8b7cd60501a8bca700698abbf29246c` and the same unchanged installed host above. A single `--electrical-lab-live` invocation passed **418 assertions** from Home through the complete edit/image/save/reopen/close workflow. No continuation command, replacement request, source repair or fixture substitution was needed.
+
+| Original activation GUID | Actual recovery observations |
+| --- | --- |
+| `d892f04a-ff37-47c4-a21e-b725db8590e5` — first A activation | Caller returned Unconfirmed/transport_lost; independent SDK observer recorded 13 Pending responses, then original Completed/document_activated at 26.187 s into recovery. Terminal lookup took 4.8 ms. |
+| `c0fabd5d-0d37-4903-bf3a-3fbf13a8efd4` — saved/reopened A activation | Caller returned Unconfirmed/transport_lost; observer recorded 13 Pending responses, then original Completed/document_activated at 26.169 s into recovery. Terminal lookup took 3.0 ms. |
+
+For each warning the agent observed the exact owned Revit window and explicitly selected Ignore and continue once using Computer Use. The running client kept polling its original GUID and resumed dependent work automatically when the original terminal result arrived. Pending response IDs remained separate from the original request identity. This qualifies the continuous polling branch under actual native blocking; it does not qualify automatic dialog handling, the full three-minute expiry boundary or the recovered-inline-image branch.
+
+The retained submission inventory contains exactly two model modifications, one save, three opens (initial A/B plus reopened A), two closes (A with B handoff, then background B), three document activations (including the deliberate retired-ID refusal) and six image exports. Each interrupted activation was submitted exactly once. Study `0a196188-be66-4076-807a-9dcf4b262b6d-002c7c2c` and copied annotation IDs 2915381/2915382 persisted after actual save/reopen. All ten duplicate additions (study plus nine companions), including the collector-invisible Viewport, retained their identities and associations. Total additions remained 12 native / 11 collected; canonical current-source inventory was unchanged.
+
+Explicit save produced SHA `2314cd97ba4704b797a3440352cea405dac1db0f8b3211c25854a912b6e66b5b`. Reopened A received a new native document ID; the retired ID was refused without changing B. Original edit/save results recovered byte-exact. The final inventory contained only clean A on the persisted study. Native PNG metadata/inline bytes passed; the four distinct image hashes across six stages were visually inspected. Empty/copied/reopened study images remain identical, preserving the image-evidence limitation described below. The owned process then closed normally, with source/handoff hashes and installation/registration/PATH/unrelated-work preservation checked again.
+
+Private `continuous-summary.json`, original recovery receipts, transcript, bodies/results, images, `complete.json`, visual review and cleanup establish this run separately from the earlier staged run. The latest result strengthens current-source acceptance only; historical acceptance remains explicitly false.
+
+## Earlier staged Revit results — 2026-10-20
 
 Accepted staged run `bc512072-f0c8-4487-bb8e-cb575d00b3da` used PID 29668/start 639281066629826971/session `3cc890dc-9c6b-4621-b851-3b9e69e8980b`. Native duplicate source was `994f77d`, committed companion classification/continuation source `2d7a023`, and final saved-reopen recovery source `c027bd6008eeba36c9b247457bb2dceaa4630543`. The final SDK invocation passed **187 assertions**. Original failed checkpoints remain retained; their assertion counts are not added into a purported single passing run.
 
@@ -41,7 +58,7 @@ Initial run `e8e53655-7f3c-494e-a040-2ce07336ca80` encountered Revit's actual mi
 
 The first inventory query rolled back because Revit could not extract `LocationPoint.Rotation`. Harness commit `147172c` uses `GetTransform` basis instead. Subsequent source/reference mismatch led to the explicit current-source profile in `ec819ab`, not silently restoring historical settings. A first duplicate diagnostic rolled back on an unknown companion; `994f77d` classified observed structures, then `2d7a023` added direct postcommit inspection when the native Added set exposed a Viewport absent from the collector. The already-Applied duplicate was recovered and continued, never resubmitted.
 
-On saved-copy activation the same real warning recurred. The agent resolved it directly in the owned process, recovered the original GUID, and used a narrowly guarded saved-reopen tail rather than repeating duplicate/copy/save/open. Source `c027bd6` also adds bounded original-GUID polling to future calls. Its actual terminal recovery branch passed here; the new continuous three-minute Pending wait and recovered-image branch were not separately exercised in this run. Earlier modal qualification remains separate evidence. See [native dialog recovery](../docs/MCP.md#native-dialogs-and-recovery).
+On saved-copy activation the same real warning recurred. The agent resolved it directly in the owned process, recovered the original GUID, and used a narrowly guarded saved-reopen tail rather than repeating duplicate/copy/save/open. Source `c027bd6` adds bounded original-GUID polling to future calls. Its terminal recovery branch passed in the staged run; the continuous polling branch passed in the later full run above. Full deadline expiry and recovered-image delivery remain separately unqualified. Earlier modal qualification remains separate evidence. See [native dialog recovery](../docs/MCP.md#native-dialogs-and-recovery).
 
 Private evidence under ignored `artifacts/electrical-lifecycle` includes exact intents/bodies, native results, all transcripts, frozen inventory, classifications, image bytes, completion/cleanup and before/after preservation receipts. Models and private reference/captures are not repository artifacts.
 
@@ -53,4 +70,10 @@ Final hashes preserved the electrical source, handoff source/copy, user TimberFo
 
 Historical Fine/raw-footer/display acceptance remains outstanding. This fixture requires explicit native-warning intervention; there is no general automatic warning handler. A visibly different annotation-image example remains useful because this copy's pixels did not change. Last-active close to Home, active unsupported contexts and broader warning workflows remain gaps. Work above 512 changed IDs stays separate. Physical TimberFold calibration, cutting and assembly remain outstanding. No release, website deployment or promotional posts.
 
-Next: retain these current-source results in the existing queue, then address the smallest remaining typed lifecycle gap, last-active close to Home, with explicit semantics and disposable-model recovery tests before promotion.
+## Close-to-Home feasibility and next action
+
+A separate read-only Revit 2027.3 query in owned PID 29396/start 639281091774348765/session `060e6eb5-8211-45ab-ae8f-5764c206d432` resolved an API-description ambiguity: `PostableCommand.Close` mapped to `ID_REVIT_FILE_CLOSE` (57602), distinct from `ExitRevit` / `ID_APP_EXIT` (57665). It observed a writable inherited `BeforeExecutedEventArgs.Cancel` property. Original query `89170b14-3931-4fcf-b245-4ec5af4923ba` recovered byte-exact, native snapshot and file hashes were unchanged, and the process closed normally. No command was posted and no callback was registered; these are metadata facts, not close/cancellation qualification or numeric constants to embed.
+
+Autodesk documents that [posting defers execution and does not establish accessibility or completion](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API/files/Revit_API_Developers_Guide/Advanced_Topics/Revit_API_Revit_API_Developers_Guide_Advanced_Topics_Commands_html.html). It also documents that [DocumentClosed can occur after failure or cancellation](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/b089cc05-ba85-03c2-e256-9f18ca7affc9.htm). The installed 2027 API documentation corroborates these constraints. Request ownership across deferred dispatch, effective cancellation before any save decision, and proof that no posted close remains require further native qualification. A happy-path close or a post-checked file hash would not resolve those races.
+
+Keep last-active close unsupported until that contract is proven. Next: prepare and qualify a reviewed MCP release candidate using the already-supported typed operations and these strengthened recovery results. The user has authorized release publication; candidate/package and native gates still apply. Website deployment and promotional posts remain separate, and physical fabrication remains outstanding.

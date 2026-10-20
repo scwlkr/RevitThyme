@@ -1,7 +1,9 @@
 param(
     [ValidateSet('prepare','register','start','ready','close','unregister')][string]$Action,
     [ValidateSet('normal','fixture')][string]$Mode = 'normal',
-    [string]$RunFolder
+    [string]$RunFolder,
+    [string]$FixtureSource,
+    [string]$FamilyTemplate = 'C:\ProgramData\Autodesk\RVT 2027\Family Templates\English\Metric Generic Model.rft'
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -15,8 +17,9 @@ if ($Action -eq 'prepare') {
     NoRevit
     $RunFolder = Join-Path $evidence ([Guid]::NewGuid().ToString())
     New-Item -ItemType Directory -Path $RunFolder | Out-Null
-    $source = Join-Path $root 'artifacts\view-image\52d7beed-bede-4054-b36b-832f300bad45\Image-Test.rvt'
-    $template = 'C:\ProgramData\Autodesk\RVT 2027\Family Templates\English\Metric Generic Model.rft'
+    if (-not [IO.Path]::IsPathFullyQualified($FixtureSource) -or -not [IO.Path]::IsPathFullyQualified($FamilyTemplate)) { throw 'Select explicit absolute disposable RVT and family template paths.' }
+    $source = $FixtureSource
+    $template = $FamilyTemplate
     $receipt = Get-Content (Join-Path $env:LOCALAPPDATA 'RevitThyme\setup\receipt.json') -Raw | ConvertFrom-Json
     $plan = [ordered]@{folder=$RunFolder;mode=$Mode;source=$source;sourceSha256=(Hash $source);template=$template;templateSha256=(Hash $template)
         a=(Join-Path $RunFolder 'A.rvt');b=(Join-Path $RunFolder 'B.rvt');bundle=$receipt.installed

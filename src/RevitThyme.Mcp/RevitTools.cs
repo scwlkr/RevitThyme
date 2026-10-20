@@ -25,6 +25,7 @@ public sealed partial class RevitTools(RevitConnection connection)
     public CallToolResult ListOperations() => Reply(new
     {
         operations = Enum.GetNames<OperationKind>(), protocolVersion = Protocol.Version,
+        documentDiscovery = "list_documents reads visible native document identities even at Home. Supply caller requestId for retained read recovery, fresh capture and offset 0. Page with limit 1–100 and the returned inventoryToken; changes to membership or any returned metadata require a fresh capture and restart at zero. Maximum 4096 visible documents, 16 KiB metadata per record, 1 MiB total; pages shrink to the transport bound without truncating identity/path. No file hashing or lifecycle action. Flags are observations, not authorization. Replays/recovery return the original inventory; submit a fresh read for current state.",
         dynamicExecution = "run_query/run_modify accept a C# method body with doc, uiapp, cancellationToken; return JSON data. Host REVITTHYME_TRUSTED_CODE=1 and trusted=true required. Full process trust, no sandbox. Query always rolls back current-document changes. Modify uses one Undo. Cooperative budgets cannot interrupt blocked/infinite code. Never retry with a new requestId after timeout; poll get_operation.",
         limits = new { queryPage = 100, inspectElements = 5, parametersPerPage = 20, parameterBatch = 20, selection = 100,
             sourceBytes = DynamicExecutor.MaxSourceBytes, resultBytes = DynamicExecutor.MaxValueBytes, changedIds = DynamicExecutor.MaxChangedIds },

@@ -29,6 +29,8 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            if (request.Operation == OperationKind.ListDocuments) return DocumentDiscoveryExecutor.Execute(model, request);
+            if (request.DocumentQuery is not null) return OperationResult.Reject(request, "invalid_request", "Document queries are accepted only by ListDocuments.");
             if (request.Operation == OperationKind.ActivateView) return ViewActivationExecutor.Execute(model, request);
             if (DocumentLifecycleExecutor.Handles(request.Operation)) return DocumentLifecycleExecutor.Execute(model, request);
             if (request.DocumentLifecycle is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected documentLifecycle arguments.");

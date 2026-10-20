@@ -133,6 +133,12 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         if (fixturePath is not null && !string.Equals(path, fixturePath, StringComparison.OrdinalIgnoreCase))
             throw new OperationException("wrong_fixture", "This fixture-bound development session cannot open or activate another path.");
     }
+    public bool CanDiscoverDocument(Document document)
+    {
+        if (fixturePath is not null && !string.Equals(document.PathName, fixturePath, StringComparison.OrdinalIgnoreCase)) return false;
+        AssertDocument(document);
+        return true;
+    }
     private void Changed(object? sender, DocumentChangedEventArgs e) => Revision++;
     private void Closing(object? sender, DocumentClosingEventArgs e)
     {

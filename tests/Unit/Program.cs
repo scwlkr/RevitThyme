@@ -9,6 +9,8 @@ internal static class Program
     public static async Task<int> Main()
     {
         await Operations(); await ViewImages.Run(Check); await DocumentLifecycle.Run(Check); await UiLifecycle.Run(Check); await Boundaries.Run(Check); await ParameterInspectionCli.Run(Check); await ParameterResponseCompatibility.Run(Check);
+        await DocumentDiscovery.Run(Check);
+        await DocumentDiscoveryCli.Run(Check);
         Utilities.Run(Check); await Dynamic.Run(Check); await Updates.Run(Check); await InstalledCli.Run(Check);
         TimberFoldOperations.Run(Check);
         TimberFoldInspection.Run(Check);

@@ -7,6 +7,11 @@ namespace RevitThyme.Mcp;
 
 public sealed partial class RevitTools
 {
+    [McpServerTool(Name = "list_documents", ReadOnly = true, Idempotent = true),
+        Description("Inspect visible open documents in the captured native session, including at Home. Supply request GUID for retained read recovery. Returns exact session-native IDs, title/path and active/modified/family/linked/workshared/read-only/saved-path flags; flags do not authorize lifecycle actions. Page with offset 0, limit 1–100; pass returned inventoryToken for every continuation. Background opens/closes and metadata changes invalidate the token. Fixture-bound sessions expose only their fixture. No file hash, activation, transaction or save. A replay/recovered result is the original point-in-time inventory; use a fresh request/capture for current state.")]
+    public Task<CallToolResult> ListDocuments(string captureId, string requestId, int offset = 0, int limit = 50, string? inventoryToken = null, CancellationToken cancellationToken = default) =>
+        Safe(() => Run(captureId, new(Id(requestId), OperationKind.ListDocuments, DocumentQuery: new(offset, limit, inventoryToken)), cancellationToken));
+
     [McpServerTool(Name = "open_document", ReadOnly = false, Destructive = false, Idempotent = true),
         Description("Open one explicit canonical fixed-local-drive Revit 2027 nonworkshared RVT in the background, including from Home/no active document. Requires current get_context capture, request GUID and expected file SHA-256. No activation, upgrade, save, close or model transaction. Returns native document ID/path and verified completion. On interruption recover the original requestId with get_operation; never retry with a new ID.")]
     public Task<CallToolResult> OpenDocument(string captureId, string requestId, string path, string expectedSha256, CancellationToken cancellationToken = default) =>

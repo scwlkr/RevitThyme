@@ -1,6 +1,6 @@
 # MCP interface
 
-Thirty-one source tools share the native execution host: twelve generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **The unreleased lifecycle candidate is `0.10.0-lifecycle.3`, protocol 12. Published v0.10.0 remains at 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle.** Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
+Thirty-two source tools share the native execution host: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **The unreleased lifecycle candidate is `0.10.0-lifecycle.4`, protocol 13. Published v0.10.0 remains at 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery.** Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -10,6 +10,7 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `connect_session` | Explicitly connect to a chosen absolute binding file; handshake and reset captures |
 | `get_context` | Native document/view inspection and connection-local `captureId` |
 | `list_operations` | Typed operations, units, limits and recovery semantics, including explicit active-close handoff and its limits |
+| `list_documents` | Read visible session-native document identities and flags at Home or in a model, with stable paged inventory and retained read recovery |
 | `list_views` | Paged native view IDs, names, classes and template flags |
 | `query_elements` | Paged elements, optional negative category ID/name filter, optional types |
 | `inspect_elements` | Properties and paged typed parameters for 1–5 native UniqueIds |
@@ -39,6 +40,14 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `timberfold_reconcile` | Check an existing committed native kit using a fresh capture; retain separate recovery evidence without recreating documentation |
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
+
+## Open document discovery (unreleased)
+
+`list_documents(captureId, requestId, offset=0, limit=50, inventoryToken?)` reads the selected native session, including at Home. Retain a caller GUID before submitting. Each item contains the same native document ID used by lifecycle operations, full title/path, and active, modified, family, linked, workshared, read-only and saved-path flags. These flags describe state; they do not authorize activation, saving or closing unsupported documents. Unsaved paths remain empty. No file is hashed, opened, activated or saved.
+
+Use `get_context`, then start at offset zero without a token. Follow each `nextOffset` with the returned `inventoryToken` and the same valid capture. Pages are sorted by session-native document ID. The token fingerprints the native session and complete visible inventory, including every returned flag; membership or metadata changes return `stale_inventory` even if the active document/revision stayed unchanged. Refresh context and start at zero without the old token. Wrong/stale captured targets return `stale_target`. Fixture-bound development sessions expose only their permitted fixture.
+
+Limits are 1–100 records per requested page, 4096 visible documents, 16 KiB per metadata record and 1 MiB total metadata. Pages shrink to fit the bridge bound; identity/path fields are never truncated and no unsupported documents are silently omitted. An oversized inventory returns an explicit error. All reads run through the shared queue inside a native API callback without a transaction. `get_operation` can recover the caller's original read; replay/recovery returns that point-in-time page, so use a fresh capture/request to inspect current state. See [qualification status](../verification/document-discovery.md) and [CLI](CLI.md#discover-open-documents-unreleased).
 
 ## Exact view and sheet images (unreleased)
 

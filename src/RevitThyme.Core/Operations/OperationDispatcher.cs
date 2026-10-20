@@ -42,6 +42,8 @@ public sealed partial class OperationDispatcher : IOperationClient, ITimberCaptu
         {
             if (stopped) return Task.FromResult(OperationResult.Reject(request, "host_stopped", "RevitThyme is stopped."));
             if (request.Id == Guid.Empty) return Task.FromResult(OperationResult.Reject(request, "invalid_id", "A non-empty request ID is required."));
+            if (request.DocumentQuery is not null && request.Operation != OperationKind.ListDocuments)
+                return Task.FromResult(OperationResult.Reject(request, "invalid_request", "Document queries are accepted only by ListDocuments."));
             if (request.DocumentLifecycle is not null && !DocumentLifecycleExecutor.Handles(request.Operation))
                 return Task.FromResult(OperationResult.Reject(request, "invalid_request", "Lifecycle arguments are accepted only by lifecycle operations."));
             if (request.ImageExport is not null && request.Operation != OperationKind.ExportViewImage)

@@ -60,7 +60,7 @@ internal static class ImageExportInstalled
             var context = await Context(); var baseline = context.Snapshot;
             Program.Check("normal installed host selects disposable fixture without trust opt-in", baseline.DocumentPath == model && !baseline.IsModified && !baseline.IsWorkshared);
             var inventory = await client.ListToolsAsync(); var operations = await Call("list_operations");
-            Program.Check("actual installed server exposes 31 tools and protocol 11", inventory.Count == 31 && inventory.Any(t => t.Name == "export_view_image") && operations.GetProperty("protocolVersion").GetInt32() == 11);
+            Program.Check("actual installed server exposes 31 tools and protocol 12", inventory.Count == 31 && inventory.Any(t => t.Name == "export_view_image") && operations.GetProperty("protocolVersion").GetInt32() == 12);
             await Call("run_query", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["source"] = "return 1;", ["trusted"] = true }, "trusted_code_disabled");
             async Task<int> Count(string capture)
             {

@@ -38,13 +38,36 @@ internal static class UiLifecycle
         check("pre-execution close cancellation has no native side effect", (await cancelledTask).Code == "cancelled" && model.CloseCalls == 0);
         await using var stopped = new OperationDispatcher(); var pending = stopped.ExecuteAsync(close with { Id = Guid.NewGuid(), Target = model.Target }); stopped.Stop();
         check("shutdown rejects close that has not executed", (await pending).Code == "host_stopped" && model.CloseCalls == 0);
+        model = new() { Target = model.Target with { DocumentId = "doc", ViewId = "plan" } };
+        var handoff = close with { Id = Guid.NewGuid(), Target = model.Target,
+            DocumentLifecycle = new(model.Path, "doc", model.Hash, new("other", model.OtherPath, model.Hash)) };
+        check("active close verifies the explicitly selected handoff document", executor.Execute(model, handoff) is
+            { Code: "document_closed", Outcome: Outcome.Completed, Snapshot.Target.DocumentId: "other" });
+        var next = handoff.DocumentLifecycle!.ActivateBeforeClose!;
+        model = new() { Target = handoff.Target! };
+        foreach (var invalid in new[] { next with { DocumentId = "doc" }, next with { Path = model.Path }, next with { ExpectedSha256 = "short" }, next with { Path = "relative.rvt" }, next with { DocumentId = "" } })
+            check("invalid explicit handoff refuses before lifecycle execution", executor.Execute(model, handoff with { DocumentLifecycle = handoff.DocumentLifecycle with { ActivateBeforeClose = invalid } }).Code == "invalid_lifecycle" && model.CloseCalls == 0);
+        check("handoff rejected on open and save", executor.Execute(model, open with { Target = model.Target, DocumentLifecycle = open.DocumentLifecycle! with { ActivateBeforeClose = next } }).Code == "invalid_lifecycle"
+            && executor.Execute(model, handoff with { Operation = OperationKind.SaveDocument }).Code == "invalid_lifecycle" && model.CloseCalls == 0);
+        check("background close cannot unexpectedly activate a document", executor.Execute(model, handoff with { DocumentLifecycle = handoff.DocumentLifecycle with { DocumentId = "background" } }).Code == "invalid_lifecycle" && model.CloseCalls == 0);
+        await using var handoffQueue = new OperationDispatcher();
+        var handoffPending = handoffQueue.ExecuteAsync(handoff); handoffQueue.ExecuteNext(model); var handedOff = await handoffPending;
+        check("handoff close recovery does not repeat activation or close", await handoffQueue.ExecuteAsync(handoff) == handedOff
+            && await handoffQueue.ExecuteAsync(new(Guid.NewGuid(), OperationKind.GetOperation, OperationId: handoff.Id)) == handedOff && model.CloseCalls == 1);
+        check("changing handoff conflicts with retained original ID", (await handoffQueue.ExecuteAsync(handoff with { DocumentLifecycle = handoff.DocumentLifecycle with { ActivateBeforeClose = next with { DocumentId = "changed" } } })).Code == "id_conflict" && model.CloseCalls == 1);
+        model = new() { Target = handoff.Target!, FailAfterActivation = true };
+        var uncertain = executor.Execute(model, handoff);
+        check("partial handoff is unconfirmed and leaves actual native context for inspection", uncertain.Outcome == Outcome.Unconfirmed && model.Capture().Target.DocumentId == "other");
+        model = new() { Target = handoff.Target!, Drift = true };
+        check("wrong close receipt cannot confirm a handoff", executor.Execute(model, handoff).Outcome == Outcome.Unconfirmed);
     }
     private sealed class UiModel : IDocumentLifecycleModel, IViewActivationModel
     {
         public Target Target = new(1, "start", "session", "", "", 1);
-        public string Path = System.IO.Path.GetFullPath("ui.rvt"), Hash = new('a', 64);
-        public bool Modified, Drift; public int CloseCalls;
-        public Snapshot Capture() => new(Target, "2027", Target.DocumentId == "" ? "" : "Fixture", Target.DocumentId == "" ? "" : Path, false, Modified, Target.ViewId, "FloorPlan", 1, Target.DocumentId != "", null);
+        public string Path = System.IO.Path.GetFullPath("ui.rvt"), OtherPath = System.IO.Path.GetFullPath("other.rvt"), Hash = new('a', 64);
+        private bool handedOff;
+        public bool Modified, Drift, FailAfterActivation; public int CloseCalls;
+        public Snapshot Capture() => new(Target, "2027", Target.DocumentId == "" ? "" : "Fixture", Target.DocumentId == "" ? "" : handedOff ? OtherPath : Path, false, Modified, Target.ViewId, "FloorPlan", 1, Target.DocumentId != "", null);
         public string ReadViewName() => Target.ViewId;
         public IChange BeginChange() => throw new InvalidOperationException("UI lifecycle must not create transactions.");
         public DocumentLifecycleResult ChangeDocument(OperationKind operation, DocumentLifecycleRequest options)
@@ -52,6 +75,8 @@ internal static class UiLifecycle
             if (operation == OperationKind.CloseDocument)
             {
                 CloseCalls++; Target = Target with { Revision = Target.Revision + 1 };
+                if (options.ActivateBeforeClose is { } next) { handedOff = true; Target = Target with { DocumentId = next.DocumentId, ViewId = "other-view" }; }
+                if (FailAfterActivation) throw new OperationException("lifecycle_unconfirmed", "Close cancelled after activation.");
                 return new(Drift ? "wrong" : options.DocumentId!, Path, "Fixture", false, false, Hash, true);
             }
             if (operation == OperationKind.ActivateDocument) Target = Target with { DocumentId = "doc", ViewId = "plan", Revision = 2 };

@@ -48,7 +48,7 @@ public interface IOperationClient
 }
 public static class Protocol
 {
-    public const int Version = 11;
+    public const int Version = 12;
     public const int MaxBytes = 65536;
     public static readonly JsonSerializerOptions Json = CreateOptions();
     private static JsonSerializerOptions CreateOptions()

@@ -40,7 +40,11 @@ if ($Action -eq 'prepare') {
 $registrationFile = Join-Path $evidence 'probe-registration.json'
 if ($Action -eq 'register') {
     NoRevit
-    if (Test-Path $registrationFile) { throw 'Inspect existing registration ownership before reuse.' }
+    if (Test-Path $registrationFile) {
+        $prior=Get-Content $registrationFile -Raw|ConvertFrom-Json
+        if (Test-Path -LiteralPath $prior.path) { throw 'Inspect existing live registration ownership before reuse.' }
+        Move-Item -LiteralPath $registrationFile -Destination (Join-Path $evidence ('probe-registration-retired-'+[Guid]::NewGuid().ToString()+'.json'))
+    }
     $binary = Join-Path $PSScriptRoot 'bin\Release\net10.0-windows\RevitThyme.DiscoveryProbe.dll'
     $signature = Get-AuthenticodeSignature -LiteralPath $binary
     $config = Get-Content (Join-Path $env:LOCALAPPDATA 'RevitThyme\development\signing.json') -Raw | ConvertFrom-Json

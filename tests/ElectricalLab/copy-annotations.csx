@@ -20,18 +20,23 @@ if (originals.Length != 2 || annotations(source).Length != 2 || annotations(stud
     throw new InvalidOperationException("Exact independent annotation copy precondition failed.");
 var copied = ElementTransformUtils.CopyElements(source, originals.Select(e => e.Id).ToList(), study, Transform.Identity, new CopyPasteOptions());
 doc.Regenerate(); var after = annotations(study);
-if (copied.Count != 2 || after.Length != 2 || after.Any(e => e.OwnerViewId != study.Id || e.Location is not LocationPoint))
+if (copied.Count != 2 || after.Length != 2 || after.Any(e => e.OwnerViewId != study.Id || e is not FamilyInstance || e.Location is not LocationPoint))
     throw new InvalidOperationException("Expected exactly two copied study annotations.");
+Func<Element, double[]> orientation = e => {
+    var transform = ((FamilyInstance)e).GetTransform();
+    return new[] { transform.BasisX.X, transform.BasisX.Y, transform.BasisX.Z, transform.BasisY.X, transform.BasisY.Y, transform.BasisY.Z,
+        transform.BasisZ.X, transform.BasisZ.Y, transform.BasisZ.Z };
+};
 foreach (var original in originals) {
-    var point = (LocationPoint)original.Location;
+    var point = (LocationPoint)original.Location; var originalOrientation = orientation(original);
     if (after.Count(e => e.GetTypeId() == original.GetTypeId() && ((LocationPoint)e.Location).Point.DistanceTo(point.Point) < 1e-9
-        && Math.Abs(((LocationPoint)e.Location).Rotation - point.Rotation) < 1e-9) != 1)
-        throw new InvalidOperationException("Copied annotation type/position/rotation differs from source.");
+        && orientation(e).Zip(originalOrientation, (left, right) => Math.Abs(left - right) < 1e-9).All(equal => equal)) != 1)
+        throw new InvalidOperationException("Copied annotation type/position/basis orientation differs from source.");
 }
 return new { studyUid = study.UniqueId, copied = after.OrderBy(e => e.Id.Value).Select(e => new { id = e.Id.Value, uid = e.UniqueId,
     type = doc.GetElement(e.GetTypeId()).UniqueId, owner = e.OwnerViewId.Value,
     position = new[] { ((LocationPoint)e.Location).Point.X, ((LocationPoint)e.Location).Point.Y, ((LocationPoint)e.Location).Point.Z },
-    rotation = ((LocationPoint)e.Location).Rotation }).ToArray(),
+    orientation = orientation(e) }).ToArray(),
     allowedModified = new[] { new { id = study.Id.Value, reason = "destination view annotation membership" } }
         .Concat(originals.Select(e => new { id = e.GetTypeId().Value, reason = "exact source annotation type copy bookkeeping" })).Distinct().ToArray() };
 

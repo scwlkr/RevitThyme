@@ -12,10 +12,13 @@ Func<View, Element[]> annotations = view => new FilteredElementCollector(doc).Ow
     .OrderBy(e => e.Id.Value).ToArray();
 Func<Element, object> annotation = e => {
     var point = e.Location as LocationPoint;
+    var transform = e is FamilyInstance instance ? instance.GetTransform() : null;
     return new { id = e.Id.Value, uid = e.UniqueId, owner = e.OwnerViewId.Value, category = e.Category?.Name, categoryId = e.Category?.Id.Value,
         type = doc.GetElement(e.GetTypeId())?.UniqueId, group = e.GroupId.Value,
         dependencies = e.GetDependentElements(null).Where(id => id != e.Id).Select(id => id.Value).OrderBy(id => id).ToArray(),
-        position = point == null ? null : new[] { point.Point.X, point.Point.Y, point.Point.Z }, rotation = point?.Rotation };
+        position = point == null ? null : new[] { point.Point.X, point.Point.Y, point.Point.Z },
+        orientation = transform == null ? null : new[] { transform.BasisX.X, transform.BasisX.Y, transform.BasisX.Z,
+            transform.BasisY.X, transform.BasisY.Y, transform.BasisY.Z, transform.BasisZ.X, transform.BasisZ.Y, transform.BasisZ.Z } };
 };
 Func<View, string> settings = view => {
     var plan = view as ViewPlan;

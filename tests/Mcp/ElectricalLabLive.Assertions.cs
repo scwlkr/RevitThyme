@@ -51,10 +51,13 @@ internal sealed partial class ElectricalLabLive
             && e.GetProperty("group").GetInt64() == -1 && e.GetProperty("dependencies").GetArrayLength() == 0));
         if (count == 0) return;
         foreach (var original in baseline.GetProperty("sourceAnnotations").EnumerateArray())
-            Program.Check("study annotation retains exact source type, position and rotation", owned.Count(e => e.GetProperty("type").GetString() == original.GetProperty("type").GetString()
-                && e.GetProperty("position").EnumerateArray().Select(v => v.GetDouble()).Zip(original.GetProperty("position").EnumerateArray().Select(v => v.GetDouble())).All(p => Math.Abs(p.First - p.Second) < 1e-9)
-                && Math.Abs(e.GetProperty("rotation").GetDouble() - original.GetProperty("rotation").GetDouble()) < 1e-9) == 1);
+            Program.Check("study annotation retains exact source type, position and native basis orientation", owned.Count(e => e.GetProperty("type").GetString() == original.GetProperty("type").GetString()
+                && SameComponents(e.GetProperty("position"), original.GetProperty("position"), 3)
+                && SameComponents(e.GetProperty("orientation"), original.GetProperty("orientation"), 9)) == 1);
     }
+    private static bool SameComponents(JsonElement left, JsonElement right, int count) => left.ValueKind == JsonValueKind.Array && right.ValueKind == JsonValueKind.Array
+        && left.GetArrayLength() == count && right.GetArrayLength() == count
+        && left.EnumerateArray().Select(v => v.GetDouble()).Zip(right.EnumerateArray().Select(v => v.GetDouble())).All(p => Math.Abs(p.First - p.Second) < 1e-9);
     private async Task ActivateView(string uid)
     {
         var context = await Context(); await Call("activate_view", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["viewId"] = uid }, "view_activated");

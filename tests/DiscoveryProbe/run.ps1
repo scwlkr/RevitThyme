@@ -1,13 +1,16 @@
 param(
     [ValidateSet('prepare','register','start','ready','close','unregister')][string]$Action,
     [ValidateSet('normal','fixture')][string]$Mode = 'normal',
+    [ValidateSet('basic','restricted')][string]$Profile = 'basic',
+    [ValidateSet('lifecycle_unconfirmed','read_only_file')][string]$ExpectedSaveCode = 'read_only_file',
     [string]$RunFolder,
     [string]$FixtureSource,
     [string]$FamilyTemplate = 'C:\ProgramData\Autodesk\RVT 2027\Family Templates\English\Metric Generic Model.rft'
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$evidence = Join-Path $root 'artifacts\document-boundaries'
+$evidence = Join-Path $root $(if($Profile -eq 'restricted'){'artifacts\restricted-documents'}else{'artifacts\document-boundaries'})
+$probeClass = $(if($Profile -eq 'restricted'){'RestrictedDiscoveryProbe'}else{'DiscoveryProbe'})
 function Hash([string]$Path) {
     $stream = [IO.File]::Open($Path,[IO.FileMode]::Open,[IO.FileAccess]::Read,([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
     try { [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant() } finally { $stream.Dispose() }
@@ -21,17 +24,27 @@ if ($Action -eq 'prepare') {
     $source = $FixtureSource
     $template = $FamilyTemplate
     $receipt = Get-Content (Join-Path $env:LOCALAPPDATA 'RevitThyme\setup\receipt.json') -Raw | ConvertFrom-Json
-    $plan = [ordered]@{folder=$RunFolder;mode=$Mode;source=$source;sourceSha256=(Hash $source);template=$template;templateSha256=(Hash $template)
+    if ($Profile -eq 'restricted' -and $Mode -ne 'normal') { throw 'Restricted fixtures use a normal isolated session.' }
+    $plan = [ordered]@{folder=$RunFolder;mode=$Mode;profile=$Profile;source=$source;sourceSha256=(Hash $source);template=$template;templateSha256=(Hash $template)
         a=(Join-Path $RunFolder 'A.rvt');b=(Join-Path $RunFolder 'B.rvt');bundle=$receipt.installed
         manifestSha256=(Hash (Join-Path $receipt.installed 'manifest.json'));registration=$receipt.registration;registrationSha256=(Hash $receipt.registration)}
     foreach ($key in @('a','b')) { Copy-Item -LiteralPath $source -Destination $plan[$key]; if ((Hash $plan[$key]) -ne $plan.sourceSha256) { throw 'Copy changed.' } }
+    if ($Profile -eq 'restricted') {
+        $plan.w=Join-Path $RunFolder 'W.rvt'; $plan.r=Join-Path $RunFolder 'R.rvt'; $plan.link=Join-Path $RunFolder 'Link.rvt'; $plan.family=Join-Path $RunFolder 'Family.rfa'
+        $plan.expectSaveCode=$ExpectedSaveCode; Copy-Item -LiteralPath $source -Destination $plan.r
+        if ((Hash $plan.r) -ne $plan.sourceSha256) { throw 'Read-only fixture copy changed.' }
+    }
     $plan | ConvertTo-Json | Set-Content (Join-Path $RunFolder 'plan.json') -Encoding utf8
     $plan | ConvertTo-Json; return
 }
 $registrationFile = Join-Path $evidence 'probe-registration.json'
 if ($Action -eq 'register') {
     NoRevit
-    if (Test-Path $registrationFile) { throw 'Inspect existing registration ownership before reuse.' }
+    if (Test-Path $registrationFile) {
+        $prior=Get-Content $registrationFile -Raw|ConvertFrom-Json
+        if (Test-Path -LiteralPath $prior.path) { throw 'Inspect existing live registration ownership before reuse.' }
+        Move-Item -LiteralPath $registrationFile -Destination (Join-Path $evidence ('probe-registration-retired-'+[Guid]::NewGuid().ToString()+'.json'))
+    }
     $binary = Join-Path $PSScriptRoot 'bin\Release\net10.0-windows\RevitThyme.DiscoveryProbe.dll'
     $signature = Get-AuthenticodeSignature -LiteralPath $binary
     $config = Get-Content (Join-Path $env:LOCALAPPDATA 'RevitThyme\development\signing.json') -Raw | ConvertFrom-Json
@@ -41,7 +54,7 @@ if ($Action -eq 'register') {
     $assembly = Join-Path $staged 'RevitThyme.DiscoveryProbe.dll'; Copy-Item -LiteralPath $binary -Destination $assembly
     $path = Join-Path $env:APPDATA ('Autodesk\Revit\Addins\2027\RevitThyme.DiscoveryProbe-'+$id+'.addin')
     $escaped = [Security.SecurityElement]::Escape($assembly)
-    $xml = '<RevitAddIns><AddIn Type="Application"><Name>RevitThyme Discovery Qualification</Name><Assembly>'+$escaped+'</Assembly><AddInId>'+$id+'</AddInId><FullClassName>RevitThyme.DiscoveryProbe.DiscoveryProbe</FullClassName><VendorId>WLKR</VendorId><VendorDescription>Disposable native test fixture author only</VendorDescription></AddIn></RevitAddIns>'
+    $xml = '<RevitAddIns><AddIn Type="Application"><Name>RevitThyme Discovery Qualification</Name><Assembly>'+$escaped+'</Assembly><AddInId>'+$id+'</AddInId><FullClassName>RevitThyme.DiscoveryProbe.'+$probeClass+'</FullClassName><VendorId>WLKR</VendorId><VendorDescription>Disposable native test fixture author only</VendorDescription></AddIn></RevitAddIns>'
     $stream = [IO.File]::Open($path,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
     try { $bytes=[Text.Encoding]::UTF8.GetBytes($xml); $stream.Write($bytes,0,$bytes.Length) } finally { $stream.Dispose() }
     @{path=$path;sha256=(Hash $path);assembly=$assembly;assemblySha256=(Hash $assembly);source=(git -C $root rev-parse HEAD);certificate=$config.thumbprint} |
@@ -83,7 +96,8 @@ if ($sessions.Count -ne 1) { throw 'Exact binding not ready.' }
 $binding = Get-Content $sessions[0].FullName -Raw | ConvertFrom-Json
 if ($binding.protocolVersion -ne 13 -or $binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start) { throw 'Session differs from owned launch.' }
 $ready = Get-Content (Join-Path $RunFolder 'ready.json') -Raw | ConvertFrom-Json
-if ($ready.pid -ne $launch.pid -or $ready.start -ne $launch.start -or $ready.activePath -ne $plan.a -or $ready.documents.Count -ne 4) { throw 'Independent fixture preparation not ready.' }
+$expectedDocuments=$(if($Profile -eq 'restricted'){5}else{4})
+if ($ready.pid -ne $launch.pid -or $ready.start -ne $launch.start -or $ready.activePath -ne $plan.a -or $ready.documents.Count -ne $expectedDocuments) { throw 'Independent fixture preparation not ready.' }
 $context = & (Join-Path $plan.bundle 'cli\revitthyme.exe') inspect --session $sessions[0].FullName --json | ConvertFrom-Json
 if (-not $context.succeeded -or $context.snapshot.documentPath -ne $plan.a -or $context.snapshot.isModified) { throw 'Exact clean active A required.' }
 if ($Action -eq 'ready') {
@@ -96,10 +110,16 @@ if ($Action -eq 'ready') {
 $complete = Get-Content (Join-Path $RunFolder 'complete.json') -Raw | ConvertFrom-Json
 if (-not $complete.passed) { throw 'Inspect failed run before close; no forced cleanup.' }
 $inventory = & (Join-Path $plan.bundle 'cli\revitthyme.exe') list-documents --session $sessions[0].FullName --request-id ([Guid]::NewGuid().ToString()) --json | ConvertFrom-Json
-if (-not $inventory.succeeded -or $inventory.documents.total -ne 1 -or $inventory.documents.items[0].path -ne $plan.a) { throw 'Fixture teardown is incomplete.' }
+$expectedFinal=$(if($Profile -eq 'restricted'){2}else{1})
+if (-not $inventory.succeeded -or $inventory.documents.total -ne $expectedFinal -or
+    @($inventory.documents.items | Where-Object {$_.path -ne $plan.a -and ($Profile -ne 'restricted' -or $_.path -ne $plan.link -or -not $_.isLinked)}).Count) { throw 'Fixture teardown is incomplete.' }
 $null = $p.CloseMainWindow()
 if (-not $p.WaitForExit(15000)) { throw 'Normal close pending; preserve process.' }
-if ((Hash $plan.a) -ne $plan.sourceSha256 -or (Hash $plan.b) -ne $plan.sourceSha256) { throw 'Saved copies changed.' }
+if ($Profile -eq 'restricted') {
+    foreach ($entry in $ready.hashes.psobject.Properties) { if ((Hash $entry.Name) -ne $entry.Value) { throw 'Authored saved files changed.' } }
+    $original=Get-Content (Join-Path $RunFolder 'original-attributes.json') -Raw|ConvertFrom-Json
+    if ([int][IO.File]::GetAttributes($plan.r) -ne $original.attributes) { throw 'Read-only fixture attributes not restored.' }
+} elseif ((Hash $plan.a) -ne $plan.sourceSha256 -or (Hash $plan.b) -ne $plan.sourceSha256) { throw 'Saved copies changed.' }
 @{closedNormally=$true;pid=$launch.pid;sourcePreserved=((Hash $plan.source) -eq $plan.sourceSha256);copiesPreserved=$true;templatePreserved=((Hash $plan.template) -eq $plan.templateSha256)} |
     ConvertTo-Json | Set-Content (Join-Path $RunFolder 'cleanup.json') -Encoding utf8
 Get-Content (Join-Path $RunFolder 'cleanup.json')

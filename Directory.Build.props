@@ -6,6 +6,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
     <Version>0.10.0</Version>
-    <InformationalVersion>0.10.0-lifecycle.4</InformationalVersion>
+    <InformationalVersion>0.10.0-lifecycle.5</InformationalVersion>
   </PropertyGroup>
 </Project>

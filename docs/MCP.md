@@ -89,6 +89,14 @@ Start with `get_context`, including at Home. `snapshot.hasDocument:false` explic
 
 On interruption reconnect to the same native session and call `get_operation(requestId)` without a capture. Pending/completed outcomes use the same retained history as image export; recovery never repeats the lifecycle action. Identical request/target replay returns its receipt; conflicting arguments return `id_conflict`. History ends at native shutdown. Native file calls or dialogs can outlast the 30-second transport deadline; cancellation cannot interrupt an in-flight save/open. Protocol 12 routes recovery through a separate process-verified outcome pipe, accepting only `GetOperation`, so it does not wait behind a pending native lifecycle call. No cross-session recovery store, arbitrary model promotion or changed-ID budget increase is included.
 
+### Native dialogs and recovery
+
+A dialog can keep the native operation Pending after the original MCP call returns `transport_lost` / `Unconfirmed` or its server disconnects. Keep polling `get_operation` with the **original saved request GUID**; do not create a replacement operation. Pending is currently returned with `isError:true`, `code: pending` and the polling query's response ID. Retain the requested GUID; do not replace it with that response ID. Terminal recovery returns the original operation ID and result.
+
+Explicitly inspect and resolve the dialog in the pinned Revit process. The toolkit does not dismiss project warnings. After intervention, recover the original terminal outcome and inspect exact native document/path/state before continuing. `get_context` and ordinary model operations require Revit's API callback to become available again; outcome polling uses the independent pipe. An uncertain native terminal result still requires inspection rather than automatic retry.
+
+The [native-modal qualification](../verification/modal-recovery.md) records actual transport timeout, lost-server response, Pending responsiveness and original completion after controlled test-dialog intervention. It does not establish handling of every project warning or recovery after native-session shutdown.
+
 ### Home, clean close and exact view switching
 
 Home supports background `open_document` and explicit activation by the returned document ID/path. Opening alone does not activate a project. Closing/reopening creates a new document identity; old captures and closed IDs cannot retarget the new document.

@@ -5,7 +5,7 @@ using Autodesk.Revit.UI;
 
 namespace RevitThyme.LifecycleProbe;
 
-// Test-only third-party cancellation. It never executes lifecycle operations or modifies models.
+// Test-only native open/close faults. It never executes lifecycle operations or modifies models.
 public sealed class LifecycleProbe : IExternalApplication
 {
     private string? folder;
@@ -26,10 +26,26 @@ public sealed class LifecycleProbe : IExternalApplication
     }
     private void Opened(object? sender, DocumentOpenedEventArgs e)
     {
+        if (e.Status != RevitAPIEventStatus.Succeeded) return;
         string path = e.Document.PathName;
         if (!allowed.Contains(path, StringComparer.OrdinalIgnoreCase)) return;
         File.WriteAllText(Path.Combine(folder!, "opened-" + Path.GetFileNameWithoutExtension(path) + ".json"),
             JsonSerializer.Serialize(new { path, activeView = e.Document.ActiveView?.UniqueId }));
+        string intent = Path.Combine(folder!, "modal-open.json");
+        if (!File.Exists(intent)) return;
+        using var request = JsonDocument.Parse(File.ReadAllText(intent));
+        string target = request.RootElement.GetProperty("path").GetString()!, id = request.RootElement.GetProperty("id").GetString()!;
+        if (!Guid.TryParseExact(id, "D", out _) || !path.Equals(target, StringComparison.OrdinalIgnoreCase)) return;
+        File.Move(intent, Path.Combine(folder!, "modal-intent-" + id + ".json"));
+        string title = "RevitThyme recovery test " + id;
+        File.WriteAllText(Path.Combine(folder!, "modal-visible-" + id + ".json"),
+            JsonSerializer.Serialize(new { id, path, title, enteredUtc = DateTime.UtcNow }));
+        using var dialog = new TaskDialog(title) { TitleAutoPrefix = false, MainInstruction = "Disposable MCP recovery test",
+            MainContent = "Request: " + id + "\nClose only after the external client records dismissal readiness.",
+            CommonButtons = TaskDialogCommonButtons.Close, DefaultButton = TaskDialogResult.Close };
+        var result = dialog.Show(); // Explicit test intervention; never automatically dismiss a project dialog.
+        File.WriteAllText(Path.Combine(folder!, "modal-closed-" + id + ".json"),
+            JsonSerializer.Serialize(new { id, path, result = result.ToString(), closedUtc = DateTime.UtcNow }));
     }
     private void Closing(object? sender, DocumentClosingEventArgs e)
     {

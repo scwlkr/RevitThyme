@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Qualify the existing MCP outcome channel while native dialogs block document opening: real transport timeout and lost-server responses recover the original result after explicit test-dialog intervention. Document Pending response IDs and retain the original caller GUID. Production protocol, tool inventory and installed host remain unchanged.
+
 - Extend `close_document` with an explicit already-open clean document to activate before closing the captured active project. Revalidate both native identities and saved hashes after the synchronous handoff; partial activation or cancelled close remains retained and Unconfirmed. Fix cancelled native closes changing still-open document identities. Candidate `0.10.0-lifecycle.3` uses protocol 12 with the same 31 MCP tools; last-document close to Home remains unsupported.
 
 - Extend MCP lifecycle to Home/no active document, explicit clean background-document close and exact native view/sheet switching. Reject active/wrong/dirty/changed-file closes before side effects, and poll retained outcomes through an independent process-verified pipe. The unreleased `0.10.0-lifecycle.2` candidate has protocol 11 and 31 tools. No implicit save/discard or changed-ID budget expansion.

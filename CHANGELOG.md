@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add shared explicit document open, activation and active-document save with three MCP tools. Require exact captured context, canonical local nonworkshared RVT paths, document IDs and expected disk hashes; verify native completion and retain original request recovery outside model transactions/Undo. The unreleased `0.10.0-lifecycle.1` candidate uses protocol 10 and 29 tools; published v0.10.0 is unchanged.
+
 - Fix unfiltered native element queries with `includeTypes:true`, and align the pinned development launcher with protocol 9. Installed-host qualification checks complete element/type pagination as well as native edit, image and readback.
 
 - Recognize `0.10.0-image-export.1` in the installer/setup gates while retaining the complete existing toolkit payload requirements. Add external SDK qualification against the immutable installed MCP executable and normally started native host, without test host wiring or export callbacks.

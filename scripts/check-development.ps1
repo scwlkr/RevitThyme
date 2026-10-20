@@ -96,7 +96,7 @@ function New-CheckRun {
     return @{plan=$plan;launch=$launch}
 }
 function New-CheckBinding($Run, [string]$Name='binding.json') {
-    $binding = [pscustomobject]@{protocolVersion=9;processId=$Run.launch.pid;processStart=$Run.launch.start;
+    $binding = [pscustomobject]@{protocolVersion=10;processId=$Run.launch.pid;processStart=$Run.launch.start;
         sessionId=$Run.launch.session_id;pipeName="RevitThyme-Foundation-$($Run.launch.pid)-$($Run.launch.session_id)";revitVersion='2027'}
     $path = Join-Path (Join-Path $Run.plan.folder 'sessions') $Name
     Write-DevJson $path $binding
@@ -177,7 +177,7 @@ foreach ($variant in @('missing','wrong-pid','stale-start','ambiguous','invalid-
                 'stale-start' { $binding.value.processStart='1' }
                 'ambiguous' { $null = New-CheckBinding $run 'second.json' }
                 'invalid-protocol' { $binding.value.protocolVersion=0 }
-                'previous-protocol' { $binding.value.protocolVersion=8 }
+                'previous-protocol' { $binding.value.protocolVersion=9 }
                 'invalid-pipe' { $binding.value.pipeName='Wrong-Pipe' }
                 'changed-session' { $run.launch.session_id=[Guid]::NewGuid().ToString() }
             }

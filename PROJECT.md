@@ -1,6 +1,6 @@
 # Project overview
 
-RevitThyme is an open-source native toolkit for full Revit 2027. Ribbon tools, CLI, a 26-tool source MCP server and the optional built-in Agent share C# operations and a native execution host. The extra image-export tool is unreleased (`0.10.0-image-export.1`, protocol 9). Published version 0.10.0 remains at protocol 8 and the qualified `0.10.0-timberfold.4` package, without typed image export.
+RevitThyme is an open-source native toolkit for full Revit 2027. Ribbon tools, CLI, a 29-tool source MCP server and the optional built-in Agent share C# operations and a native execution host. Image export and explicit document lifecycle are unreleased (`0.10.0-lifecycle.1`, protocol 10). Published version 0.10.0 remains at protocol 8 and the qualified `0.10.0-timberfold.4` package, without typed image export.
 
 ## Current scope
 

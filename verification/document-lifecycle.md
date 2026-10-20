@@ -1,0 +1,40 @@
+# Explicit document lifecycle qualification
+
+This unreleased `0.10.0-lifecycle.1` / protocol-10 follow-up uses the existing shared queue, exact captured targets and retained request outcomes for background open, explicit activation and active-document save. [MCP contract](../docs/MCP.md#explicit-document-lifecycle-unreleased) defines supported local nonworkshared RVTs and completion/recovery. The installed image-export qualification at `ac2bab9` is preserved in [view-images.md](view-images.md); it is not repeated or attributed to these new lifecycle operations.
+
+## Qualification boundaries
+
+Source checks cover native queue dispatch, all six captured identity components, save document/path guards, argument rejection, cancellation before execution, pending/result recovery, conflicts and native completion/readback failure. Actual-Revit results below are separate from source checks; a build is not native qualification.
+
+`tests/Mcp/DocumentLifecycleLive.cs` starts the immutable installed MCP executable through the official SDK. It uses three private copies of an original nonworkshared RVT, with exact PID/start/session pins, trusted execution disabled, and native typed operations only. A dedicated normal process intentionally has no single-fixture path environment variable because this test must exercise multiple explicit documents; it is owned by this run and must contain no working model. Existing single-fixture development guards are retained.
+
+The harness refuses original/copy hash mismatches, verifies full installed payload hashes, checks wrong document/stale captures and expected disk hashes, changes a view name, explicitly saves only the selected copy and independently compares native modified/name/path readback with disk hashes. It terminates only its owned MCP server after native file activity while the caller response is still outstanding, requires that response actually be lost, and recovers the original outcome without submitting another write. A separate fresh native process checks saved persistence.
+
+Private fixtures, failed/successful transcripts and preservation receipts stay under ignored `artifacts/document-lifecycle`. Run `dotnet tests/Mcp/bin/Release/net10.0/RevitThyme.McpTests.dll --lifecycle-live ABSOLUTE_RUN`, then `--lifecycle-reopened ABSOLUTE_RUN` with that run's saved-copy session. `lifecycle-input.json` pins session, bundle/manifest hash, PID/start, initial/other/recovery copy paths and source/hash. Keep every failed attempt independently; never target a working model or replace an uncertain request ID.
+
+## Remaining limits
+
+No Home-screen/no-document open, explicit close, view switching, SaveAs, synchronization, cloud/workshared documents, modal dismissal or persistent cross-session recovery. Native open/save calls can block past transport deadlines and cannot be forcibly cancelled. File saves are outside model Undo. The fixed-drive gate was reviewed; live mapped-share/removable-drive coverage is not claimed. Other machines, host versions and modal/native I/O failure conditions remain unqualified. More than 512 changed IDs, model promotion, physical TimberFold fabrication, release publication and promotional posts remain separate.
+
+## Actual results — 2026-10-19
+
+Image-export PR [#38](https://github.com/scwlkr/RevitThyme/pull/38) merged as `d9db88f81ae77559703b79c5cf8854da45988317` after standards/spec reviews, local checks and all three hosted checks passed. Its `ac2bab9` installed-startup evidence is unchanged. The only integration conflict was the changelog; both entries were retained. No protection/ruleset bypass, release, website deployment or promotional post was used.
+
+Lifecycle implementation commits are `a7923f7` and `9d4f0ef`. Review found and fixed a mapped-drive loophole: before file access, native preflight now requires a fixed local drive in addition to canonical-path and reparse-point checks. Both review axes then found no actionable findings. Full source checks passed **503 unit, 75 MCP, 13 Agent, 6 WPF and 47 development-safety checks**, with zero build warnings/errors; **39 package checks** retained the entire existing toolkit dependency requirements. Website checks before final evidence updates passed **5,975 checks across 44 documents and 29 tools**.
+
+A local production setup built from `a7923f7` installed the new candidate's setup/uninstall support successfully while Revit was closed. Before any native launch, the documented signed package installer applied the corrected `9d4f0ef` binaries to the standard receipt. The resulting immutable manifest SHA-256 is `d6f020013c71060e8953face8908a47c2b1650f469723e3b45a1296c7a546887`; all 11 first-party signatures verified under the existing persistent development signer. Later test-evidence/documentation changes do not change those installed binaries. Setup itself remains unsigned and local; nothing was uploaded as a release. Prior bundle bytes, unrelated add-in registrations, raw user PATH registry type/unrelated entries and the user's TimberFold test model were verified preserved.
+
+The official external SDK client passed **46 checks** against that actual installed executable and normally started Revit 2027.3 host, PID **1004**, process start `639280442937036198`, session `7a9935ef-009d-4fa1-9d55-b4d94a6cefb3`. Trusted C# was disabled. No test loader, submitted C#, callback, reflection host wiring or UI lifecycle fallback was used.
+
+Native results established:
+
+- Background open of copy B returned its actual document identity, preserved active A and changed neither saved file. Activation verified B's exact native ID/path. Wrong ID/path and closed-document activation were rejected without implicit opening or fallback.
+- Saving with A's stale capture after activating B was rejected; saving A with fresh B context was rejected as `wrong_document`. Incorrect/stale on-disk hashes were refused. A typed view rename remained unsaved until explicit save; save returned a changed hash and native clean state. Recovery preserved the save timestamp.
+- The owned MCP server was terminated while a background open of C had native file activity and its response remained outstanding. The original SDK call actually failed with `ClientTransportClosedException`; a fresh client recovered original request `59565c85-b0ec-4cee-8762-6ddcc3a62638` as Completed without resubmission, while A remained active.
+- After activating/renaming C, the same strict probe interrupted a native save. Original request `348f911f-7d33-4f1f-83c4-ad8916ad5873` recovered as Completed; native path/name/clean state and independent disk SHA-256 agreed. Repeated recovery preserved the exact receipt and file timestamp. Future probes also persist submission intent before sending, so a failed probe retains its request ID.
+
+Copy C's saved hash was `8E2C98D18523320B2C69EE3F376F6159D507CBB3072196DAE8BFFA00CDAE520C`. A separate fresh owned process, PID **6712**/start `639280444538437930`, session `b63c1dd8-651a-4ce7-91bb-65904b3ecb91`, passed **4 additional SDK checks**, reading native view name `Recovered save f07204b9`, the same disk hash and `IsModified=false`. Both processes closed normally with clean active state. Original source and untouched A remained `3AE0941F3B5043C430A8DF4E3E2E902189A899B4B2EF81B85336E6FB39BFD173`; only B/C and Revit's native backup files inside the private run were saved.
+
+Private receipts are in `artifacts/document-lifecycle/8c373634-9972-4288-bda2-1980ec4ad382`: first/saved launch and binding inputs, `lifecycle-complete.json`, `lifecycle-reopened.json`, transcripts, expected saved hash and separate cleanup receipts. Installation/cohort/signature/preservation records remain one directory above. Startup readiness was checked before submissions; early not-ready observations are not native test passes. No failed lifecycle operation was relabelled as successful.
+
+Next review the lifecycle change for landing, then scope the remaining document/view lifecycle and recovery limits before bounded model promotion. Keep the greater-than-512 changed-ID work independent.

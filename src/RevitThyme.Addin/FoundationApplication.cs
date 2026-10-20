@@ -125,6 +125,11 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
             throw new OperationException("reopened_fixture", "The pinned fixture closed; prepare another test session.");
         fixtureDocumentId ??= id;
     }
+    public void AssertLifecyclePath(string path)
+    {
+        if (fixturePath is not null && !string.Equals(path, fixturePath, StringComparison.OrdinalIgnoreCase))
+            throw new OperationException("wrong_fixture", "This fixture-bound development session cannot open or activate another path.");
+    }
     private void Changed(object? sender, DocumentChangedEventArgs e) => Revision++;
     private void Closing(object? sender, DocumentClosingEventArgs e)
     {

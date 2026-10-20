@@ -9,7 +9,7 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `list_sessions` | Discover live process/start/session bindings in the configured directory |
 | `connect_session` | Explicitly connect to a chosen absolute binding file; handshake and reset captures |
 | `get_context` | Native document/view inspection and connection-local `captureId` |
-| `list_operations` | Typed operations, units, limits and recovery semantics |
+| `list_operations` | Typed operations, units, limits and recovery semantics, including explicit active-close handoff and its limits |
 | `list_views` | Paged native view IDs, names, classes and template flags |
 | `query_elements` | Paged elements, optional negative category ID/name filter, optional types |
 | `inspect_elements` | Properties and paged typed parameters for 1–5 native UniqueIds |

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Correct `list_operations` guidance to describe the already-supported explicit clean-document handoff for active close, including Unconfirmed recovery and the remaining last-document-to-Home limit. No native operation or protocol change.
+
 - Qualify the existing MCP outcome channel while native dialogs block document opening: real transport timeout and lost-server responses recover the original result after explicit test-dialog intervention. Document Pending response IDs and retain the original caller GUID. Production protocol, tool inventory and installed host remain unchanged.
 
 - Extend `close_document` with an explicit already-open clean document to activate before closing the captured active project. Revalidate both native identities and saved hashes after the synchronous handoff; partial activation or cancelled close remains retained and Unconfirmed. Fix cancelled native closes changing still-open document identities. Candidate `0.10.0-lifecycle.3` uses protocol 12 with the same 31 MCP tools; last-document close to Home remains unsupported.

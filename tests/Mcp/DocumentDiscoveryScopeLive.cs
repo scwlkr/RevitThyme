@@ -178,6 +178,13 @@ internal static class DocumentDiscoveryScopeLive
             var watch = Stopwatch.StartNew(); string path = Path.Combine(folder, name);
             while (watch.Elapsed.TotalSeconds < 60)
             {
+                string? failure = null; string errorPath = Path.Combine(folder, "probe-error.json");
+                if (File.Exists(errorPath))
+                {
+                    try { using var errorJson = JsonDocument.Parse(await File.ReadAllTextAsync(errorPath)); failure = errorJson.RootElement.GetRawText(); }
+                    catch (Exception error) when (error is IOException or JsonException) { await Task.Delay(100); continue; }
+                }
+                if (failure is not null) throw new InvalidDataException("Discovery probe failed while waiting for " + name + ": " + failure);
                 try { return JsonDocument.Parse(await File.ReadAllTextAsync(path)); }
                 catch (Exception error) when (error is IOException or JsonException) { await Task.Delay(100); }
             }

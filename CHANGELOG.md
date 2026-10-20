@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Qualify the current electrical-lab edit/inspect/image/save/reopen loop through a real external MCP client against the unchanged installed host. Add fixture-specific original-request recovery and direct postcommit companion inspection, distinguishing 12 native additions from 11 collector-visible elements. Preserve the later source revision separately from outstanding historical Fine-detail acceptance; native warning intervention and image-evidence limits are recorded in [electrical-lab verification](verification/electrical-lab.md). No release or protocol change.
+
 - Refuse explicit save before calling Revit when the document was opened from a read-only file. Return retained `read_only_file` rejection instead of discovering this known restriction through an uncertain native save failure. In-memory editing and read-only-file open/activation remain unchanged; no SaveAs or implicit save/discard. Candidate `0.10.0-lifecycle.5` retains protocol 13 and 32 tools.
 
 - Add shared read-only document discovery through MCP `list_documents` and CLI `list-documents`, including at Home. Return exact session-native IDs and document flags with bounded pages; native-session inventory fingerprints reject continuation after background opens/closes or metadata changes without changing lifecycle semantics. Fixture-bound sessions expose only their fixture. Candidate `0.10.0-lifecycle.4` uses protocol 13 and 32 tools; install matching components together. Native qualification is recorded separately in [document discovery](verification/document-discovery.md).

@@ -14,6 +14,8 @@
 
 [document-discovery.md](document-discovery.md) separates the installed-host targeting-gap reproduction from the subsequent read-only document inventory candidate and its qualification status.
 
+[electrical-lab.md](electrical-lab.md) tracks the current-source electrical-lab MCP loop, real missing-reference warning recovery and the distinction from historical fixture acceptance.
+
 Earlier Rust/Electron/pyRevit records are preserved under `legacy/pre-foundation/verification`. They remain evidence for their original revisions, not qualification of the new C# product.
 
 [native-utilities.md](native-utilities.md) records actual ribbon/WPF, native transaction and utility MCP qualification. [dynamic-execution.md](dynamic-execution.md) records Roslyn/transaction/MCP/CLI qualification and independent native Cabin Eval scoring. Their private fixtures/results live under ignored `artifacts/utilities` and `artifacts/dynamic` respectively.

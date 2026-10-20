@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Correct `list_operations` guidance to describe the already-supported explicit clean-document handoff for active close, including Unconfirmed recovery and the remaining last-document-to-Home limit. No native operation or protocol change.
+- Correct `list_operations` guidance to describe the already-supported explicit clean-document handoff for active close, including Unconfirmed recovery and the remaining last-document-to-Home limit. Align architecture guidance with the independent outcome pipe. No native operation or protocol change.
 
 - Qualify the existing MCP outcome channel while native dialogs block document opening: real transport timeout and lost-server responses recover the original result after explicit test-dialog intervention. Document Pending response IDs and retain the original caller GUID. Production protocol, tool inventory and installed host remain unchanged.
 

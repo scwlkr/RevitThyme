@@ -22,6 +22,8 @@ public sealed partial class RevitModel
             throw new OperationException("wrong_document", "The exact document ID/path is not open in this session.");
         if (document is not null && (document.IsLinked || document.IsFamilyDocument || document.IsWorkshared || document.IsReadOnly || document.IsModifiable))
             throw new OperationException("lifecycle_blocked", "Linked, family, workshared, read-only or modifiable documents are outside this scope.");
+        if (operation == OperationKind.SaveDocument && document!.IsReadOnlyFile)
+            throw new OperationException("read_only_file", "This document was opened from a read-only file. Nothing was saved. Saving to another path requires SaveAs, which is outside this operation's scope.");
         if (operation == OperationKind.OpenDocument)
         {
             using var info = BasicFileInfo.Extract(options.Path);

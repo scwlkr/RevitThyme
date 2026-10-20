@@ -23,7 +23,7 @@ public sealed partial class RevitTools
         Safe(() => Run(captureId, new(Id(requestId), OperationKind.ActivateDocument, DocumentLifecycle: new(path, documentId)), cancellationToken));
 
     [McpServerTool(Name = "save_document", ReadOnly = false, Destructive = false, Idempotent = true),
-        Description("Explicitly save ONLY the exact captured active nonworkshared local project: native documentId, canonical existing path and expected current on-disk SHA-256 must agree. No SaveAs, sync, close or model transaction. Success verifies native IsModified=false and returns the resulting saved hash. Saving is outside Undo; failures may be unconfirmed. Recover original requestId; never repeat an uncertain save under a new ID.")]
+        Description("Explicitly save ONLY the exact captured active nonworkshared local project: native documentId, canonical existing path and expected current on-disk SHA-256 must agree. A document opened from a read-only file is refused before saving, even if it can be edited in memory. No SaveAs, sync, close or model transaction. Success verifies native IsModified=false and returns the resulting saved hash. Saving is outside Undo; failures may be unconfirmed. Recover original requestId; never repeat an uncertain save under a new ID.")]
     public Task<CallToolResult> SaveDocument(string captureId, string requestId, string documentId, string path, string expectedSha256, CancellationToken cancellationToken = default) =>
         Safe(() => Run(captureId, new(Id(requestId), OperationKind.SaveDocument, DocumentLifecycle: new(path, documentId, expectedSha256)), cancellationToken));
 

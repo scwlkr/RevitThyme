@@ -153,6 +153,18 @@ internal static class RestrictedDocumentsLive
             var activeROracle = await Command("snapshot", rContext.Snapshot); var rNative = Documents(activeROracle).Single(d => d.Path == r);
             Program.Check("native active R distinguishes file read-only constraint from dynamic document state", rNative.IsReadOnlyFile && !rNative.IsReadOnly && rNative.IsActive && !rNative.IsModified
                 && rContext.Snapshot.Target.DocumentId == discoveredR.DocumentId && rContext.Snapshot.DocumentPath == r);
+            string? cleanSaveId = null; JsonElement? cleanSaveResult = null;
+            if (expectedSave == "read_only_file")
+            {
+                cleanSaveId = Guid.NewGuid().ToString(); var cleanBefore = rContext.Snapshot;
+                cleanSaveResult = await Call("save_document", Lifecycle(rContext.Id, r, discoveredR.DocumentId, true, cleanSaveId), "read_only_file");
+                Program.Check("candidate clean file-read-only save is rejected under exact caller GUID", cleanSaveResult.Value.GetProperty("id").GetString() == cleanSaveId
+                    && cleanSaveResult.Value.GetProperty("outcome").GetString() == "Rejected");
+                Program.Check("candidate clean-save recovery returns exact original rejection", (await Call("get_operation", new() { ["requestId"] = cleanSaveId }, "read_only_file")).GetRawText() == cleanSaveResult.Value.GetRawText());
+                rContext = await Context(); var cleanOracle = await Command("snapshot", rContext.Snapshot);
+                Program.Check("candidate clean-save preflight preserves exact clean R and independent native state", rContext.Snapshot == cleanBefore && !rContext.Snapshot.IsModified
+                    && Same(Documents(cleanOracle), Documents(activeROracle))); Files();
+            }
             string renameId = Guid.NewGuid().ToString(), saveId = Guid.NewGuid().ToString();
             Save("readonly-edit-intent.json", new { path = r, documentId = discoveredR.DocumentId, originalName, renameId, saveId, expectedSave });
             await Call("rename_view", new() { ["captureId"] = rContext.Id, ["requestId"] = renameId, ["name"] = "Read-only file baseline " + renameId[..8] }, "applied");
@@ -174,7 +186,7 @@ internal static class RestrictedDocumentsLive
                 && final.Snapshot.Target.ViewId == baseline.Target.ViewId && final.Snapshot.ViewName == baseline.ViewName && final.Snapshot.DocumentPath == a && !final.Snapshot.IsModified);
             Program.Check("old completed read still preserves original five-document point-in-time inventory", (await Call("get_operation", new() { ["requestId"] = readId }, "inspected")).GetRawText() == originalRead.GetRawText());
             var finalOracle = await Command("snapshot", final.Snapshot); Program.Check("final pure reads preserve independent native state", Same(Documents(finalOracle), finalNative)); Files();
-            Save("complete.json", new { passed = true, binding, expectedSave, savedA = hashes[a], savedB = hashes[Text("b")], hashes, final.Snapshot, readId, saveId, saveResult,
+            Save("complete.json", new { passed = true, binding, expectedSave, savedA = hashes[a], savedB = hashes[Text("b")], hashes, final.Snapshot, readId, cleanSaveId, cleanSaveResult, saveId, saveResult,
                 resultSource = "immutable installed SDK; independent native metadata including IsReadOnlyFile; completed-read recovery after client replacement, no interrupted-request claim",
                 observedDynamicReadOnly = initialNative.Where(d => d.IsReadOnly).Select(d => d.Path), originalRead, initialNative, final = finalPages.Items, calls });
         }

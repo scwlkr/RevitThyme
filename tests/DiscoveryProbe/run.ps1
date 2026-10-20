@@ -2,6 +2,7 @@ param(
     [ValidateSet('prepare','register','start','ready','close','unregister')][string]$Action,
     [ValidateSet('normal','fixture')][string]$Mode = 'normal',
     [ValidateSet('basic','restricted')][string]$Profile = 'basic',
+    [ValidateSet('lifecycle_unconfirmed','read_only_file')][string]$ExpectedSaveCode = 'read_only_file',
     [string]$RunFolder,
     [string]$FixtureSource,
     [string]$FamilyTemplate = 'C:\ProgramData\Autodesk\RVT 2027\Family Templates\English\Metric Generic Model.rft'
@@ -30,7 +31,7 @@ if ($Action -eq 'prepare') {
     foreach ($key in @('a','b')) { Copy-Item -LiteralPath $source -Destination $plan[$key]; if ((Hash $plan[$key]) -ne $plan.sourceSha256) { throw 'Copy changed.' } }
     if ($Profile -eq 'restricted') {
         $plan.w=Join-Path $RunFolder 'W.rvt'; $plan.r=Join-Path $RunFolder 'R.rvt'; $plan.link=Join-Path $RunFolder 'Link.rvt'; $plan.family=Join-Path $RunFolder 'Family.rfa'
-        $plan.expectSaveCode='lifecycle_unconfirmed'; Copy-Item -LiteralPath $source -Destination $plan.r
+        $plan.expectSaveCode=$ExpectedSaveCode; Copy-Item -LiteralPath $source -Destination $plan.r
         if ((Hash $plan.r) -ne $plan.sourceSha256) { throw 'Read-only fixture copy changed.' }
     }
     $plan | ConvertTo-Json | Set-Content (Join-Path $RunFolder 'plan.json') -Encoding utf8

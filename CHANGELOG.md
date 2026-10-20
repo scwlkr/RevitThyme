@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Refuse explicit save before calling Revit when the document was opened from a read-only file. Return retained `read_only_file` rejection instead of discovering this known restriction through an uncertain native save failure. In-memory editing and read-only-file open/activation remain unchanged; no SaveAs or implicit save/discard. Candidate `0.10.0-lifecycle.5` retains protocol 13 and 32 tools.
+
 - Add shared read-only document discovery through MCP `list_documents` and CLI `list-documents`, including at Home. Return exact session-native IDs and document flags with bounded pages; native-session inventory fingerprints reject continuation after background opens/closes or metadata changes without changing lifecycle semantics. Fixture-bound sessions expose only their fixture. Candidate `0.10.0-lifecycle.4` uses protocol 13 and 32 tools; install matching components together. Native qualification is recorded separately in [document discovery](verification/document-discovery.md).
 
 - Correct `list_operations` guidance to describe the already-supported explicit clean-document handoff for active close, including Unconfirmed recovery and the remaining last-document-to-Home limit. Align architecture guidance with the independent outcome pipe. No native operation or protocol change.

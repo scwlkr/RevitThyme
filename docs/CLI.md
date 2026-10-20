@@ -28,7 +28,7 @@ Captures contain private model paths and metadata. Model events invalidate them;
 
 ## Discover open documents (unreleased)
 
-The `0.10.0-lifecycle.4` candidate adds a read-only command, including at Home. Install matching protocol-13 binaries first:
+The `0.10.0-lifecycle.5` candidate adds a read-only command, including at Home. Install matching protocol-13 binaries first:
 
 ```powershell
 rthyme list-documents --session $session --limit 1 --request-id CALLER_GUID --json > C:\Test\documents.json
@@ -36,6 +36,8 @@ rthyme list-documents --session $session --capture C:\Test\documents.json --offs
 ```
 
 Use each page's exact `nextOffset`; its captured target and inventory token must still agree with native state. Open/close or metadata changes require a new capture and first page. A returned ID identifies an already-open document; listing does not activate or authorize editing it. Flags include dirty, active, family, linked, workshared, read-only and saved-path state. No file is hashed or saved. Supplying `--request-id` lets callers retain the original read identity for recovery; recovered pages describe the original point in time. Keep captures private.
+
+The read-only flag reports Revit's dynamic document state, not whether its disk file can be overwritten. Explicit save independently refuses native `IsReadOnlyFile` with `read_only_file`, even when the document is editable in memory or already clean. It does not save elsewhere or discard edits.
 
 ## Inspect parameters
 

@@ -33,8 +33,9 @@ foreach (var original in originals) {
         && orientation(e).Zip(originalOrientation, (left, right) => Math.Abs(left - right) < 1e-9).All(equal => equal)) != 1)
         throw new InvalidOperationException("Copied annotation type/position/basis orientation differs from source.");
 }
+var collectedIds = new FilteredElementCollector(doc).WherePasses(new LogicalOrFilter(new ElementIsElementTypeFilter(), new ElementIsElementTypeFilter(true))).ToElementIds().ToHashSet();
 return new { studyUid = study.UniqueId, copied = after.OrderBy(e => e.Id.Value).Select(e => new { id = e.Id.Value, uid = e.UniqueId,
-    type = doc.GetElement(e.GetTypeId()).UniqueId, owner = e.OwnerViewId.Value,
+    type = doc.GetElement(e.GetTypeId()).UniqueId, owner = e.OwnerViewId.Value, collectorMembership = collectedIds.Contains(e.Id),
     position = new[] { ((LocationPoint)e.Location).Point.X, ((LocationPoint)e.Location).Point.Y, ((LocationPoint)e.Location).Point.Z },
     orientation = orientation(e) }).ToArray(),
     allowedModified = new[] { new { id = study.Id.Value, reason = "destination view annotation membership" } }

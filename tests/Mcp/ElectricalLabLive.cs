@@ -28,6 +28,12 @@ internal sealed partial class ElectricalLabLive
         await Export(sheetUid, "baseline-sheet"); await Export(sourceUid, "baseline-power");
         AssertCanonical(baseline, Value(await Code("inventory.csx")));
         var duplicate = await Code("duplicate.csx", true); studyUid = Value(duplicate).GetProperty("uid").GetString()!;
+        await FinishDuplicate(baseline, aid, bid, duplicate);
+    }
+    private async Task FinishDuplicate(JsonElement baseline, string aid, string bid, JsonElement duplicate)
+    {
+        annotationUids = baseline.GetProperty("sourceAnnotations").EnumerateArray().Select(a => a.GetProperty("uid").GetString()!).ToArray();
+        string sheetUid = baseline.GetProperty("sheet").GetProperty("uid").GetString()!;
         var empty = Value(await Code("inventory.csx")); AssertCanonical(baseline, empty); CheckStudy(empty, baseline, 0);
         await Export(studyUid, "empty-study"); var copy = await Code("copy-annotations.csx", true);
         var copied = Value(await Code("inventory.csx")); AssertCanonical(baseline, copied); CheckStudy(copied, baseline, 2);
@@ -51,15 +57,17 @@ internal sealed partial class ElectricalLabLive
         Program.Check("retired document identity refusal preserves exact B handoff", (await Context(false)).Snapshot == handoff.Snapshot);
         await Call("activate_document", Lifecycle(handoff.Id, Text("a"), reopenedId), "document_activated"); await ActivateView(studyUid);
         var persisted = Value(await Code("inventory.csx")); AssertCanonical(baseline, persisted); CheckStudy(persisted, baseline, 2);
+        await VerifyDuplicateIdentity("after save/reopen");
         Program.Check("saved study preserves exact annotation IDs, types, positions and ownership after reopen", persisted.GetProperty("study").GetProperty("annotations").GetRawText() == studyAnnotations.GetRawText());
         await Export(studyUid, "reopened-study"); foreach (var result in retained) await RecoverExact(result);
         current = await Context(); await Call("close_document", Lifecycle(current.Id, Text("b"), bid, Text("bSourceSha256")), "document_closed");
         var final = await Context(); await Inventory(final.Id, [reopenedId]); var finalValue = Value(await Code("inventory.csx")); AssertCanonical(baseline, finalValue); CheckStudy(finalValue, baseline, 2);
         final = await Context(); Program.Check("electrical workflow finishes clean on exact persisted study in A", final.Snapshot.Target.DocumentId == reopenedId
             && final.Snapshot.DocumentPath == Text("a") && final.Snapshot.Target.ViewId == studyUid && !final.Snapshot.IsModified); Preserve(); Payloads();
+        if (continuationEvidence is not null) Program.Check("completed Applied continuation preserves all original evidence", continuationEvidence.All(p => Hash(p.Key) == p.Value));
         Save("complete.json", new { passed = true, binding, savedA, savedB = Text("bSourceSha256"), sourceSha256 = Text("sourceSha256"), final.Snapshot, studyUid, qaName,
             currentSourceWorkflow = "passed", historicalAcceptance = false, historicalFineAcceptance = false, historicalAcceptanceStatus = "outstanding", currentSourceProfile, historicalReferenceDifferences,
-            baseline, finalInventory = finalValue, studyAnnotations, nativeAddedIds = added.Order(), duplicate, copy, saved, transcriptName, resumeSource, calls,
+            baseline, finalInventory = finalValue, studyAnnotations, nativeAddedIds = added.Order(), collectedAddedIds = collectedAdded.Order(), duplicateInspections, duplicate, copy, saved, transcriptName, resumeSource, calls,
             resultSource = "immutable installed official SDK; Roslyn native transaction bodies; typed lifecycle/image operations; completed outcomes recovered without interrupted-loss claim" });
     }
 }

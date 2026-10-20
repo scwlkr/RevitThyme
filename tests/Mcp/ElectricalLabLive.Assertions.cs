@@ -58,8 +58,8 @@ internal sealed partial class ElectricalLabLive
     {
         foreach (string key in new[] { "views", "templates", "counts", "wireCount", "sourceL1LightingAnnotationCount", "schedules", "sheet", "sourceUid", "sourceAnnotations" })
             Program.Check("canonical electrical " + key + " remains unchanged", actual.GetProperty(key).GetRawText() == baseline.GetProperty(key).GetRawText());
-        Program.Check("native element membership changes are exactly the reported additions", actual.GetProperty("idFingerprint").GetString() == baseline.GetProperty("idFingerprint").GetString()
-            && actual.GetProperty("elements").GetInt32() == baseline.GetProperty("elements").GetInt32() + added.Count);
+        Program.Check("collector-visible native membership changes are exactly the classified collected additions", actual.GetProperty("idFingerprint").GetString() == baseline.GetProperty("idFingerprint").GetString()
+            && actual.GetProperty("elements").GetInt32() == baseline.GetProperty("elements").GetInt32() + collectedAdded.Count);
     }
     private void CheckStudy(JsonElement actual, JsonElement baseline, int count)
     {

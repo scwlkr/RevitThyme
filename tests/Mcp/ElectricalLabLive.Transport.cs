@@ -17,6 +17,7 @@ internal sealed partial class ElectricalLabLive
     private readonly List<object> calls = [];
     private readonly object logGate = new();
     private readonly HashSet<long> added = [];
+    private readonly HashSet<long> collectedAdded = [];
     private readonly Dictionary<string, string> scripts;
     private string transcriptName = "transcript.json";
     private object? resumeSource;
@@ -29,7 +30,7 @@ internal sealed partial class ElectricalLabLive
         if (!Path.IsPathFullyQualified(folder)) throw new ArgumentException("Use an absolute owned run folder.");
         this.folder = folder; input = Read(Path.Combine(folder, "input.json")); reference = Read(Text("referencePath"));
         binding = SessionBinding.Load(Text("session")); savedA = Text("sourceSha256");
-        scripts = new[] { "inventory.csx", "duplicate.csx", "copy-annotations.csx", "inspect-duplicate.csx" }.ToDictionary(name => name, name => File.ReadAllText(Path.Combine(Text("scriptsDirectory"), name)));
+        scripts = new[] { "inventory.csx", "duplicate.csx", "copy-annotations.csx", "inspect-duplicate.csx", "inspect-applied.csx" }.ToDictionary(name => name, name => File.ReadAllText(Path.Combine(Text("scriptsDirectory"), name)));
     }
     public static async Task Run(string folder)
     {
@@ -123,9 +124,10 @@ internal sealed partial class ElectricalLabLive
             ["__VIEW_IDS__"] = Ids(views.Select(v => v.GetProperty("viewId").GetInt64())), ["__TEMPLATE_IDS__"] = Ids(views.Select(v => v.GetProperty("templateId").GetInt64())),
             ["__SCHEDULE_IDS__"] = Ids(reference.GetProperty("schedules").EnumerateArray().Select(s => s.GetProperty("id").GetInt64())),
             ["__CATEGORY_NAMES__"] = string.Join(",", reference.GetProperty("counts").EnumerateArray().Select(c => Quote(c.GetProperty("category").GetString()!))),
-            ["__EXCLUDED_IDS__"] = Ids(added.Order()), ["__SOURCE_VIEW_ID__"] = views[0].GetProperty("viewId").GetInt64().ToString(CultureInfo.InvariantCulture) + "L",
+            ["__EXCLUDED_IDS__"] = Ids(collectedAdded.Order()), ["__SOURCE_VIEW_ID__"] = views[0].GetProperty("viewId").GetInt64().ToString(CultureInfo.InvariantCulture) + "L",
             ["__LIGHTING_SOURCE_ID__"] = views[2].GetProperty("sourceId").GetInt64().ToString(CultureInfo.InvariantCulture) + "L",
-            ["__STUDY_UID__"] = Quote(studyUid), ["__QA_NAME__"] = Quote(qaName), ["__ANNOTATION_UIDS__"] = string.Join(",", annotationUids.Select(Quote))
+            ["__STUDY_UID__"] = Quote(studyUid), ["__QA_NAME__"] = Quote(qaName), ["__ANNOTATION_UIDS__"] = string.Join(",", annotationUids.Select(Quote)),
+            ["__INSPECT_ADDED_IDS__"] = Ids(inspectionNativeAdded), ["__INSPECT_KNOWN_IDS__"] = Ids(inspectionKnownAdded), ["__INSPECT_ROOT_ID__"] = inspectionRootId.ToString(CultureInfo.InvariantCulture) + "L"
         };
         string body = scripts[name]; foreach (var pair in replacements) body = body.Replace(pair.Key, pair.Value, StringComparison.Ordinal);
         if (body.Contains("__", StringComparison.Ordinal)) throw new InvalidDataException("Unexpanded script placeholder."); return body;
@@ -136,19 +138,23 @@ internal sealed partial class ElectricalLabLive
         File.WriteAllText(Path.Combine(folder, "body-" + id + ".csx"), body); Log(new { name = "bounded native code intent", file, id, sourceSha256, context.Snapshot.Target });
         var result = await Call(modify ? "run_modify" : "run_query", new() { ["captureId"] = context.Id, ["requestId"] = id, ["source"] = body, ["trusted"] = true, ["budgetMilliseconds"] = 10000 }, modify ? "applied" : "inspected");
         Program.Check("electrical Roslyn result matches exact submitted source hash", result.GetProperty("execution").GetProperty("sourceSha256").GetString() == sourceSha256);
+        Save("result-" + id + ".json", result);
         if (modify)
         {
             var changes = result.GetProperty("execution").GetProperty("changes").Deserialize<CodeChanges>(Protocol.Json)!;
             Program.Check("bounded electrical native edit has no deletions and stays within 512 changes", changes.Deleted.Length == 0 && changes.Added.Length > 0 && changes.Added.Length + changes.Modified.Length <= 512);
             var details = Value(result);
-            long[] expectedAdded = file == "copy-annotations.csx" ? details.GetProperty("copied").EnumerateArray().Select(e => e.GetProperty("id").GetInt64()).ToArray()
-                : file == "duplicate.csx" ? [details.GetProperty("id").GetInt64(), .. details.GetProperty("companions").EnumerateArray().Select(e => e.GetProperty("id").GetInt64())]
-                : throw new InvalidDataException("Unclassified native modification script.");
-            Program.Check("native additions are exactly the study/structural companions or two returned annotation IDs", changes.Added.Order().SequenceEqual(expectedAdded.Order())
-                && (file != "copy-annotations.csx" || expectedAdded.Length == 2));
             var allowedModified = details.GetProperty("allowedModified").EnumerateArray().Select(e => e.GetProperty("id").GetInt64()).ToHashSet();
             Program.Check("every native modified identity has an explicit bounded bookkeeping role", changes.Modified.All(allowedModified.Contains));
-            foreach (long value in changes.Added) Program.Check("electrical edit adds fresh native identity", added.Add(value));
+            if (file == "duplicate.csx") await ValidateCommittedDuplicate(result);
+            else if (file == "copy-annotations.csx")
+            {
+                var copied = details.GetProperty("copied").EnumerateArray().ToArray();
+                Program.Check("native copy adds exactly two collector-visible returned annotation IDs", copied.Length == 2 && changes.Added.Order().SequenceEqual(copied.Select(e => e.GetProperty("id").GetInt64()).Order())
+                    && copied.All(e => e.GetProperty("collectorMembership").GetBoolean()));
+                foreach (long value in changes.Added) Program.Check("electrical copy adds fresh native and collected identity", added.Add(value) && collectedAdded.Add(value));
+            }
+            else throw new InvalidDataException("Unclassified native modification script.");
         }
         Save("result-" + id + ".json", result); return result;
     }

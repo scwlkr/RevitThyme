@@ -1,3 +1,4 @@
+#nullable enable
 var expectedA = __A__; var expectedB = __B__;
 if (System.Environment.ProcessId != __PID__ || System.Diagnostics.Process.GetCurrentProcess().StartTime.ToUniversalTime().Ticks.ToString(System.Globalization.CultureInfo.InvariantCulture) != __START__
     || !string.Equals(doc.PathName, expectedA, StringComparison.OrdinalIgnoreCase) || !doc.Equals(uiapp.ActiveUIDocument?.Document)
@@ -23,8 +24,10 @@ var dependent = study.GetDependentElements(null).ToHashSet();
 var structuralCategories = new HashSet<long>();
 foreach (string category in new[] { "OST_Views", "OST_Viewers", "OST_Cameras", "OST_SectionBox", "OST_CropBoundary", "OST_AnnotationCrop" })
     if (Enum.TryParse<BuiltInCategory>(category, out var value)) structuralCategories.Add((long)value);
-var companions = new FilteredElementCollector(doc).WherePasses(new LogicalOrFilter(new ElementIsElementTypeFilter(), new ElementIsElementTypeFilter(true)))
-    .Where(e => !beforeIds.Contains(e.Id) && e.Id != study.Id).OrderBy(e => e.Id.Value).ToArray();
+var collected = new FilteredElementCollector(doc).WherePasses(new LogicalOrFilter(new ElementIsElementTypeFilter(), new ElementIsElementTypeFilter(true))).ToElementIds().ToHashSet();
+var companionIds = collected.Union(dependent).Where(e => !beforeIds.Contains(e) && e != study.Id).OrderBy(e => e.Value).ToArray();
+var pendingPrecommitDependencies = companionIds.Where(e => doc.GetElement(e) == null).Select(e => e.Value).ToArray();
+var companions = companionIds.Select(e => doc.GetElement(e)).Where(e => e != null).ToArray();
 var roles = new Dictionary<long, string>();
 var sun = study.SunAndShadowSettings;
 foreach (var companion in companions)
@@ -52,14 +55,20 @@ foreach (var companion in companions)
             role = "dependent internal work plane grid";
         else if (generic && structuralCategories.Contains(companion.Category?.Id.Value ?? 0) && (ownedByStudy || isDependent))
             role = "owned or dependent explicit view structural category";
+        else if (companion is Viewport viewport && viewport.ViewId == study.Id && viewport.SheetId == ElementId.InvalidElementId
+            && companion.OwnerViewId == ElementId.InvalidElementId && !companion.ViewSpecific && isDependent
+            && companion.Category?.Id.Value == (long)BuiltInCategory.OST_Viewports && companion.Category?.CategoryType == CategoryType.Annotation
+            && doc.GetElement(companion.GetTypeId()) is ElementType)
+            role = "unplaced viewport for exact study";
     }
     if (role == null)
         throw new InvalidOperationException("Unclassified native duplicate companion; roll back and review this element: " + companion.Id.Value + " / " + companion.GetType().Name + " / " + companion.Category?.Name);
     roles.Add(companion.Id.Value, role);
 }
-return new { id = id.Value, uid = study.UniqueId, study.Name, annotations = owned.Length, sourceUid = source.UniqueId,
+return new { id = id.Value, uid = study.UniqueId, study.Name, annotations = owned.Length, sourceUid = source.UniqueId, collectorMembership = collected.Contains(study.Id), pendingPrecommitDependencies,
     companions = companions.Select(e => new { id = e.Id.Value, uid = e.UniqueId, role = roles[e.Id.Value], kind = e.GetType().FullName,
         category = e.Category?.Name, categoryId = e.Category?.Id.Value, categoryType = e.Category?.CategoryType.ToString(),
-        owner = e.OwnerViewId.Value, dependent = dependent.Contains(e.Id), e.ViewSpecific, typeId = e.GetTypeId().Value, e.Name, e.IsTransient }).ToArray(),
+        owner = e.OwnerViewId.Value, dependent = dependent.Contains(e.Id), e.ViewSpecific, typeId = e.GetTypeId().Value, e.Name, e.IsTransient, collectorMembership = collected.Contains(e.Id),
+        viewportViewId = e is Viewport vp ? (long?)vp.ViewId.Value : null, viewportSheetId = e is Viewport svp ? (long?)svp.SheetId.Value : null }).ToArray(),
     allowedModified = new[] { new { id = source.Id.Value, reason = "source view duplicate bookkeeping" }, new { id = source.GetTypeId().Value, reason = "source view family type duplicate bookkeeping" } } };
 

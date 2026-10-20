@@ -21,6 +21,7 @@ public sealed class ImageExportQualificationApplication : IExternalApplication, 
     private FoundationApplication host = null!;
     private ExternalEvent pulse = null!;
     private IDisposable server = null!;
+    private IDisposable outcomeServer = null!;
     private System.Threading.Timer timer = null!;
     private bool ready, stopped;
     private string? switchBack;
@@ -41,6 +42,8 @@ public sealed class ImageExportQualificationApplication : IExternalApplication, 
         var serverType = typeof(FoundationApplication).Assembly.GetType("RevitThyme.Addin.PipeServer", true)!;
         server = (IDisposable)Activator.CreateInstance(serverType, host.Binding, host.Operations, null)!;
         serverType.GetMethod("Start")!.Invoke(server, null);
+        outcomeServer = (IDisposable)Activator.CreateInstance(serverType, host.Binding, host.Operations, OperationKind.GetOperation)!;
+        serverType.GetMethod("Start")!.Invoke(outcomeServer, null);
         Write("session.json", host.Binding);
         pulse = ExternalEvent.Create(this); host.Operations.Schedule = () => pulse.Raise();
         app.ControlledApplication.DocumentChanged += Changed;
@@ -130,7 +133,7 @@ public sealed class ImageExportQualificationApplication : IExternalApplication, 
     public string GetName() => "Disposable image export qualification";
     public Result OnShutdown(UIControlledApplication app)
     {
-        stopped = true; timer?.Dispose(); host?.Operations.Stop(); server?.Dispose(); pulse?.Dispose();
+        stopped = true; timer?.Dispose(); host?.Operations.Stop(); server?.Dispose(); outcomeServer?.Dispose(); pulse?.Dispose();
         app.Idling -= Idle; app.ViewActivated -= Activated; app.ControlledApplication.DocumentChanged -= Changed; app.ControlledApplication.DocumentClosing -= Closing;
         return Result.Succeeded;
     }

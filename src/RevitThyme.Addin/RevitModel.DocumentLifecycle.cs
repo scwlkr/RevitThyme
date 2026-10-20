@@ -11,7 +11,7 @@ public sealed partial class RevitModel
     {
         host.AssertLifecyclePath(options.Path);
         // File/UI lifecycle must never run inside the query/modify transaction.
-        if (Document.IsModifiable || Document.IsReadOnly || Document.IsFamilyDocument || Document.IsWorkshared)
+        if (app.ActiveUIDocument?.Document is { } active && (active.IsModifiable || active.IsReadOnly || active.IsFamilyDocument || active.IsWorkshared))
             throw new OperationException("lifecycle_blocked", "Use an editable local nonworkshared project outside a transaction.");
         AssertLocalFile(options.Path);
         string beforeHash = LifecycleHash(options.Path);
@@ -28,9 +28,22 @@ public sealed partial class RevitModel
             if (info.IsWorkshared || info.Format != "2027") throw new OperationException("unsupported_document", "Open only an existing Revit 2027 nonworkshared RVT; no upgrade or detach.");
             if (document?.IsModified == true) throw new OperationException("document_dirty", "This path is already open with unsaved changes. Inspect its native identity instead.");
         }
+        if (operation == OperationKind.CloseDocument)
+        {
+            if (document!.IsModified) throw new OperationException("document_dirty", "Close refuses unsaved changes. Save explicitly first; no implicit discard.");
+            if (document.Equals(app.ActiveUIDocument?.Document))
+                throw new OperationException("close_blocked", "Active-document close is not supported. Explicitly activate another open document first; nothing was closed.");
+        }
         bool performed = false;
         try
         {
+            if (operation == OperationKind.CloseDocument)
+            {
+                string id = host.DocumentId(document!), title = document!.Title;
+                if (!document.Close(false) || app.Application.Documents.Cast<Document>().Any(d => host.DocumentId(d) == id)
+                    || LifecycleHash(options.Path) != beforeHash) throw new InvalidDataException("Native close did not verify.");
+                return new(id, options.Path, title, false, false, beforeHash, true);
+            }
             if (operation == OperationKind.OpenDocument && document is null)
             { performed = true; document = app.Application.OpenDocumentFile(options.Path); }
             else if (operation == OperationKind.ActivateDocument && !document!.Equals(app.ActiveUIDocument?.Document))

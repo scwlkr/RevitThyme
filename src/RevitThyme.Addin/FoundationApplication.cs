@@ -24,7 +24,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private readonly Dictionary<Document, string> documents = [];
     private ExternalEvent? externalEvent;
     private PipeServer? server;
-    private PipeServer? timberStatusServer, timberCancelServer;
+    private PipeServer? timberStatusServer, timberCancelServer, outcomeServer;
     private InspectWindow? window;
     public InspectWindow? InspectWindow => window;
     public ViewRangeWindow? ViewRangeWindow { get; private set; }
@@ -54,6 +54,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
             if (fixturePath is not null && !Path.IsPathFullyQualified(fixturePath)) throw new InvalidDataException("Absolute fixture required.");
             externalEvent = ExternalEvent.Create(this); Operations.Schedule = Schedule;
             server = new(Binding, Operations); server.Start();
+            outcomeServer = new(Binding, Operations, OperationKind.GetOperation); outcomeServer.Start();
             timberStatusServer = new(Binding, Operations, OperationKind.GetTimberFoldRun); timberStatusServer.Start();
             timberCancelServer = new(Binding, Operations, OperationKind.CancelTimberFoldRun); timberCancelServer.Start();
             string folder = Environment.GetEnvironmentVariable("REVITTHYME_FOUNDATION_SESSIONS")
@@ -127,6 +128,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     }
     public void AssertLifecyclePath(string path)
     {
+        if (fixtureClosed) throw new OperationException("reopened_fixture", "The pinned fixture closed; prepare a fresh development session.");
         if (fixturePath is not null && !string.Equals(path, fixturePath, StringComparison.OrdinalIgnoreCase))
             throw new OperationException("wrong_fixture", "This fixture-bound development session cannot open or activate another path.");
     }
@@ -164,7 +166,7 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
         stopping = true; Instance = null; Operations.Stop();
         AgentPanel?.Shutdown(); window?.Close(); ViewRangeWindow?.Close(); RoomDimensionsWindow?.Close(); server?.Dispose(); externalEvent?.Dispose();
         TimberFoldWindow?.Close();
-        timberStatusServer?.Dispose(); timberCancelServer?.Dispose();
+        timberStatusServer?.Dispose(); timberCancelServer?.Dispose(); outcomeServer?.Dispose();
         updates?.Dispose(); ribbon?.Dispose();
         // Bindings are non-secret historical identities; exited processes fail client verification.
         documents.Clear();

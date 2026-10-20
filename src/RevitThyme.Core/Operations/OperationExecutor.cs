@@ -29,6 +29,7 @@ public sealed class OperationExecutor
         try
         {
             if (request.Id == Guid.Empty) return OperationResult.Reject(request, "invalid_id", "A request ID is required.");
+            if (request.Operation == OperationKind.ActivateView) return ViewActivationExecutor.Execute(model, request);
             if (DocumentLifecycleExecutor.Handles(request.Operation)) return DocumentLifecycleExecutor.Execute(model, request);
             if (request.DocumentLifecycle is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected documentLifecycle arguments.");
             if (request.Operation == OperationKind.ExportViewImage) return ViewImageExecutor.Execute(model, request);
@@ -51,7 +52,7 @@ public sealed class OperationExecutor
             return request.Operation switch
             {
                 OperationKind.Inspect when request.Target is null && request.ExpectedName is null && request.Name is null =>
-                    new(request.Id, Outcome.Inspected, "inspected", "Active document and view inspected.", before),
+                    new(request.Id, Outcome.Inspected, "inspected", before.HasDocument ? "Active document and view inspected." : "Home/no-active-document session inspected; capture is valid for lifecycle operations.", before),
                 OperationKind.Inspect => OperationResult.Reject(request, "invalid_request", "Inspection takes no edit arguments."),
                 OperationKind.RenameView => Rename(model, request, before),
                 _ when utility => UtilityExecutor.Execute(model, request, before),

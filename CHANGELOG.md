@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend MCP lifecycle to Home/no active document, explicit clean background-document close and exact native view/sheet switching. Reject active/wrong/dirty/changed-file closes before side effects, and poll retained outcomes through an independent process-verified pipe. The unreleased `0.10.0-lifecycle.2` candidate has protocol 11 and 31 tools. No implicit save/discard or changed-ID budget expansion.
+
 - Add shared explicit document open, activation and active-document save with three MCP tools. Require exact captured context, canonical local nonworkshared RVT paths, document IDs and expected disk hashes; verify native completion and retain original request recovery outside model transactions/Undo. The unreleased `0.10.0-lifecycle.1` candidate uses protocol 10 and 29 tools; published v0.10.0 is unchanged.
 
 - Fix unfiltered native element queries with `includeTypes:true`, and align the pinned development launcher with protocol 9. Installed-host qualification checks complete element/type pagination as well as native edit, image and readback.

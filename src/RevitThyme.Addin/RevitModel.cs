@@ -4,7 +4,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel, IViewImageModel, IDocumentLifecycleModel
+public sealed partial class RevitModel(UIApplication app, FoundationApplication host) : IGenericModel, IUtilityModel, IDynamicModel, ITimberFoldModel, ITimberNativeKitModel, ITimberNativeReconciliationModel, IViewImageModel, IDocumentLifecycleModel, IViewActivationModel
 {
     public bool TrustedCodeEnabled => host.TrustedCodeEnabled;
     public string TimberFoldEvidenceDirectory => System.IO.Path.Combine(
@@ -21,7 +21,10 @@ public sealed partial class RevitModel(UIApplication app, FoundationApplication 
         ?? throw new OperationException("no_document", "Open a Revit project and refresh.");
     public Snapshot Capture()
     {
-        var doc = Document; host.AssertDocument(doc);
+        var doc = app.ActiveUIDocument?.Document;
+        if (doc is null) return new(new(host.Binding.ProcessId, host.Binding.ProcessStart, host.Binding.SessionId, "", "", host.Revision),
+            app.Application.VersionNumber, "", "", false, false, "", "None", 0, false, "No active document; use explicit lifecycle operations.");
+        host.AssertDocument(doc);
         var view = doc.ActiveView ?? throw new OperationException("no_view", "Activate a Revit view.");
         string? block = doc.IsReadOnly ? "Document is read-only." :
             doc.IsModifiable ? "Finish the current Revit transaction." :

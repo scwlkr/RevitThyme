@@ -1,0 +1,15 @@
+# Home, clean close and view switching
+
+Unreleased `0.10.0-lifecycle.2`, protocol 11, extends the [document lifecycle contract](../docs/MCP.md#home-clean-close-and-exact-view-switching). PR #39 merged green as `68cb7c321b82bf6a46add57e9ae22e7f4096f519`; its separate [native evidence](document-lifecycle.md) is preserved. This follow-up adds explicit Home captures, clean-only background close, native view/sheet switching and an independent retained-outcome pipe.
+
+## Test seams
+
+Shared queue tests verify pending acceptance, replay/recovery without repeated close, pre-execution cancellation, exact readback and rejection before execution at shutdown. Home is an explicit no-active-document snapshot, with valid session/revision pins and empty document/view IDs. View tests cover captured identity, invalid arguments, verified native view readback and state drift. Native background close checks exact document/path, clean state and saved hash; active close is rejected before any command is posted. It never saves or discards unsaved work.
+
+`tests/Mcp/UiLifecycleLive.cs` is a real official-SDK external client of the immutable installed executable. It starts against an owned normal Revit process at Home, trusted code disabled, with original nonworkshared copied fixtures. It exercises background open/activation from Home, exact 3D/sheet switching, wrong/template/stale targets, dirty-close refusal, explicit save, background close/reopen identity, active-close refusal with exact state preserved, last-background-document close at Home, and background-close response recovery. Private intents precede interruption; an independent MCP client observes retained acceptance while the original reply is outstanding, then only the owned first MCP process is terminated. Original response loss and retained completion/repeated recovery are required. No submitted C#, ad-hoc callbacks, test loader or UI fallback is used.
+
+Source and native results are recorded separately. Actual Revit qualification is pending; build/test success is not native proof. Private copied models, launch/binding inputs, installer/signature/preservation receipts and successful/failed SDK transcripts remain under ignored `artifacts/ui-lifecycle`.
+
+## Remaining limits
+
+No dirty-document discard, SaveAs, sync, cloud/workshared/family/linked files, automatic modal dismissal, cross-session outcome store, model promotion or >512 changed-ID expansion. Active and last-active-document close are unsupported. Review exposed an ownership race in a posted native Close prototype: unrelated native closing events do not prove consumption of our posted command. That prototype was removed before installation. Native `Document.Close(false)` only closes background projects; no posted command or global close-event guard is installed. Revit/modal/third-party cancellation and timing permutations require separate qualification. Physical TimberFold fabrication and public release remain outstanding. No release or promotional post is part of this work.

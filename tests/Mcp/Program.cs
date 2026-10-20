@@ -29,6 +29,7 @@ internal static class Program
             else if (args is ["--electrical-lab-live", var electricalFolder]) await ElectricalLabLive.Run(electricalFolder);
             else if (args is ["--electrical-lab-observe", var observeFolder, var originalGuid]) await ElectricalLabLive.ObserveRun(observeFolder, originalGuid);
             else if (args is ["--electrical-lab-resume", var resumeFolder, var activationGuid]) await ElectricalLabLive.ResumeRun(resumeFolder, activationGuid);
+            else if (args is ["--electrical-lab-duplicate-diagnostic", var diagnosticFolder]) await ElectricalLabLive.DuplicateDiagnostic(diagnosticFolder);
             else if (args is ["--close-cancellation-baseline", var baselineFolder]) await ActiveCloseLive.Run(baselineFolder, true);
             else if (args is ["--lifecycle-reopened", var lifecycleReopened]) await DocumentLifecycleLive.Run(lifecycleReopened, true);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);

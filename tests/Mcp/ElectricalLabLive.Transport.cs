@@ -29,7 +29,7 @@ internal sealed partial class ElectricalLabLive
         if (!Path.IsPathFullyQualified(folder)) throw new ArgumentException("Use an absolute owned run folder.");
         this.folder = folder; input = Read(Path.Combine(folder, "input.json")); reference = Read(Text("referencePath"));
         binding = SessionBinding.Load(Text("session")); savedA = Text("sourceSha256");
-        scripts = new[] { "inventory.csx", "duplicate.csx", "copy-annotations.csx" }.ToDictionary(name => name, name => File.ReadAllText(Path.Combine(Text("scriptsDirectory"), name)));
+        scripts = new[] { "inventory.csx", "duplicate.csx", "copy-annotations.csx", "inspect-duplicate.csx" }.ToDictionary(name => name, name => File.ReadAllText(Path.Combine(Text("scriptsDirectory"), name)));
     }
     public static async Task Run(string folder)
     {

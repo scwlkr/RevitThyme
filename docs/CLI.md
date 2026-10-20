@@ -52,6 +52,7 @@ Replace 20 with the actual returned `nextParameterOffset`; stop at null. Paramet
 | --- | --- |
 | `sessions` | Discover bindings; optional `--directory ABSOLUTE_PATH` |
 | `inspect` | Read document/view context, optionally to a JSON capture |
+| `list-documents` | Read visible session document IDs/flags; continue with exact `--capture PREVIOUS_RESULT --offset NEXT_OFFSET` |
 | `inspect-elements` | Read paged parameters for `--element UNIQUE_ID` |
 | `rename-view` | Rename the exact view using `--capture ABSOLUTE_FILE` and `--name NAME` |
 | `view-range get` | Read all four planes into JSON |

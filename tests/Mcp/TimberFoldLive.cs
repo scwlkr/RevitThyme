@@ -52,7 +52,7 @@ internal static class TimberFoldLive
         try
         {
             await using var client = await McpClient.CreateAsync(new RecordingClientTransport(transport, evidence), cancellationToken: lifetime.Token);
-            Program.Check("native installed MCP advertises the 31 current tools", (await client.ListToolsAsync(cancellationToken: lifetime.Token)).Count == 31);
+            Program.Check("native installed MCP advertises the 32 current tools", (await client.ListToolsAsync(cancellationToken: lifetime.Token)).Count == 32);
             var before = await Call("get_context"); var baseline = Property(Property(before.Data, "result"), "snapshot").Deserialize<Snapshot>(Core.Protocol.Json)!;
             Program.Check("native MCP capture is the exact disposable fixture and launch document", baseline.Target.ProcessId == binding.ProcessId &&
                 baseline.Target.ProcessStart == binding.ProcessStart && baseline.Target.SessionId == sessionId && baseline.DocumentPath == model && !baseline.IsWorkshared &&

@@ -32,6 +32,8 @@ Parameter inspection and readback share `ParameterInfo`, including native shared
 
 Utilities implement `IUtilityModel` and `IUtilityChange`: Core checks captured identity, expected native range/room preview and transaction outcomes; Addin resolves Revit planes, finish-face references, tag bounds and native dimensions. Room plans are recomputed and compared by value before any write. The WPF/CLI/MCP adapters contain no duplicate model-editing implementation. Existing legacy ribbon panels are reused with distinct native command IDs.
 
+`ListDocuments` uses `IDocumentDiscoveryModel` in the same native queue. Core validates the captured target, bounds metadata and pages, and fingerprints the selected native session plus the complete sorted visible inventory. Addin enumerates native documents and applies fixture visibility before returning records. Background membership or flag changes invalidate continuation without changing lifecycle revision behavior. MCP and CLI use the same operation; discovery never activates, saves or authorizes lifecycle actions. Retained read results remain point-in-time evidence.
+
 ## Scope and compatibility
 
 The first build targets .NET 10 and Revit 2027. Revit 2027 uses [.NET 10](https://blog.autodesk.io/revit-2027-sdk-net-10-api-changes-and-additions/); a promise of Revit 2025+ support would need separate per-release builds and qualification. Local SDK references have CopyLocal disabled. Public builds never fetch or redistribute Autodesk binaries.

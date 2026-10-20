@@ -23,6 +23,7 @@ internal static class Program
             else if (args is ["--ui-lifecycle-live", var uiLifecycleFolder]) await UiLifecycleLive.Run(uiLifecycleFolder);
             else if (args is ["--active-close-live", var closeFolder]) await ActiveCloseLive.Run(closeFolder);
             else if (args is ["--modal-recovery-live", var modalFolder]) await ModalRecoveryLive.Run(modalFolder);
+            else if (args is ["--documents-live", var documentsFolder]) await DocumentDiscoveryLive.Run(documentsFolder);
             else if (args is ["--close-cancellation-baseline", var baselineFolder]) await ActiveCloseLive.Run(baselineFolder, true);
             else if (args is ["--lifecycle-reopened", var lifecycleReopened]) await DocumentLifecycleLive.Run(lifecycleReopened, true);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);

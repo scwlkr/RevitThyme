@@ -53,9 +53,10 @@ internal sealed partial class ElectricalLabLive
         {
             var reply = await Program.Call(client, name, args).WaitAsync(TimeSpan.FromSeconds(45));
             Log(new { phase = "returned", name, args, milliseconds = watch.Elapsed.TotalMilliseconds, reply.Data, reply.Result.IsError });
-            if (expected is null or "inspected" or "applied" or "document_opened" or "document_activated" or "document_saved" or "document_closed" or "view_activated" or "image_exported")
-                if (reply.Data.TryGetProperty("code", out var code) && code.GetString() is "transport_lost" or "pending" && args?.TryGetValue("requestId", out var originalId) == true)
-                    await RecordBlocked(name, originalId!.ToString()!, reply.Data);
+            if (name != "get_operation" && args?.TryGetValue("requestId", out var originalId) == true
+                && reply.Data.TryGetProperty("code", out var code) && (code.GetString() is "transport_lost" or "pending"
+                    || reply.Data.TryGetProperty("outcome", out var outcome) && outcome.GetString() == "Unconfirmed"))
+                reply = await RecoverSubmitted(name, originalId!.ToString()!, reply.Data);
             if (expected != "any") Program.Check("electrical " + name + (expected is null ? " succeeds" : ": " + expected), expected is null ? reply.Result.IsError != true
                 : reply.Data.GetProperty("code").GetString() == expected && reply.Result.IsError == (expected is not ("inspected" or "applied" or "document_opened" or "document_activated" or "document_saved" or "document_closed" or "view_activated" or "image_exported")));
             if (name == "export_view_image" && reply.Result.IsError != true)

@@ -56,11 +56,16 @@ internal sealed partial class ElectricalLabLive
         handoff = await Context(false); await Call("activate_document", Lifecycle(handoff.Id, Text("a"), aid), "wrong_document");
         Program.Check("retired document identity refusal preserves exact B handoff", (await Context(false)).Snapshot == handoff.Snapshot);
         await Call("activate_document", Lifecycle(handoff.Id, Text("a"), reopenedId), "document_activated"); await ActivateView(studyUid);
+        await FinishSavedReopen(baseline, bid, reopenedId, duplicate, copy, saved, studyAnnotations);
+    }
+    private async Task FinishSavedReopen(JsonElement baseline, string bid, string reopenedId, JsonElement duplicate, JsonElement copy, JsonElement saved, JsonElement studyAnnotations)
+    {
+        JsonElement[] retained = [duplicate, copy, saved];
         var persisted = Value(await Code("inventory.csx")); AssertCanonical(baseline, persisted); CheckStudy(persisted, baseline, 2);
         await VerifyDuplicateIdentity("after save/reopen");
         Program.Check("saved study preserves exact annotation IDs, types, positions and ownership after reopen", persisted.GetProperty("study").GetProperty("annotations").GetRawText() == studyAnnotations.GetRawText());
         await Export(studyUid, "reopened-study"); foreach (var result in retained) await RecoverExact(result);
-        current = await Context(); await Call("close_document", Lifecycle(current.Id, Text("b"), bid, Text("bSourceSha256")), "document_closed");
+        var current = await Context(); await Call("close_document", Lifecycle(current.Id, Text("b"), bid, Text("bSourceSha256")), "document_closed");
         var final = await Context(); await Inventory(final.Id, [reopenedId]); var finalValue = Value(await Code("inventory.csx")); AssertCanonical(baseline, finalValue); CheckStudy(finalValue, baseline, 2);
         final = await Context(); Program.Check("electrical workflow finishes clean on exact persisted study in A", final.Snapshot.Target.DocumentId == reopenedId
             && final.Snapshot.DocumentPath == Text("a") && final.Snapshot.Target.ViewId == studyUid && !final.Snapshot.IsModified); Preserve(); Payloads();

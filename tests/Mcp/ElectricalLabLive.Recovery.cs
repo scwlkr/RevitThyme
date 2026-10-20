@@ -15,14 +15,14 @@ internal sealed partial class ElectricalLabLive
             throw new InvalidDataException("Original intent does not identify the requested native operation.");
         return intent;
     }
-    private object ValidatePreInventory()
+    private object ValidatePreInventory(string? expectedA = null)
     {
         Program.Check("electrical recovery pins exact original session/process and owned input folder", Text("folder") == folder && binding.ProtocolVersion == 13
             && binding.ProcessId == input.GetProperty("pid").GetInt32() && binding.ProcessStart == Text("start")
             && Path.GetDirectoryName(Text("a")) == folder && Path.GetDirectoryName(Text("b")) == folder && Text("a") != Text("b")
             && Text("a") != Text("source") && Text("b") != Text("source") && Text("b") != Text("bSource") && Text("a") != Text("bSource"));
         var hashes = new { source = Hash(Text("source")), bSource = Hash(Text("bSource")), a = Hash(Text("a")), b = Hash(Text("b")), manifest = Hash(Path.Combine(Text("bundle"), "manifest.json")) };
-        Program.Check("pre-inventory recovery preserves source and both unopened-for-edit copies", hashes.source == Text("sourceSha256") && hashes.a == Text("sourceSha256")
+        Program.Check("recovery preserves source and both pinned copies", hashes.source == Text("sourceSha256") && hashes.a == (expectedA ?? Text("sourceSha256"))
             && hashes.bSource == Text("bSourceSha256") && hashes.b == Text("bSourceSha256") && hashes.manifest == Text("manifestSha256"));
         if (input.TryGetProperty("referenceSha256", out var referenceHash)) Program.Check("recovery reference pin unchanged", Hash(Text("referencePath")) == referenceHash.GetString());
         if (input.TryGetProperty("registrationSha256", out var registrationHash)) Program.Check("recovery installed registration pin unchanged", Hash(Text("registration")) == registrationHash.GetString());

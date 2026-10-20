@@ -43,6 +43,8 @@ public sealed class DiscoveryProbe : IExternalApplication, IExternalEventHandler
 
     private void Idle(object? sender, IdlingEventArgs args)
     {
+        // Revit's default idle session may end before a later external fixture command arrives.
+        args.SetRaiseWithoutDelay();
         if (busy || failed || raised || prepared && !Directory.EnumerateFiles(folder!, "command-*.json").Any()) return;
         raised = true;
         if (externalEvent!.Raise() != ExternalEventRequest.Accepted) raised = false;

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend electrical-lab qualification to a single 418-assertion external SDK invocation. Two real native-warning transport timeouts recover after continuous Pending polling of their original GUIDs, without restarting the client or replaying operations. Keep explicit warning intervention, historical acceptance, image-proof limits and last-active-close constraints visible in [verification](verification/electrical-lab.md).
+
 - Qualify the current electrical-lab edit/inspect/image/save/reopen loop through a real external MCP client against the unchanged installed host. Add fixture-specific original-request recovery and direct postcommit companion inspection, distinguishing 12 native additions from 11 collector-visible elements. Preserve the later source revision separately from outstanding historical Fine-detail acceptance; native warning intervention and image-evidence limits are recorded in [electrical-lab verification](verification/electrical-lab.md). No release or protocol change.
 
 - Refuse explicit save before calling Revit when the document was opened from a read-only file. Return retained `read_only_file` rejection instead of discovering this known restriction through an uncertain native save failure. In-memory editing and read-only-file open/activation remain unchanged; no SaveAs or implicit save/discard. Candidate `0.10.0-lifecycle.5` retains protocol 13 and 32 tools.

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
 using ModelContextProtocol.Client;
+using ModelContextProtocol.Protocol;
 using RevitThyme.Core;
 
 namespace RevitThyme.McpTests;
@@ -116,6 +117,52 @@ internal static class UiLifecycleLive
             File.WriteAllText(Path.Combine(folder, "complete.json"), JsonSerializer.Serialize(new { passed = true, binding, context.Snapshot, original, savedA, calls }, Protocol.Json));
         }
         finally { await client.DisposeAsync(); File.WriteAllText(Path.Combine(folder, "transcript.json"), JsonSerializer.Serialize(calls, Protocol.Json)); }
+    }
+    public static async Task Images(string folder)
+    {
+        using var inputJson = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "input.json"))); var input = inputJson.RootElement;
+        string Text(string key) => input.GetProperty(key).GetString()!;
+        var binding = SessionBinding.Load(Text("session"));
+        Program.Check("visual client verifies exact owned process/start and immutable bundle", binding.ProcessId == input.GetProperty("pid").GetInt32()
+            && binding.ProcessStart == Text("start") && Hash(Path.Combine(Text("bundle"), "manifest.json")) == Text("manifestSha256"));
+        await using var client = await McpClient.CreateAsync(new StdioClientTransport(new() { Command = Path.Combine(Text("bundle"), "mcp", "revitthyme-mcp.exe"), Arguments = ["--session", Text("session")], Name = "Native view switch image readback" }));
+        var calls = new List<object>();
+        async Task<(string Id, Snapshot Snapshot)> Context()
+        {
+            var r = await Program.Call(client, "get_context");
+            if (r.Result.IsError == true) throw new InvalidDataException(r.Data.GetRawText());
+            return (r.Data.GetProperty("captureId").GetString()!, r.Data.GetProperty("result").GetProperty("snapshot").Deserialize<Snapshot>(Protocol.Json)!);
+        }
+        var context = await Context();
+        Program.Check("visual client starts only on clean disposable B", context.Snapshot.DocumentPath == Text("b") && !context.Snapshot.IsModified);
+        var views = await Program.Call(client, "list_views", new() { ["captureId"] = context.Id, ["limit"] = 100 });
+        var page = views.Data.GetProperty("elements").Deserialize<ElementPage>(Protocol.Json)!;
+        foreach (string name in new[] { "Image QA 3D", "Image QA Sheet" })
+        {
+            string view = page.Items.Single(v => v.Name == name).UniqueId, oldCapture = context.Id;
+            var switched = await Program.Call(client, "activate_view", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["viewId"] = view });
+            Program.Check("visual native exact activation: " + name, switched.Data.GetProperty("code").GetString() == "view_activated");
+            var stale = await Program.Call(client, "export_view_image", new() { ["captureId"] = oldCapture, ["requestId"] = Guid.NewGuid().ToString(), ["viewId"] = view });
+            Program.Check("visual export rejects capture before view switch", stale.Data.GetProperty("code").GetString() == "stale_target");
+            context = await Context(); var baseline = context.Snapshot; string id = Guid.NewGuid().ToString();
+            var exported = await Program.Call(client, "export_view_image", new() { ["captureId"] = context.Id, ["requestId"] = id, ["viewId"] = view, ["pixelSize"] = 1000 });
+            Program.Check("visual exact native view exported: " + name, exported.Result.IsError != true && exported.Data.GetProperty("code").GetString() == "image_exported");
+            var image = exported.Data.GetProperty("imageExport").Deserialize<ViewImageResult>(Protocol.Json)!;
+            byte[] bytes = File.ReadAllBytes(image.Path);
+            Program.Check("visual native PNG inline bytes and hash verify", image.ViewId == view && Hash(image.Path) == image.Sha256
+                && exported.Result.Content.OfType<ImageContentBlock>().Single().DecodedData.Span.SequenceEqual(bytes)
+                && System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(16, 4)) == image.Width
+                && System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(bytes.AsSpan(20, 4)) == image.Height);
+            var recovered = await Program.Call(client, "get_operation", new() { ["requestId"] = id });
+            Program.Check("visual PNG recovery works through independent outcome pipe", recovered.Data.GetRawText() == exported.Data.GetRawText()
+                && recovered.Result.Content.OfType<ImageContentBlock>().Single().DecodedData.Span.SequenceEqual(bytes));
+            Program.Check("visual export preserves native view and modified state", (await Context()).Snapshot == baseline && !baseline.IsModified);
+            File.WriteAllBytes(Path.Combine(folder, name.Replace(' ', '-') + ".png"), bytes);
+            calls.Add(new { name, view, switched = switched.Data, exported = exported.Data, recovered = recovered.Data, baseline });
+        }
+        using var complete = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "complete.json")));
+        Program.Check("visual checks preserve both saved copies and original source", Hash(Text("b")) == Text("sourceSha256") && Hash(Text("source")) == Text("sourceSha256") && Hash(Text("a")) == complete.RootElement.GetProperty("savedA").GetString());
+        File.WriteAllText(Path.Combine(folder, "images-complete.json"), JsonSerializer.Serialize(new { passed = true, binding, calls, final = context.Snapshot }, Protocol.Json));
     }
     private static string Hash(string path) { using var f = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete); return Convert.ToHexStringLower(SHA256.HashData(f)); }
 }

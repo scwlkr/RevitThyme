@@ -60,6 +60,15 @@ Check 'lifecycle candidate keeps the full native toolkit payload' {
     $manifest = Assert-FoundationPackage $candidate
     if ($manifest.version -ne '0.10.0-lifecycle.1') { throw 'Wrong lifecycle candidate accepted.' }
 }
+Check 'Home lifecycle candidate keeps the complete native toolkit payload' {
+    $candidate = New-PackageFixture '0.10.0-lifecycle.2' -TimberFold -Fabrication -CutFiles
+    $null = Assert-FoundationPackage $candidate
+}
+Check 'Home lifecycle candidate refuses a missing existing toolkit dependency' {
+    $candidate = New-PackageFixture '0.10.0-lifecycle.2' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
 Check 'lifecycle candidate refuses a missing existing toolkit dependency' {
     $candidate = New-PackageFixture '0.10.0-lifecycle.1' -TimberFold -Fabrication -CutFiles
     Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')

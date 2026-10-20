@@ -19,7 +19,7 @@ RevitThyme grows through focused tools, shared operations, inspectable results a
 
 ## Next priorities
 
-- Review the qualified unreleased [document lifecycle](MCP.md#explicit-document-lifecycle-unreleased) follow-up after the landed exact-view/sheet image-export work. Scope Home-screen open, explicit close/view switching and recovery limits separately before bounded model promotion; keep changes above 512 native IDs independent. Native evidence is in [image verification](../verification/view-images.md) and [lifecycle verification](../verification/document-lifecycle.md).
+- Document open/activate/save landed in PR #39 after the exact-view/sheet image-export work. Review the qualified [Home, background close and view-switching slice](../verification/ui-lifecycle.md), then establish request-specific command ownership before active/last-document close. Modal recovery and bounded model promotion remain separate; keep changes above 512 native IDs independent. Preserve the earlier [image](../verification/view-images.md) and [document lifecycle](../verification/document-lifecycle.md) evidence.
 
 - Keep user, developer and agent onboarding aligned with behavior through shared docs and automated checks.
 - Improve reproducible public examples and diagnostics.

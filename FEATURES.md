@@ -8,9 +8,9 @@
 | View Range | Native four-plane editor with WPF section preview, exact expected values, template guards and one Undo |
 | Room Dimensions | Two associative finish-face dimensions for rectangular rooms, tag clearance, duplicate guards and one Undo |
 | CLI | Native operations, separate CLI/development/registered versions, installed-copy updates and automatic global `rthyme` command with JSON/text and meaningful exits |
-| MCP | Official C# SDK stdio server, 29 source tools (25 in published v0.10.0), explicit connection and structured native results/errors, including seven shared TimberFold controls |
+| MCP | Official C# SDK stdio server, 31 source tools (25 in published v0.10.0), explicit connection and structured native results/errors, including seven shared TimberFold controls |
 | View/sheet image export (unreleased) | Exact native PNG with verified inline MCP image, retained request outcome and no model transaction, save or view activation; [contract](docs/MCP.md#exact-view-and-sheet-images-unreleased) |
-| Document lifecycle (unreleased) | Background open, exact already-open document activation and explicit active-document save with expected file hashes and retained completion/recovery; [contract](docs/MCP.md#explicit-document-lifecycle-unreleased) |
+| Document/view lifecycle (unreleased) | Home-aware background open, exact document/view/sheet activation, explicit active-document save and clean background close with expected file hashes and retained recovery; active close is refused; [contract](docs/MCP.md#explicit-document-lifecycle-unreleased) |
 | Trusted C# | Opt-in Roslyn method bodies through MCP/CLI; rollback queries, atomic modifications, bounded JSON/diagnostics, native change IDs and retained recovery |
 | Development sessions | Local signing and fixture-copy launches with process/session/document pinning; prompt-free startup, revised C# in one process, native modification and Undo qualified on Revit 2027.3. See [development setup](docs/DEVELOPMENT.md) and [native evidence](verification/development-signing.md). |
 | Cabin Eval | Independent 100-point native evaluator with temporary length probe and negative controls in a disposable fixture |

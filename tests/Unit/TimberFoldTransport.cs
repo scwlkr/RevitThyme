@@ -18,11 +18,13 @@ internal static class TimberFoldTransport
         await using var ordinary = Server(name);
         await using var status = Server(name + "-status");
         await using var cancel = Server(name + "-cancel");
+        await using var outcome = Server(name + "-outcome");
         var held = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var normalServer = Respond(ordinary, true);
         var statusServer = Respond(status, false);
         var cancelServer = Respond(cancel, false);
+        var outcomeServer = Respond(outcome, false);
         var client = new PipeClient(binding);
         var pendingNative = client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.Inspect), deadline.Token);
         await held.Task.WaitAsync(deadline.Token);
@@ -32,15 +34,16 @@ internal static class TimberFoldTransport
             using var shortDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(1));
             var controls = await Task.WhenAll(
                 client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.GetTimberFoldRun, OperationId: Guid.NewGuid()), shortDeadline.Token),
+                client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.GetOperation, OperationId: Guid.NewGuid()), shortDeadline.Token),
                 client.ExecuteAsync(new(Guid.NewGuid(), OperationKind.CancelTimberFoldRun, OperationId: Guid.NewGuid()), shortDeadline.Token));
             responsive = controls.All(r => r.Succeeded) && !pendingNative.IsCompleted;
         }
         catch (IOException) { }
         finally { release.TrySetResult(); }
-        check("retained-run status and cancellation bypass an occupied native-operation pipe", responsive);
+        check("retained operation outcome, run status and cancellation bypass an occupied native-operation pipe", responsive);
         await pendingNative;
         deadline.Cancel();
-        foreach (var task in new[] { normalServer, statusServer, cancelServer })
+        foreach (var task in new[] { normalServer, statusServer, cancelServer, outcomeServer })
             try { await task; } catch (OperationCanceledException) { }
 
         async Task Respond(NamedPipeServerStream pipe, bool hold)

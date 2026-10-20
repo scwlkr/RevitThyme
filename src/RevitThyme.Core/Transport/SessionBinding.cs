@@ -8,7 +8,7 @@ public sealed record SessionBinding(int ProtocolVersion, int ProcessId, string P
     string SessionId, string PipeName, string RevitVersion)
 {
     public string PipeFor(OperationKind operation) => PipeName + (operation switch
-    { OperationKind.GetTimberFoldRun => "-status", OperationKind.CancelTimberFoldRun => "-cancel", _ => "" });
+    { OperationKind.GetTimberFoldRun => "-status", OperationKind.CancelTimberFoldRun => "-cancel", OperationKind.GetOperation => "-outcome", _ => "" });
     public static SessionBinding Load(string path)
     {
         if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > 4096)

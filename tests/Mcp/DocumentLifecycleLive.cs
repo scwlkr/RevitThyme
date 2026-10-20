@@ -55,7 +55,7 @@ internal static class DocumentLifecycleLive
                 File.WriteAllText(Path.Combine(folder, "lifecycle-reopened.json"), JsonSerializer.Serialize(new { binding, context.Snapshot, passed = true, calls }, Protocol.Json)); return;
             }
             Program.Check("lifecycle starts on clean disposable A", context.Snapshot.DocumentPath == a && !context.Snapshot.IsModified && !context.Snapshot.IsWorkshared && Hash(a) == originalHash && Hash(b) == originalHash && Hash(c) == originalHash);
-            Program.Check("lifecycle actual installed MCP has 29 tools", (await client.ListToolsAsync()).Count == 29);
+            Program.Check("lifecycle actual installed MCP has 31 tools", (await client.ListToolsAsync()).Count == 31);
             await Call("run_query", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["source"] = "return 1;", ["trusted"] = true }, "trusted_code_disabled");
             string aid = context.Snapshot.Target.DocumentId;
             await Call("open_document", Args(context.Id, b, hash: new string('0', 64)), "file_changed");

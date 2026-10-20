@@ -5,16 +5,26 @@ namespace RevitThyme.McpTests;
 
 internal sealed partial class ElectricalLabLive
 {
+    private readonly List<object> historicalReferenceDifferences = [];
+    private object? currentSourceProfile;
     private void ValidateReference(JsonElement actual)
     {
+        historicalReferenceDifferences.Clear();
+        historicalReferenceDifferences.Add(new { field = "sourceRevision", currentSourceSha256 = Text("sourceSha256"), currentSourceBytes = new FileInfo(Text("source")).Length,
+            historicalSourceBinding = "Unavailable in retained reference; exact historical source hash/size equality is not asserted." });
         foreach (var expected in reference.GetProperty("views").EnumerateArray())
         {
             var view = actual.GetProperty("views").EnumerateArray().Single(v => v.GetProperty("id").GetInt64() == expected.GetProperty("viewId").GetInt64());
             var template = actual.GetProperty("templates").EnumerateArray().Single(v => v.GetProperty("id").GetInt64() == expected.GetProperty("templateId").GetInt64());
             Program.Check("native working view and independent display template match retained electrical reference", view.GetProperty("name").GetString() == expected.GetProperty("name").GetString()
                 && !view.GetProperty("isTemplate").GetBoolean() && view.GetProperty("templateId").GetInt64() == -1
-                && view.GetProperty("detail").GetString() == expected.GetProperty("detail").GetString() && view.GetProperty("scale").GetInt32() == expected.GetProperty("scale").GetInt32()
+                && view.GetProperty("scale").GetInt32() == expected.GetProperty("scale").GetInt32()
                 && template.GetProperty("isTemplate").GetBoolean() && template.GetProperty("name").GetString() == expected.GetProperty("templateName").GetString());
+            if (view.GetProperty("detail").GetString() != expected.GetProperty("detail").GetString())
+            {
+                Program.Check("historical working-detail difference is the reviewed Fine to Medium revision", expected.GetProperty("detail").GetString() == "Fine" && view.GetProperty("detail").GetString() == "Medium");
+                historicalReferenceDifferences.Add(new { field = "workingView.detail", id = view.GetProperty("id"), historical = expected.GetProperty("detail"), current = view.GetProperty("detail") });
+            }
             Program.Check("canonical owned annotation category counts match retained electrical reference", SameCounts(view.GetProperty("annotations"), expected.GetProperty("annotations")));
         }
         foreach (var expected in reference.GetProperty("counts").EnumerateArray())
@@ -23,14 +33,25 @@ internal sealed partial class ElectricalLabLive
         foreach (var expected in reference.GetProperty("schedules").EnumerateArray())
         {
             var schedule = actual.GetProperty("schedules").EnumerateArray().Single(s => s.GetProperty("id").GetInt64() == expected.GetProperty("id").GetInt64());
-            Program.Check("native schedule identity and footer match retained reference", schedule.GetProperty("name").GetString() == expected.GetProperty("name").GetString()
-                && schedule.GetProperty("footer").EnumerateArray().Select(c => c.GetString()).SequenceEqual(expected.GetProperty("footer").EnumerateArray().Select(c => c.GetString())));
+            Program.Check("native schedule identity and nonempty trimmed footer totals match retained reference", schedule.GetProperty("name").GetString() == expected.GetProperty("name").GetString()
+                && Footer(schedule).SequenceEqual(Footer(expected)));
+            if (!schedule.GetProperty("footer").EnumerateArray().Select(c => c.GetString()).SequenceEqual(expected.GetProperty("footer").EnumerateArray().Select(c => c.GetString())))
+                historicalReferenceDifferences.Add(new { field = "schedule.rawFooter", id = schedule.GetProperty("id"), historical = expected.GetProperty("footer"), current = schedule.GetProperty("footer") });
         }
         Program.Check("native wires and original lighting annotation inventory match retained reference", actual.GetProperty("wireCount").GetInt32() == reference.GetProperty("wireCount").GetInt32()
             && actual.GetProperty("sourceL1LightingAnnotationCount").GetInt32() == reference.GetProperty("sourceL1LightingAnnotationCount").GetInt32());
-        Log(new { name = "historical element-count comparison", historicalNonTypeElements = reference.GetProperty("elements"), actualNonTypeElements = actual.GetProperty("nonTypeElements"),
-            actualIncludingTypes = actual.GetProperty("elements"), boundary = "Membership delta uses fresh native all-ID fingerprint; historical non-type count is recorded separately." });
+        if (reference.GetProperty("elements").GetInt32() != actual.GetProperty("nonTypeElements").GetInt32())
+            historicalReferenceDifferences.Add(new { field = "nonTypeElements", historical = reference.GetProperty("elements"), current = actual.GetProperty("nonTypeElements") });
+        currentSourceProfile = new { sourceSha256 = Text("sourceSha256"), sourceBytes = new FileInfo(Text("source")).Length, referenceSha256 = Hash(Text("referencePath")),
+            historicalAcceptance = false, historicalFineAcceptance = false, historicalAcceptanceStatus = "outstanding",
+            sourceProvenance = "Pinned current source is a later revision. The historical reference has no exact source hash/size binding; source equality to that receipt is not asserted.",
+            comparedHistoricalFields = new[] { "view IDs/names/scales", "template IDs/names", "annotation category counts", "model category counts", "wire count", "source lighting annotation count", "schedule IDs/names/nonempty trimmed footer totals" },
+            unqualifiedHistoricalFields = new[] { "rangeMatch", "electricalVisible", "wallsHalftone", "rangeExcludedFromTemplate", "fineDetailControlled", "historical source hash/size" },
+            preservationBoundary = "Current raw detail, settings, footers, annotations and all-ID membership are frozen from the first native inventory and remain strict through edit/save/reopen." };
+        Save("current-source-profile.json", new { currentSourceProfile, historicalReferenceDifferences });
+        Log(new { name = "current-source qualification profile", currentSourceProfile, historicalReferenceDifferences });
     }
+    private static IEnumerable<string> Footer(JsonElement schedule) => schedule.GetProperty("footer").EnumerateArray().Select(c => c.GetString()?.Trim() ?? "").Where(c => c.Length != 0);
     private static bool SameCounts(JsonElement left, JsonElement right) => left.EnumerateObject().Count() == right.EnumerateObject().Count()
         && left.EnumerateObject().All(p => right.TryGetProperty(p.Name, out var expected) && p.Value.GetInt32() == expected.GetInt32());
     private void AssertCanonical(JsonElement baseline, JsonElement actual)

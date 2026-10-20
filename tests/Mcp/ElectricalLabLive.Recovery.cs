@@ -54,15 +54,23 @@ internal sealed partial class ElectricalLabLive
     {
         var driver = new ElectricalLabLive(folder); string id = OriginalGuid(request); var intent = driver.OriginalIntent(id);
         string transcript = Path.Combine(folder, "transcript.json"), originalHash = Hash(transcript); var entries = Read(transcript).EnumerateArray().ToArray();
+        var history = Directory.GetFiles(folder, "resume-transcript-*.json").Append(transcript).ToDictionary(path => path, Hash);
+        var allEntries = history.Keys.SelectMany(path => Read(path).EnumerateArray().Select(e => e.Clone())).ToArray();
+        string initialPath = Path.Combine(folder, "initial-inventory.json"); bool hasInitial = File.Exists(initialPath);
+        string? initialHash = hasInitial ? Hash(initialPath) : null;
         var args = intent.GetProperty("args");
         if (intent.GetProperty("name").GetString() != "activate_document" || args.GetProperty("path").GetString() != driver.Text("a")
-            || File.Exists(Path.Combine(folder, "initial-inventory.json")) || File.Exists(Path.Combine(folder, "complete.json")))
-            throw new InvalidDataException("Resume accepts only the original owned-A activation before the first inventory.");
+            || File.Exists(Path.Combine(folder, "complete.json")))
+            throw new InvalidDataException("Resume accepts only the original owned-A activation at the read-only initial-inventory boundary.");
         bool Submitted(JsonElement e) => e.TryGetProperty("phase", out var phase) && phase.GetString() == "submitted";
         if (entries.Where(Submitted).Any(e => e.GetProperty("name").GetString() is "run_query" or "run_modify" or "save_document" or "close_document" or "activate_view" or "export_view_image")
             || entries.Where(Submitted).Count(e => e.GetProperty("name").GetString() == "activate_document") != 1
             || !entries.Where(Submitted).Any(e => e.GetProperty("name").GetString() == "activate_document" && e.GetProperty("args").GetProperty("requestId").GetString() == id))
             throw new InvalidDataException("Original transcript is outside the narrowly permitted pre-inventory activation boundary.");
+        if (allEntries.Where(Submitted).Any(e => e.GetProperty("name").GetString() is not ("get_context" or "list_operations" or "list_documents" or "get_operation" or "open_document" or "activate_document" or "run_query"))
+            || allEntries.Where(Submitted).Count(e => e.GetProperty("name").GetString() == "activate_document") != 1
+            || allEntries.Where(Submitted).Count(e => e.GetProperty("name").GetString() == "open_document") != 2)
+            throw new InvalidDataException("An original/resumed transcript contains writes or a later lifecycle boundary; initial-inventory continuation is refused.");
         JsonElement Opened(string path) => entries.Single(e => e.TryGetProperty("phase", out var phase) && phase.GetString() == "returned"
             && e.GetProperty("name").GetString() == "open_document" && e.GetProperty("data").GetProperty("code").GetString() == "document_opened"
             && e.GetProperty("args").GetProperty("path").GetString() == path).GetProperty("data");
@@ -95,15 +103,48 @@ internal sealed partial class ElectricalLabLive
             driver.client = await driver.Client("resume after exact original activation"); var context = await driver.Context();
             Program.Check("resumed current context is exact original active clean A", context.Snapshot.Target.DocumentId == aid && !context.Snapshot.IsModified);
             await driver.Inventory(context.Id, [aid, bid]);
-            var initial = await driver.Code("inventory.csx"); var baseline = Value(initial);
-            driver.Save("initial-inventory.json", new { baseline, reference = driver.reference });
-            driver.resumeSource = new { activationGuid = id, activation, originalTranscriptSha256 = originalHash, originalIntentSha256 = Hash(Path.Combine(folder, "intent-" + id + ".json")) };
+            JsonElement baseline; object? inventoryRecovery = null;
+            if (hasInitial)
+            {
+                baseline = Read(initialPath).GetProperty("baseline");
+                Program.Check("frozen first inventory retains the exact historical reference", JsonSerializer.Serialize(Read(initialPath).GetProperty("reference")) == JsonSerializer.Serialize(driver.reference));
+                var candidates = allEntries.Where(e => e.TryGetProperty("phase", out var phase) && phase.GetString() == "returned" && e.GetProperty("name").GetString() == "run_query"
+                    && e.GetProperty("data").GetProperty("code").GetString() == "inspected" && Value(e.GetProperty("data")).GetRawText() == baseline.GetRawText()).ToArray();
+                var first = candidates.OrderBy(e => allEntries.Single(s => Submitted(s) && s.GetProperty("name").GetString() == "run_query"
+                    && s.GetProperty("args").GetProperty("requestId").GetString() == e.GetProperty("args").GetProperty("requestId").GetString()).GetProperty("utc").GetDateTime()).First();
+                var original = first.GetProperty("data"); string queryId = OriginalGuid(original.GetProperty("id").GetString()!);
+                var queryIntent = driver.OriginalIntent(queryId); string source = queryIntent.GetProperty("args").GetProperty("source").GetString()!;
+                Program.Check("first inventory pins saved successful result and original guarded query source", queryIntent.GetProperty("name").GetString() == "run_query"
+                    && original.GetProperty("outcome").GetString() == "Inspected" && Digest(source) == original.GetProperty("execution").GetProperty("sourceSha256").GetString()
+                    && source == driver.Body("inventory.csx")
+                    && File.ReadAllText(Path.Combine(folder, "body-" + queryId + ".csx")) == source
+                    && Read(Path.Combine(folder, "result-" + queryId + ".json")).GetRawText() == original.GetRawText());
+                var retained = await driver.Observe(queryId);
+                Program.Check("first successful native inventory recovers byte-exact without replay", retained.GetRawText() == original.GetRawText());
+                var originalSnapshot = original.GetProperty("snapshot").Deserialize<Snapshot>(Protocol.Json)!;
+                Program.Check("continuation remains on the original clean active document and view", context.Snapshot.Target.DocumentId == originalSnapshot.Target.DocumentId
+                    && context.Snapshot.Target.ViewId == originalSnapshot.Target.ViewId && !context.Snapshot.IsModified && !originalSnapshot.IsModified
+                    && originalSnapshot.DocumentPath == driver.Text("a") && originalSnapshot.Target.ProcessId == driver.binding.ProcessId
+                    && originalSnapshot.Target.ProcessStart == driver.binding.ProcessStart && originalSnapshot.Target.SessionId == driver.binding.SessionId);
+                var verification = await driver.Code("inventory.csx"); var current = Value(verification); driver.AssertCanonical(baseline, current);
+                Program.Check("fresh native verification equals every frozen initial inventory field", current.GetRawText() == baseline.GetRawText());
+                inventoryRecovery = new { originalGuid = queryId, original, retained, verification, initialInventorySha256 = initialHash };
+                driver.Save("inventory-continuation-" + Guid.NewGuid() + ".json", inventoryRecovery);
+            }
+            else
+            {
+                var initial = await driver.Code("inventory.csx"); baseline = Value(initial);
+                driver.Save("initial-inventory.json", new { baseline, reference = driver.reference });
+            }
+            driver.resumeSource = new { activationGuid = id, activation, originalTranscriptSha256 = originalHash, originalIntentSha256 = Hash(Path.Combine(folder, "intent-" + id + ".json")), history, inventoryRecovery };
             driver.Preserve(); await driver.Workflow(baseline, aid, bid);
         }
         finally
         {
             if (driver.client is not null) await driver.client.DisposeAsync(); if (driver.observer is not null) await driver.observer.DisposeAsync();
             Program.Check("resumed workflow preserves original activation transcript", Hash(transcript) == originalHash);
+            Program.Check("continuation preserves every prior resume transcript", history.All(p => Hash(p.Key) == p.Value));
+            if (hasInitial) Program.Check("continuation preserves the frozen first inventory", Hash(initialPath) == initialHash);
         }
     }
     private async Task RecordBlocked(string name, string request, JsonElement response)

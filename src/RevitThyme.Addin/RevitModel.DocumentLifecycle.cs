@@ -41,7 +41,6 @@ public sealed partial class RevitModel
                 if (nextDocument is null || host.DocumentId(nextDocument) != next.DocumentId)
                     throw new OperationException("wrong_document", "The exact activation document ID/path is not open in this session.");
                 AssertCleanCloseDocument(nextDocument, next.Path, next.DocumentId, next.ExpectedSha256);
-                nextView = nextDocument.ActiveView.UniqueId;
             }
         }
         bool performed = false;
@@ -54,6 +53,8 @@ public sealed partial class RevitModel
                 {
                     if (!app.OpenAndActivateDocument(options.ActivateBeforeClose!.Path).Document.Equals(nextDocument))
                         throw new InvalidDataException("Activated a different native document.");
+                    // Background-only documents can have no ActiveView until first UI activation.
+                    nextView = nextDocument.ActiveView.UniqueId;
                     // Activation can invoke other add-ins. Revalidate both documents before the direct close.
                     AssertCleanCloseDocument(document, options.Path, id, beforeHash);
                     VerifyCloseActivation(nextDocument, options.ActivateBeforeClose, nextView!);

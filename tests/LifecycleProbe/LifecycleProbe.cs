@@ -19,9 +19,17 @@ public sealed class LifecycleProbe : IExternalApplication
         allowed = [plan.RootElement.GetProperty("a").GetString()!, plan.RootElement.GetProperty("b").GetString()!];
         if (allowed.Any(p => !Path.IsPathFullyQualified(p) || !Path.GetDirectoryName(p)!.Equals(folder, StringComparison.OrdinalIgnoreCase))) return Result.Failed;
         app.ControlledApplication.DocumentClosing += Closing;
+        app.ControlledApplication.DocumentOpened += Opened;
         using var process = Process.GetCurrentProcess();
         File.WriteAllText(Path.Combine(folder, "probe-ready.json"), JsonSerializer.Serialize(new { pid = process.Id, start = process.StartTime.ToUniversalTime().Ticks.ToString(), allowed }));
         return Result.Succeeded;
+    }
+    private void Opened(object? sender, DocumentOpenedEventArgs e)
+    {
+        string path = e.Document.PathName;
+        if (!allowed.Contains(path, StringComparer.OrdinalIgnoreCase)) return;
+        File.WriteAllText(Path.Combine(folder!, "opened-" + Path.GetFileNameWithoutExtension(path) + ".json"),
+            JsonSerializer.Serialize(new { path, activeView = e.Document.ActiveView?.UniqueId }));
     }
     private void Closing(object? sender, DocumentClosingEventArgs e)
     {
@@ -38,6 +46,7 @@ public sealed class LifecycleProbe : IExternalApplication
     public Result OnShutdown(UIControlledApplication app)
     {
         if (folder is not null) app.ControlledApplication.DocumentClosing -= Closing;
+        if (folder is not null) app.ControlledApplication.DocumentOpened -= Opened;
         return Result.Succeeded;
     }
 }

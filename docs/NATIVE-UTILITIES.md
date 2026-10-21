@@ -33,9 +33,13 @@ MCP flow: discover the room using `query_elements(categoryId="-2000160")`; call 
 & $cli room-dimensions create --session $session --capture $roomCapture --json
 ```
 
-Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JSON object. Capture files contain private model identities and paths; keep them private. These utility operations do not save or synchronize a model. On an uncertain result, inspect native state and recover the original request ID through MCP `get_operation`; do not submit a new write ID. Upgrade add-in, CLI and MCP together to bridge protocol **4**.
+Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JSON object. Capture files contain private model identities and paths; keep them private. These utility operations do not save or synchronize a model. On an uncertain result, inspect native state and recover the original request ID through MCP `get_operation`; do not submit a new write ID. Version 0.11.0 uses protocol **13** and 32 MCP tools; upgrade add-in, CLI and MCP together.
 
 ## Qualification
+
+The [installed-host client](../tests/UtilitiesInstalled/README.md) uses the immutable installed CLI/MCP executable and normal native host, with trusted execution disabled and no test loader or registration swap. It copies a known disposable utility fixture and verifies floor/RCP edits, template refusal, invalid-order rollback, native room dimensions, exact-view PNGs, reconnect recovery and one native Undo. The v0.11.0 run passed 85 external/native checks; [verification](../verification/native-utilities.md#installed-v0110-follow-up--2026-10-21) retains its exact runtime and host attribution.
+
+The earlier source-built ribbon/WPF qualification remains available separately:
 
 ```powershell
 .\project.cmd check

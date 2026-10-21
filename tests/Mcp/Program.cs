@@ -36,6 +36,7 @@ internal static class Program
             else if (args is ["--close-cancellation-baseline", var baselineFolder]) await ActiveCloseLive.Run(baselineFolder, true);
             else if (args is ["--lifecycle-reopened", var lifecycleReopened]) await DocumentLifecycleLive.Run(lifecycleReopened, true);
             else if (args is ["--utilities-live", var utilityFolder]) await UtilityLive.Run(utilityFolder);
+            else if (args is ["--utilities-installed", var installedUtilitiesFolder]) await UtilitiesInstalled.Run(installedUtilitiesFolder);
             else if (args is ["--dynamic-live", var dynamicFolder]) await DynamicLive.Run(dynamicFolder);
             else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);
             else if (args is ["--packaged-stdio", var bundle, var manifestSha256, var evidence]) await PackagedStdio.Run(bundle, manifestSha256, evidence);

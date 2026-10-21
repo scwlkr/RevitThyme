@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add reproducible native utility qualification against the normal installed CLI/MCP with trusted C# disabled. Cover floor/RCP range edits, template refusal, invalid-order rollback, native room measurements, exact-view images, retained reconnect recovery and one native Undo. Preserve source-built qualification separately and correct its obsolete tool inventory; the unchanged v0.11.0 runtime passes 85 new external/native checks. No replacement release asset.
+
 ## 0.11.0 — 2026-10-21
 
 - Retire closed native document identities without hashing disposed Revit wrappers. Preserve valid document identities after a cancelled close and assign a fresh identity on reopen. The rebuilt candidate passes 56 actual-Revit Home/lifecycle SDK checks and 16 additional discovery/view-image checks after the failing close/reopen sequence; remaining release qualification is separate.

@@ -10,6 +10,8 @@ The client used the installed MCP executable and normally loaded host, with trus
 
 The deliberately interrupted export `67bf4452-d623-4fc4-a5d4-0cfa25cd5b2c` returned one real Pending observation before terminal recovery of the same GUID. The client verified the recovered inline PNG and unchanged output timestamp on a second recovery, without resubmission. The qualification client now polls Pending with a bounded three-minute wait. An earlier attempt failed because it assumed immediate terminal completion; its original GUID `591ce5a0-4d1e-4cd6-b3e7-ccce5901e87c` subsequently recovered successfully. Both attempts and their transcripts remain retained; the earlier failure is not counted as a passing run. This correction changes the qualification client only, not the installed runtime.
 
+After the native closed-document identity fix, the same image workflow passed **59 checks** against runtime source `8aae9f9c11e9df629cfbb0a033cb9154e9536ddc` / manifest `bdfaa317a3b61d9b49277803d33f168b4b3fe0ecdb94ebd2f498a76976056445`. Its normal host was PID 12660, start `639281836465029782`, session `e2811bfa-4ebf-4a86-b60d-308e69713ef9`. Original export `6276f850-658c-414c-b005-444d0b3031ed` returned one Pending observation, then verified terminal recovery without rerender. Native count and source/fixture disk hashes remained the same. This result is separate from the earlier package's pass above.
+
 Private records are under ignored `artifacts/release-0.11.0`. Image qualification alone does not establish complete release readiness; rebuilt-package lifecycle, installer, preservation and release gates are recorded separately. Physical fabrication remains outstanding.
 
 ## Confirmed published baseline

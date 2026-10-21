@@ -89,6 +89,8 @@ Verification is returned on the original operation result's `verification` field
 
 Readback uses a native observation path without a writable model transaction; comparison occurs in Core. Trusted C# still has full process permissions and no sandbox. The result covers only the declared observations and allowed-change policy, rather than every possible model defect. See [execution boundaries](DYNAMIC-EXECUTION.md#workflow-result-checks) and [CLI recovery](CLI.md#workflow-result-checks).
 
+[Qualification](../verification/workflow-result-checks.md) records the exact installed package, actual-Revit comparison/guard/recovery matrix, real Agent integration and preservation evidence. Offline checks and release/publication checks remain separate from native proof.
+
 <a id="open-document-discovery-unreleased"></a>
 
 ## Open document discovery

@@ -1,6 +1,6 @@
 # Install RevitThyme
 
-Version **0.13.0** (`0.13.0-checks.1`, protocol 14 / 38 MCP tools) adds structured native result checks and unexpected-change review for saved tools and retained operations. Install matching add-in, CLI and MCP binaries together. [Earlier release qualification](../verification/release-0.11.0.md) records the 0.11.0 runtime; saved source needs its own disposable-model testing.
+Version **0.13.0** (`0.13.0-checks.1`, protocol 14 / 38 MCP tools) adds structured native result checks and unexpected-change review for saved tools and retained operations. Install matching add-in, CLI and MCP binaries together. [Result-check qualification](../verification/workflow-result-checks.md) records this candidate's exact runtime and actual-Revit/Agent proof. Newly authored saved source still needs its own disposable-model testing.
 
 It retains TimberFold cutting kits, native review documentation, parameter identity, the dockable Agent client and global `rthyme` command. TimberFold digital qualification is complete; physical calibration, cutting and assembly remain outstanding and `ManufacturingReady` stays false. See [TimberFold](timberfold/README.md), [parameter inspection](MCP.md#parameter-identity), [Agent use](AGENT.md) and [updates](UPDATES.md).
 
@@ -14,7 +14,7 @@ Close Revit normally, preserving unsaved work. Run this in PowerShell to install
 irm https://revitthyme.wlkrlabs.com/install | iex
 ```
 
-To keep the installation pinned to **v0.13.0**, including after newer releases appear:
+Version-specific downloads below require the matching public GitHub release. Until that release is published, use the latest-stable command above. To keep the installation pinned to **v0.13.0**, including after newer releases appear:
 
 ```powershell
 irm https://github.com/scwlkr/RevitThyme/releases/download/v0.13.0/install.ps1 | iex
@@ -22,7 +22,7 @@ irm https://github.com/scwlkr/RevitThyme/releases/download/v0.13.0/install.ps1 |
 
 Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download [RevitThyme-0.13.0-win-x64.exe](https://github.com/scwlkr/RevitThyme/releases/download/v0.13.0/RevitThyme-0.13.0-win-x64.exe) and its [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.13.0/RevitThyme-0.13.0-win-x64.exe.sha256), verify the checksum, and run the executable.
 
-The **0.13.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.13.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.13.0) contains the installer, both bootstrappers, adjacent checksums and source/package metadata. The [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip) retains its original v0.10.0 evidence. It includes calibration pieces, an original editable six-panel gable RVT and DWG/DXF/SVG files; follow its instructions and [physical limits](timberfold/delivery.md).
+The **0.13.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. Once published, the [0.13.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.13.0) provides the installer, both bootstrappers, adjacent checksums and source/package metadata. The [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip) retains its original v0.10.0 evidence. It includes calibration pieces, an original editable six-panel gable RVT and DWG/DXF/SVG files; follow its instructions and [physical limits](timberfold/delivery.md).
 
 `/install` selects the latest stable release; the older `/install-0.8.1` remains pinned to 0.8.1. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The 0.13.0 release's `install.ps1` asset defaults to 0.13.0; `install-revitthyme.ps1` retains its latest-release default.
 

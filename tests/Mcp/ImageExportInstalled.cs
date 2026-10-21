@@ -37,9 +37,14 @@ internal static class ImageExportInstalled
         var client = await Client();
         try
         {
-            async Task<JsonElement> Call(string name, Dictionary<string, object?>? args = null, string? code = null)
+            async Task<JsonElement> Call(string name, Dictionary<string, object?>? args = null, string? code = null, bool allowPending = false)
             {
                 var reply = await Program.Call(client, name, args); calls.Add(new { name, args, result = reply.Data, reply.Result.IsError });
+                if (allowPending && reply.Data.GetProperty("code").GetString() == "pending")
+                {
+                    Program.Check("installed original image recovery accepts Pending without a replacement submission", reply.Result.IsError == true && reply.Data.GetProperty("imageExport").ValueKind == JsonValueKind.Null);
+                    return reply.Data;
+                }
                 if (code is not null) Program.Check("installed MCP " + name + ": " + code, reply.Data.GetProperty("code").GetString() == code && reply.Result.IsError == (code is not ("image_exported" or "applied")));
                 else if (reply.Result.IsError == true) throw new InvalidDataException("Installed MCP " + name + " failed: " + reply.Data.GetRawText());
                 if (reply.Data.TryGetProperty("imageExport", out var data) && data.ValueKind == JsonValueKind.Object && reply.Result.IsError != true)
@@ -123,7 +128,17 @@ internal static class ImageExportInstalled
             try { await pending; } catch (Exception e) { responseLost = true; calls.Add(new { requestId = lostId, responseLost, exception = e.GetType().Name }); }
             Program.Check("installed accepted request actually loses its original response", responseLost);
             await client.DisposeAsync(); client = await Client();
-            var recovered = await Call("get_operation", new() { ["requestId"] = lostId }, "image_exported");
+            var recoveryWatch = Stopwatch.StartNew(); JsonElement recovered;
+            do
+            {
+                var remaining = TimeSpan.FromMinutes(3) - recoveryWatch.Elapsed;
+                recovered = await Call("get_operation", new() { ["requestId"] = lostId }, "image_exported", allowPending: true).WaitAsync(remaining);
+                if (recovered.GetProperty("code").GetString() != "pending") break;
+                remaining = TimeSpan.FromMinutes(3) - recoveryWatch.Elapsed;
+                if (remaining <= TimeSpan.Zero) break;
+                await Task.Delay(remaining < TimeSpan.FromSeconds(2) ? remaining : TimeSpan.FromSeconds(2));
+            } while (recoveryWatch.Elapsed < TimeSpan.FromMinutes(3));
+            Program.Check("installed original image recovery reaches a terminal export within its bounded wait", recovered.GetProperty("code").GetString() == "image_exported");
             Program.Check("installed retained recovery returns original ID without a capture", recovered.GetProperty("id").GetString() == lostId);
             string path = recovered.GetProperty("imageExport").GetProperty("path").GetString()!; var stamp = File.GetLastWriteTimeUtc(path);
             var again = await Call("get_operation", new() { ["requestId"] = lostId }, "image_exported");

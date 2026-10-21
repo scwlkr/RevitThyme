@@ -42,7 +42,7 @@ internal static class UtilityLive
         }
         try
         {
-            Program.Check("22 official SDK tools in live session", (await client.ListToolsAsync()).Count == 22);
+            Program.Check("32 official SDK tools in live session", (await client.ListToolsAsync()).Count == 32);
             var cliRange = await Cli("view-range", "get", "--session", session, "--json");
             Program.Check("CLI reads native range", cliRange.GetProperty("viewRange").GetProperty("settings").GetProperty("cut").GetProperty("offsetFeet").GetDouble() == 4);
             string captureFile = Path.Combine(folder, "cli-range.json"), rangeFile = Path.Combine(folder, "cli-settings.json");

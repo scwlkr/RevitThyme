@@ -35,7 +35,7 @@ CLI uses exactly the same operation and caller-supplied request ID:
 .\project.cmd cli get-operation --session C:\test\session.json --request-id YOUR_GUID --json
 ```
 
-Use `run-modify` for a committed edit. CLI returns JSON, exit 0 for success, 1 for a native rejection/rollback/uncertain result, and 2 for invalid CLI input/connection failure. The current native bridge uses protocol **13**; install matching add-in/Core/CLI/MCP binaries. Roslyn 5.9.0 is pinned and bundled next to the add-in; Autodesk assemblies remain locally supplied.
+Use `run-modify` for a committed edit. CLI returns JSON, exit 0 for success, 1 for a native rejection/rollback/uncertain result, and 2 for invalid CLI input/connection failure. The current native bridge uses protocol **14**; install matching add-in/Core/CLI/MCP binaries. Roslyn 5.9.0 is pinned and bundled next to the add-in; Autodesk assemblies remain locally supplied.
 
 ## Saved tool inputs and tests
 
@@ -48,6 +48,18 @@ The saved definition digest identifies the complete saved contract. The native r
 A saved test contains input values, model assumptions, an expected-result description and an assertion body returning a Boolean. Running with a test name executes that assertion as a rollback query; it does not first run the main tool. Prepare the stated disposable fixture, run the main tool explicitly, inspect its outcome, then run the assertion with a fresh capture. A saved definition reports `not_run`; its existence or a successful native operation is not proof that a test passed. This release does not manage test fixtures, promote tested versions or repair failures automatically.
 
 All existing full-process trust limits apply to saved source and assertions. Rollback does not undo external side effects. Definition storage is private user data; keep source, inputs and returned model data out of public repositories when they contain project information.
+
+## Workflow result checks
+
+A saved tool can include a structured result-check plan alongside its expected-result description. After its main operation has definitely succeeded, the adapter reads the specified native observations and compares them with the plan. Expected values describe the intended result; allowed-change rules define which added, modified and deleted element IDs the operation may affect. A successful API call alone does not prove those expectations.
+
+The original operation and its check report remain separate. An Applied modification stays Applied if its result check fails or cannot be confirmed. Inspect the native result and report before deciding what to do next. Checking does not automatically Undo, rerun, repair, save or sync the model. Existing saved definitions without a plan keep their original execution behavior, and a named test assertion remains an explicitly requested rollback query.
+
+Checks use the authoritative retained native operation and its exact target, including document/view revision. Their attribution identifies the definition, plan and inputs used. After response loss, recover the original request before checking it; a new edit request is not a recovery method. If the expected native state can no longer be established, the report must show uncertainty rather than infer a pass from stale data or an operation's returned prose.
+
+Observation source runs through a native path without a writable model transaction. Core compares the returned structured data; a checker cannot establish success by temporarily writing the expected value into the current document. This is still trusted C# with full process privileges, not a sandbox: file, network and deliberately accessed external-document side effects remain outside the observation contract. Use reviewed observation code and disposable fixtures first.
+
+See the [MCP result-check contract](MCP.md#workflow-result-checks) and [CLI commands](CLI.md#workflow-result-checks) for plan fields, reports and explicit verification of retained operations. A report covers only its declared observations and change rules. Managed test execution, workflow construction and durable run logs remain separate features.
 
 ## Disposable qualification and Cabin Eval
 

@@ -96,7 +96,7 @@ function New-CheckRun {
     return @{plan=$plan;launch=$launch}
 }
 function New-CheckBinding($Run, [string]$Name='binding.json') {
-    $binding = [pscustomobject]@{protocolVersion=13;processId=$Run.launch.pid;processStart=$Run.launch.start;
+    $binding = [pscustomobject]@{protocolVersion=14;processId=$Run.launch.pid;processStart=$Run.launch.start;
         sessionId=$Run.launch.session_id;pipeName="RevitThyme-Foundation-$($Run.launch.pid)-$($Run.launch.session_id)";revitVersion='2027'}
     $path = Join-Path (Join-Path $Run.plan.folder 'sessions') $Name
     Write-DevJson $path $binding

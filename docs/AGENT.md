@@ -32,6 +32,12 @@ When asked to run a saved tool, the Agent reads its definition and submits valid
 
 See the [MCP contract](MCP.md#saved-revit-tools), [CLI commands](CLI.md#saved-revit-tools) and [execution limits](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
 
+## Define result checks
+
+When a tool needs a verifiable result, ask the Agent to include a result-check plan: for example, confirm a renamed view's native name and allow only the intended view to be modified. The plan must state observable expectations and permitted changes before execution. The Agent should inspect native readback and report the original operation outcome alongside the check result.
+
+Checking follows a definite successful operation; it does not convert uncertain execution into success. If a change was Applied but a check failed, the model may already contain that change. The Agent should explain the mismatch or uncertainty and inspect the retained outcome before proposing another edit. There is no automatic Undo or retry. A tool without a plan behaves as before. See [Workflow Result Checks](DYNAMIC-EXECUTION.md#workflow-result-checks).
+
 ## Development and qualification
 
 Build with `project.cmd check`. The `RevitThyme.Codex` project uses BCL JSON/stdio APIs and has no WPF or Autodesk dependency. UI owns presentation, and Addin owns the pane and pinned connection. `project.cmd agent-prepare`, `agent-start`, `agent-check`, and `agent-cleanup` manage a new disposable Revit qualification process. All writes target its fixture; existing processes remain open. If an installed Foundation registration exists, the script parks only that exact hash-checked registration during the new process's startup, then restores it. Run cleanup after failure as well as success.

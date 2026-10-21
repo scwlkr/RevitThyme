@@ -38,6 +38,8 @@ public static class Program
                 revitthyme tool save --id GUID --definition ABSOLUTE_JSON --json
                 revitthyme tool show --id GUID --json
                 revitthyme tool run --id GUID --digest SHA256 --inputs ABSOLUTE_JSON --session ABSOLUTE_FILE --capture INSPECTION --request-id GUID --trusted true [--test NAME] [--budget-ms 10000] --json
+                revitthyme tool verify --id GUID --digest SHA256 --inputs ABSOLUTE_JSON --session ABSOLUTE_FILE --request-id ORIGINAL_GUID --trusted true [--budget-ms 10000] --json
+                revitthyme result-check prepare|verify --plan ABSOLUTE_JSON --inputs ABSOLUTE_JSON --source-sha256 SHA256 --request-id ORIGINAL_GUID --session ABSOLUTE_FILE --trusted true [--capture INSPECTION (prepare only)] [--budget-ms 10000] --json
                 revitthyme timberfold inspect --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
                 revitthyme timberfold preview --run-id GUID --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
                 revitthyme timberfold generate --preview-run-id GUID --run-id GUID --session ABSOLUTE_FILE [--json]
@@ -57,6 +59,7 @@ public static class Program
         if (args[0] is "--version" or "version" or "update") return await UpdateCli.Run(args, output);
         if (args[0] is "run-query" or "run-modify" or "get-operation") return await DynamicCli.Run(args, output, error, clientFactory);
         if (args[0] == "tool") return await SavedToolCli.Run(args, output, error, clientFactory);
+        if (args[0] == "result-check") return await ResultCheckCli.Run(args, output, error, clientFactory);
         if (args[0] == "timberfold") return await TimberFoldCli.Run(args, output, error, clientFactory);
         if (args.Length >= 2 && args[0] is "view-range" or "room-dimensions") args = [args[0] + "-" + args[1], .. args[2..]];
         var options = Parse(args[1..]);
@@ -175,7 +178,7 @@ public static class Program
     }
     private static OperationResult ReadCapture(string path, SessionBinding binding)
     {
-        if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > Protocol.MaxBytes)
+        if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > Protocol.MaxOperationBytes)
             throw new ArgumentException("Use an absolute inspection capture file (maximum 64 KiB).");
         var capture = JsonSerializer.Deserialize<OperationResult>(File.ReadAllText(path), Protocol.Json);
         if (capture?.Succeeded != true || capture.Snapshot is not { } snapshot)
@@ -187,7 +190,7 @@ public static class Program
     }
     private static ViewRangeSettings ReadRange(string path)
     {
-        if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > Protocol.MaxBytes) throw new ArgumentException("Use an absolute range settings file (maximum 64 KiB).");
+        if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > Protocol.MaxOperationBytes) throw new ArgumentException("Use an absolute range settings file (maximum 64 KiB).");
         return JsonSerializer.Deserialize<ViewRangeSettings>(File.ReadAllText(path), Protocol.Json) ?? throw new ArgumentException("Range settings required.");
     }
     internal static Dictionary<string, string?> Parse(string[] args)

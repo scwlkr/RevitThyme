@@ -52,9 +52,9 @@ internal static class DocumentDiscoveryExecutor
         var items = all.Skip(query.Offset).Take(query.Limit).ToArray();
         OperationResult Result() => new(request.Id, Outcome.Inspected, "inspected", "Visible native document identities inspected; no lifecycle action or file hash.", before,
             Documents: new(items, all.Length, query.Offset + items.Length < all.Length ? query.Offset + items.Length : null, token));
-        while (items.Length > 0 && JsonSerializer.SerializeToUtf8Bytes(Result(), Protocol.Json).Length > Protocol.MaxBytes / 2)
+        while (items.Length > 0 && JsonSerializer.SerializeToUtf8Bytes(Result(), Protocol.Json).Length > Protocol.MaxOperationBytes / 2)
             Array.Resize(ref items, items.Length - 1);
-        if (query.Offset < all.Length && items.Length == 0 || JsonSerializer.SerializeToUtf8Bytes(Result(), Protocol.Json).Length > Protocol.MaxBytes / 2)
+        if (query.Offset < all.Length && items.Length == 0 || JsonSerializer.SerializeToUtf8Bytes(Result(), Protocol.Json).Length > Protocol.MaxOperationBytes / 2)
             return OperationResult.Reject(request, "result_too_large", "A complete document identity cannot fit; no fields were truncated.");
         if (model.Capture() != before) return OperationResult.Reject(request, "stale_target", "Native context changed during document inspection. Capture again.");
         return Result();

@@ -23,6 +23,10 @@
 | Development signing | Persistent local code-signing certificate trusted by the current Windows user; signs staged RevitThyme binaries before package hashing |
 | Development run | One owned Revit process and one copied disposable fixture, with separate discovery, Agent state and retained request results |
 | Cabin Eval | Independent native 100-point model evaluator, including temporary global length change and verified rollback |
+| Result-check plan | Declared native observations, expected values and permitted changes used to evaluate a tool or operation result |
+| Check report | Attributed evidence and comparisons kept separate from the original native operation outcome |
+| Native observation | Trusted readback performed without a writable model transaction, returning structured data for comparison |
+| Unexpected change | An added, modified or deleted element ID outside the check plan's declared allowed changes |
 
 Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 

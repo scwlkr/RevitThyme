@@ -13,7 +13,7 @@ public sealed class PipeClient(SessionBinding binding) : IOperationClient
         binding.AssertProcess();
         var envelope = new BridgeRequest(Protocol.Version, binding.SessionId, request, IncludeParameterIdentity: true);
         if (JsonSerializer.SerializeToUtf8Bytes(envelope, Protocol.Json).Length > Protocol.MaxBytes)
-            return OperationResult.Reject(request, "request_too_large", "Request exceeds the 64 KiB bridge limit; nothing was submitted.");
+            return OperationResult.Reject(request, "request_too_large", $"Request exceeds the {Protocol.MaxBytes / 1024} KiB bridge limit; nothing was submitted.");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(30));
         await using var pipe = new NamedPipeClientStream(".", binding.PipeFor(request.Operation), PipeDirection.InOut,

@@ -7,7 +7,9 @@ RevitThyme grows through focused tools, shared operations, inspectable results a
 | Area | Delivered scope |
 | --- | --- |
 | Foundation | C# Core, native add-in, WPF, inspection and checked renaming |
-| MCP and CLI | 25 MCP tools, including seven TimberFold controls, explicit sessions, structured inspection, selection, atomic parameter edits and retained outcomes; protocol 8 |
+| MCP and CLI | 38 MCP tools, including result checks, saved tools and seven TimberFold controls; explicit sessions, structured inspection, selection, atomic parameter edits and retained outcomes; protocol 14 |
+| Reusable tools | Saved parameterized trusted C# definitions, typed inputs, expected results and executable assertions through Agent/MCP/CLI |
+| Result checks | Declared native observations and allowed changes, automatic saved-tool checks and explicit retained-operation verification; original operation outcomes remain separate |
 | TimberFold | Qualified planar exterior-shell cutting kits, mapped guides, native review documentation, read-only recovery and single Undo; physical fabrication outstanding |
 | Native utilities | Four-plane View Range editor and associative dimensions for bounded rectangular rooms |
 | Trusted execution | Opt-in Roslyn query/modify, rollback queries and independent native Cabin Eval |
@@ -19,7 +21,9 @@ RevitThyme grows through focused tools, shared operations, inspectable results a
 
 ## Next priorities
 
-- Document open/activate/save and the [Home, background close and view-switching slice](../verification/ui-lifecycle.md) landed in PRs #39/#40. The next candidate adds synchronous active close only with an explicitly selected already-open clean handoff document, and preserves identities when a third-party add-in cancels close. Last-document close to Home still needs request-specific native command ownership; no posted Close fallback is included. Modal recovery and bounded model promotion remain separate; keep changes above 512 native IDs independent. Preserve the earlier [image](../verification/view-images.md) and [document lifecycle](../verification/document-lifecycle.md) evidence.
+- Extend saved tools with managed disposable-model test runs, durable run records, versioned promotion and bounded repair. Keep those capabilities distinct from a saved definition or one result-check report.
+
+- Broaden native document lifecycle qualification beyond the existing explicit open/activate/save/clean-close controls. Active close requires an explicitly selected already-open clean handoff document; last-document close to Home remains unsupported. Modal recovery and bounded model promotion remain separate. Preserve the earlier [image](../verification/view-images.md) and [document lifecycle](../verification/document-lifecycle.md) evidence.
 
 - Keep user, developer and agent onboarding aligned with behavior through shared docs and automated checks.
 - Improve reproducible public examples and diagnostics.

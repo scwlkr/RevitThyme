@@ -56,7 +56,7 @@ if($p.ProcessName -ne 'Revit' -or $p.StartTime.ToUniversalTime().Ticks.ToString(
 $files=@(Get-ChildItem -LiteralPath $launch.sessions -Filter '*.json')
 if($files.Count -ne 1) { throw 'Exact native binding not ready.' }
 $binding=Get-Content $files[0].FullName -Raw|ConvertFrom-Json
-if($binding.protocolVersion -ne 13 -or $binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start) { throw 'Native session does not match launch.' }
+if($binding.protocolVersion -ne 14 -or $binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start) { throw 'Native session does not match launch.' }
 $context=& (Join-Path $plan.bundle 'cli\revitthyme.exe') inspect --session $files[0].FullName --json|ConvertFrom-Json
 if(-not$context.succeeded) { throw 'Native context unavailable; inspect original pending requests, never use a fallback.' }
 if($Action -eq 'ready') {

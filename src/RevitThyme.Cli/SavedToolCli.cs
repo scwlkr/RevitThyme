@@ -8,7 +8,7 @@ internal static class SavedToolCli
 {
     public static async Task<int> Run(string[] args, TextWriter output, TextWriter error, Func<SessionBinding, IOperationClient>? factory)
     {
-        if (args.Length < 2 || args[1] is not ("save" or "show" or "run")) throw new ArgumentException("Use tool save, show or run. See --help.");
+        if (args.Length < 2 || args[1] is not ("save" or "show" or "run" or "verify")) throw new ArgumentException("Use tool save, show, run or verify. See --help.");
         var options = new Dictionary<string, string>(StringComparer.Ordinal);
         string[] allowed = args[1] switch
         {
@@ -34,18 +34,30 @@ internal static class SavedToolCli
         { await output.WriteLineAsync(JsonSerializer.Serialize(store.Save(Required("--id"), Read<SavedToolDefinition>(Required("--definition"), SavedTools.MaxDefinitionBytes)), Protocol.Json)); return 0; }
         var artifact = store.Get(Required("--id"));
         if (args[1] == "show") { await output.WriteLineAsync(JsonSerializer.Serialize(artifact, Protocol.Json)); return 0; }
-        var code = SavedTools.Invocation(artifact, Required("--digest"), Read<JsonElement>(Required("--inputs"), SavedTools.MaxInputBytes),
+        var inputs = Read<JsonElement>(Required("--inputs"), SavedTools.MaxInputBytes);
+        var code = SavedTools.Invocation(artifact, Required("--digest"), inputs,
             Required("--trusted") == "true", int.Parse(options.GetValueOrDefault("--budget-ms") ?? "10000", CultureInfo.InvariantCulture), options.GetValueOrDefault("--test"));
         var binding = SessionBinding.Load(Required("--session"));
-        var capture = Read<OperationResult>(Required("--capture"), Protocol.MaxBytes);
-        if (!capture.Succeeded || capture.Snapshot is not { } snapshot || snapshot.Target.ProcessId != binding.ProcessId
+        var capture = args[1] == "verify" ? null : Read<OperationResult>(Required("--capture"), Protocol.MaxOperationBytes);
+        var snapshot = capture?.Snapshot;
+        if (args[1] != "verify" && (capture?.Succeeded != true || snapshot is null || snapshot.Target.ProcessId != binding.ProcessId
             || snapshot.Target.ProcessStart != binding.ProcessStart || snapshot.Target.SessionId != binding.SessionId)
+            )
             throw new ArgumentException("Successful inspection capture from this exact session required.");
         if (!Guid.TryParse(Required("--request-id"), out var id) || id == Guid.Empty) throw new ArgumentException("request-id must be a nonempty GUID.");
         var operation = options.ContainsKey("--test") || artifact.Definition.Mode == "query" ? OperationKind.RunQuery : OperationKind.RunModify;
-        var result = await (factory?.Invoke(binding) ?? new PipeClient(binding)).ExecuteAsync(new(id, operation, snapshot.Target, Code: code));
+        var client = factory?.Invoke(binding) ?? new PipeClient(binding);
+        OperationResult result;
+        if (args[1] == "verify" || !options.ContainsKey("--test") && artifact.Definition.ResultChecks is not null)
+        {
+            if (args[1] == "verify" && (options.ContainsKey("--test") || options.ContainsKey("--capture"))) throw new ArgumentException("tool verify does not accept --test or --capture.");
+            var coordinator = new ResultCheckCoordinator(client, id, artifact.Definition.ResultChecks ?? throw new ArgumentException("Tool has no resultChecks."), inputs,
+                ResultChecks.Hash(code.Source), true, code.BudgetMilliseconds);
+            result = args[1] == "verify" ? await coordinator.Verify() : await coordinator.Run(new(id, operation, snapshot!.Target, Code: code));
+        }
+        else result = await client.ExecuteAsync(new(id, operation, snapshot!.Target, Code: code));
         await output.WriteLineAsync(JsonSerializer.Serialize(result, Protocol.Json));
-        if (!result.Succeeded) { await error.WriteLineAsync(result.Message); return 1; }
+        if (!result.Succeeded || result.Verification is { Status: not "passed" }) { await error.WriteLineAsync(result.Verification?.Message ?? result.Message); return 1; }
         return 0;
     }
 }

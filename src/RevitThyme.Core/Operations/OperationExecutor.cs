@@ -38,7 +38,7 @@ public sealed class OperationExecutor
             if (request.ImageExport is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected imageExport arguments.");
             if (request.Operation == OperationKind.InspectTimberFold) return TimberFoldExecutor.Execute(model, request);
             if (request.TimberFold is not null) return OperationResult.Reject(request, "invalid_request", "Unexpected TimberFold arguments.");
-            bool dynamic = request.Operation is OperationKind.RunQuery or OperationKind.RunModify;
+            bool dynamic = request.Operation is OperationKind.RunQuery or OperationKind.RunModify or OperationKind.RunObservation;
             if (dynamic) return DynamicExecutor.Execute(model, request);
             if (request.Code is not null) return OperationResult.Reject(request, "invalid_request", "Code is accepted only by run_query/run_modify.");
             bool utility = request.Operation is OperationKind.GetViewRange or OperationKind.SetViewRange
@@ -64,7 +64,7 @@ public sealed class OperationExecutor
         catch (OperationException error) { return OperationResult.Reject(request, error.Code, error.Message); }
         catch (Exception error)
         {
-            if (request.Operation is OperationKind.RunQuery or OperationKind.RunModify)
+            if (request.Operation is OperationKind.RunQuery or OperationKind.RunModify or OperationKind.RunObservation)
                 return new(request.Id, Outcome.Unconfirmed, "unconfirmed", (error.GetType().Name + ": " + error.Message)[..Math.Min(240, error.GetType().Name.Length + 2 + error.Message.Length)]);
             return OperationResult.Reject(request, "inspection_failed", "Revit context could not be inspected. Refresh.");
         }

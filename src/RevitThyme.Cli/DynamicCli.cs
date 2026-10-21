@@ -30,7 +30,7 @@ internal static class DynamicCli
                 if (!Path.IsPathFullyQualified(path) || new FileInfo(path).Length > limit) throw new ArgumentException("Use a bounded absolute file path.");
                 return File.ReadAllText(path);
             }
-            var capture = JsonSerializer.Deserialize<OperationResult>(Read(Required("--capture"), Protocol.MaxBytes), Protocol.Json);
+            var capture = JsonSerializer.Deserialize<OperationResult>(Read(Required("--capture"), Protocol.MaxOperationBytes), Protocol.Json);
             if (capture?.Succeeded != true || capture.Snapshot is not { } snapshot) throw new ArgumentException("Successful inspection capture required.");
             if (snapshot.Target.ProcessId != binding.ProcessId || snapshot.Target.ProcessStart != binding.ProcessStart || snapshot.Target.SessionId != binding.SessionId)
                 throw new ArgumentException("Capture belongs to a different session.");

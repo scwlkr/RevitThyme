@@ -7,7 +7,8 @@ namespace RevitThyme.Core;
 public sealed record SavedToolInput(string Name, string Type, string Description, bool Required = true);
 public sealed record SavedToolTest(string Name, JsonElement Inputs, string Assumptions, string ExpectedResult, string AssertionSource);
 public sealed record SavedToolDefinition(string Name, string Request, string Description, string Mode, string Source,
-    SavedToolInput[] Inputs, string ExpectedResult, SavedToolTest[] Tests);
+    SavedToolInput[] Inputs, string ExpectedResult, SavedToolTest[] Tests,
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)] ResultCheckPlan? ResultChecks = null);
 public sealed record SavedToolArtifact(string ToolId, string Digest, SavedToolDefinition Definition, string TestStatus = "not_run");
 
 /// <summary>Validates saved tool contracts and binds input data without substituting C# tokens.</summary>
@@ -22,6 +23,7 @@ public static partial class SavedTools
         ArgumentNullException.ThrowIfNull(tool);
         Text(tool.Name, 120, "name"); Text(tool.Request, 4000, "request"); Text(tool.Description, 4000, "description");
         Text(tool.ExpectedResult, 4000, "expected result"); Source(tool.Source);
+        if (tool.ResultChecks is not null) ResultChecks.Validate(tool.ResultChecks);
         if (tool.Mode is not ("query" or "modify")) throw new ArgumentException("Tool mode must be query or modify.");
         if (tool.Inputs is null || tool.Inputs.Length > 32 || tool.Tests is null || tool.Tests.Length is < 1 or > 16)
             throw new ArgumentException("Use up to 32 inputs and 1–16 concrete tests.");
@@ -91,7 +93,11 @@ public static partial class SavedTools
         if (budgetMilliseconds is < 100 or > 30000) throw new ArgumentException("Budget must be 100–30000 ms.");
         string? source = testName is null ? null : artifact.Definition.Tests.SingleOrDefault(t => t.Name == testName)?.AssertionSource
             ?? throw new ArgumentException("Unknown saved tool test.");
-        return new(Bind(artifact.Definition, inputs, source), true, budgetMilliseconds);
+        string bound = Bind(artifact.Definition, inputs, source);
+        if (artifact.Definition.ResultChecks is not null && testName is null)
+            bound = "// saved-definition-sha256:" + artifact.Digest + "\n" + bound;
+        Source(bound);
+        return new(bound, true, budgetMilliseconds);
     }
     private static void Text(string? value, int max, string label)
     { if (string.IsNullOrWhiteSpace(value) || value.Length > max) throw new ArgumentException($"Use a nonempty {label} up to {max} characters."); }

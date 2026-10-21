@@ -54,7 +54,7 @@ if($Action -eq 'close' -and (Test-Path -LiteralPath (Join-Path $RunFolder 'close
 $files=@(Get-ChildItem -LiteralPath $launch.sessions -Filter '*.json')
 if($files.Count -ne 1) { throw 'Wait for the exact binding; do not relaunch on an observation timeout.' }
 $binding=Get-Content -LiteralPath $files[0].FullName -Raw|ConvertFrom-Json
-if($binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start -or $binding.protocolVersion -ne 13) { throw 'Native session binding mismatch.' }
+if($binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start -or $binding.protocolVersion -ne 14) { throw 'Native session binding mismatch.' }
 $context=& (Join-Path $launch.bundle 'cli\revitthyme.exe') inspect --session $files[0].FullName --json|ConvertFrom-Json
 if(-not$context.succeeded -or $context.snapshot.documentPath -ne $launch.fixture -or $context.snapshot.isWorkshared) { throw 'Expected exact disposable nonworkshared fixture; no model fallback.' }
 if((Hash $launch.fixture) -ne $launch.fixtureSha256) { throw 'Saved fixture changed; preserve it and investigate.' }

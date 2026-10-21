@@ -16,7 +16,8 @@ public sealed partial class RevitModel(UIApplication app, FoundationApplication 
         var captured = Capture();
         return NativeTimberExtraction.ExtractCancellable(Document, captured.Target, profile, scope, cancellationToken);
     }
-    public OperationResult ExecuteCode(OperationRequest request) => NativeDynamicExecution.Run(app, this, request);
+    public OperationResult ExecuteCode(OperationRequest request) => request.Operation == OperationKind.RunObservation
+        ? NativeObservationExecution.Run(app, this, request) : NativeDynamicExecution.Run(app, this, request);
     private Document Document => app.ActiveUIDocument?.Document
         ?? throw new OperationException("no_document", "Open a Revit project and refresh.");
     public Snapshot Capture()

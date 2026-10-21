@@ -75,7 +75,7 @@ internal static class GenericExecutor
             || e.ElementId.Length > 200 || !long.TryParse(e.ParameterId, out _) || !Valid(e.Expected) || !Valid(e.Value))
             || edits.Select(e => (e.ElementId, e.ParameterId)).Distinct().Count() != edits.Length)
             return OperationResult.Reject(request, "invalid_edits", "Use 1–20 distinct parameters and matching String/Integer/Double typed values.");
-        if (JsonSerializer.SerializeToUtf8Bytes(edits, Protocol.Json).Length > Protocol.MaxBytes / 2)
+        if (JsonSerializer.SerializeToUtf8Bytes(edits, Protocol.Json).Length > Protocol.MaxOperationBytes / 2)
             return OperationResult.Reject(request, "request_too_large", "Split the batch into smaller reviewed operations; values exceed the result budget.");
         foreach (var edit in edits)
         {

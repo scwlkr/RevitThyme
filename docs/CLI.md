@@ -13,7 +13,7 @@ rthyme sessions --json
 
 Version output separates the executing CLI, development checkout and registered installation. Update commands target the installed copy. Native commands require a running compatible add-in and an explicit session.
 
-The 0.11.0 release candidate uses protocol 13 and package `0.11.0-mcp.1`; install matching CLI, MCP and add-in binaries together. Published v0.10.0 uses protocol 8 and package `0.10.0-timberfold.4`.
+Version 0.11.0 uses protocol 13 and package `0.11.0-mcp.1`; install matching CLI, MCP and add-in binaries together. Version 0.10.0 used protocol 8 and package `0.10.0-timberfold.4`.
 
 ## Inspect a chosen session
 
@@ -26,9 +26,11 @@ rthyme inspect --session $session --json
 
 Captures contain private model paths and metadata. Model events invalidate them; reopening creates a new document identity.
 
-## Discover open documents (unreleased)
+<a id="discover-open-documents-unreleased"></a>
 
-The `0.11.0-mcp.1` candidate includes a read-only command, including at Home. Install matching protocol-13 binaries first:
+## Discover open documents
+
+Version 0.11.0 includes a read-only command, including at Home. Install matching protocol-13 binaries first:
 
 ```powershell
 rthyme list-documents --session $session --limit 1 --request-id CALLER_GUID --json > C:\Test\documents.json

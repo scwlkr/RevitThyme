@@ -1,5 +1,7 @@
 # Current verification
 
+[release-0.11.0.md](release-0.11.0.md) identifies the frozen 0.11.0 runtime package, native SDK results, installer checks and preservation boundaries. Release-source metadata and native runtime source are recorded separately.
+
 [foundation.md](foundation.md) records the C# Foundation build, native Revit and installer evidence. Private machine-readable reports and fixtures remain under ignored `artifacts/foundation`.
 
 [mcp.md](mcp.md) records the next stage's official SDK, offline protocol checks, native MCP tasks and three external Codex rounds. Private machine-readable evidence remains under `artifacts/mcp`.

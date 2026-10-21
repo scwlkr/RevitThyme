@@ -1,8 +1,8 @@
 # Install RevitThyme
 
-Version **0.11.0** is a release candidate (`0.11.0-mcp.1`, protocol 13 / 32 MCP tools) that adds exact native images, document discovery and explicit document/view lifecycle. Its rebuilt package and native qualification must pass before publication. The current public stable download remains **v0.10.0**; the installation commands below select that release until a newer stable release is published.
+Version **0.11.0** (`0.11.0-mcp.1`, protocol 13 / 32 MCP tools) adds exact native images, document discovery and explicit document/view lifecycle. Install matching add-in, CLI and MCP binaries together. [Release qualification](../verification/release-0.11.0.md) identifies the exact tested runtime and separates native, installer and preservation evidence.
 
-Version **0.10.0** adds TimberFold cutting kits, native review documentation and seven shared controls through the UI, CLI and 25-tool MCP server. It retains parameter identity, native assigned-value state, the dockable Agent client and global `rthyme` command. The qualified package version is **0.10.0-timberfold.4**, using protocol 8. TimberFold digital qualification is complete; physical calibration, cutting and assembly remain outstanding and `ManufacturingReady` stays false. See [TimberFold](timberfold/README.md), [parameter inspection](MCP.md#parameter-identity), [Agent use](AGENT.md) and [updates](UPDATES.md).
+It retains TimberFold cutting kits, native review documentation, parameter identity, the dockable Agent client and global `rthyme` command. TimberFold digital qualification is complete; physical calibration, cutting and assembly remain outstanding and `ManufacturingReady` stays false. See [TimberFold](timberfold/README.md), [parameter inspection](MCP.md#parameter-identity), [Agent use](AGENT.md) and [updates](UPDATES.md).
 
 The Windows x64 installer includes the native add-in, CLI and MCP server. It supports **full Revit 2027**; other years and Revit LT are not supported by this build. Revit 2027 supplies the required [.NET 10 runtime](https://help.autodesk.com/view/RVT/2027/ENU/?guid=GUID-8D7A4715-EAF8-4BD1-BE78-061F900D0BCE). Setup verifies the x64 Desktop and Core runtimes; no SDK, PowerShell 7, AI account or administrator permission is needed to install.
 
@@ -14,19 +14,19 @@ Close Revit normally, preserving unsaved work. Run this in PowerShell to install
 irm https://revitthyme.wlkrlabs.com/install | iex
 ```
 
-To keep the installation pinned to **v0.10.0**, including after newer releases appear:
+To keep the installation pinned to **v0.11.0**, including after newer releases appear:
 
 ```powershell
-irm https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/install.ps1 | iex
+irm https://github.com/scwlkr/RevitThyme/releases/download/v0.11.0/install.ps1 | iex
 ```
 
-Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download [RevitThyme-0.10.0-win-x64.exe](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/RevitThyme-0.10.0-win-x64.exe) and its [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/RevitThyme-0.10.0-win-x64.exe.sha256), verify the checksum, and run the executable.
+Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download [RevitThyme-0.11.0-win-x64.exe](https://github.com/scwlkr/RevitThyme/releases/download/v0.11.0/RevitThyme-0.11.0-win-x64.exe) and its [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.11.0/RevitThyme-0.11.0-win-x64.exe.sha256), verify the checksum, and run the executable.
 
-The **0.10.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.10.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.10.0) contains the installer, bootstrapper, adjacent checksums, source/package metadata and [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip). The small test includes calibration pieces, an original editable six-panel gable RVT and DWG/DXF/SVG files; follow its instructions and [physical limits](timberfold/delivery.md).
+The **0.11.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.11.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.11.0) contains the installer, both bootstrappers, adjacent checksums and source/package metadata. The [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip) retains its original v0.10.0 evidence. It includes calibration pieces, an original editable six-panel gable RVT and DWG/DXF/SVG files; follow its instructions and [physical limits](timberfold/delivery.md).
 
-`/install` selects the latest stable release; the older `/install-0.8.1` remains pinned to 0.8.1. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The 0.10.0 release's `install.ps1` asset defaults to 0.10.0; `install-revitthyme.ps1` retains its latest-release default.
+`/install` selects the latest stable release; the older `/install-0.8.1` remains pinned to 0.8.1. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The 0.11.0 release's `install.ps1` asset defaults to 0.11.0; `install-revitthyme.ps1` retains its latest-release default.
 
-For a saved bootstrapper, `-Version 0.10.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
+For a saved bootstrapper, `-Version 0.11.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
 
 ## Installed files and recovery
 
@@ -42,7 +42,7 @@ Uninstall from Windows **Installed apps → RevitThyme**, with Revit closed. The
 
 Source-package users can still run `install.ps1` or `uninstall.ps1` in Windows PowerShell. Explicit custom install roots must also be passed to uninstall. `-CheckOnly` validates prerequisites and ownership without installing or unregistering.
 
-The release candidate `0.11.0-mcp.1` uses protocol 13 and retains the complete toolkit payload requirements of the earlier `0.10.0-lifecycle.5` candidate, including TimberFold and its managed geometry/DXF dependencies. Install host, CLI and MCP together with Revit closed; do not mix candidate or published protocol versions. Earlier [image-export](../verification/view-images.md), [lifecycle](../verification/document-lifecycle.md), [document discovery](../verification/document-discovery.md) and [electrical-lab](../verification/electrical-lab.md) results retain their original installed-host provenance; they do not alone qualify the rebuilt release package.
+Package `0.11.0-mcp.1` uses protocol 13 and retains the complete toolkit payload, including TimberFold and its managed geometry/DXF dependencies. Install host, CLI and MCP together with Revit closed; do not mix protocol versions. The fixed runtime passed separate [image-export](../verification/view-images.md), [Home lifecycle/discovery](../verification/ui-lifecycle.md) and [electrical-lab](../verification/electrical-lab.md) qualification. Earlier results retain their original installed-host provenance. See [release qualification](../verification/release-0.11.0.md) for the frozen runtime and installer-source distinction.
 
 ## Build and verify a candidate
 

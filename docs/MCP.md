@@ -1,6 +1,6 @@
 # MCP interface
 
-Thirty-two source tools share the native execution host: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **The 0.11.0 release candidate is `0.11.0-mcp.1`, protocol 13. Published v0.10.0 remains at 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery.** Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
+Thirty-two tools share the native execution host: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **Version 0.11.0 uses package `0.11.0-mcp.1` and protocol 13.** Version 0.10.0 used 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [release qualification](../verification/release-0.11.0.md), [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -19,7 +19,7 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `rename_view` | Shared Foundation operation, captured name, verified readback and one Undo |
 | `set_parameters` | Atomic batch of 1–20 expected-value parameter edits and one Undo |
 | `get_operation` | Retrieve the retained native outcome without submitting the edit again |
-| `export_view_image` | Exact native view/sheet PNG, verified inline image and file metadata, unchanged model and retained request recovery; unreleased |
+| `export_view_image` | Exact native view/sheet PNG, verified inline image and file metadata, unchanged model and retained request recovery |
 | `open_document` | Explicit local RVT and expected saved hash; open in the background and return native document identity |
 | `activate_document` | Activate an already-open exact document ID/path, with native active-document readback |
 | `save_document` | Save only the exact captured active document with its expected disk hash; verify clean native state and resulting file hash |
@@ -41,7 +41,9 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
 
-## Open document discovery (unreleased)
+<a id="open-document-discovery-unreleased"></a>
+
+## Open document discovery
 
 `list_documents(captureId, requestId, offset=0, limit=50, inventoryToken?)` reads the selected native session, including at Home. Retain a caller GUID before submitting. Each item contains the same native document ID used by lifecycle operations, full title/path, and active, modified, family, linked, workshared, read-only and saved-path flags. These flags describe state; they do not authorize activation, saving or closing unsupported documents. Unsaved paths remain empty. No file is hashed, opened, activated or saved.
 
@@ -51,7 +53,9 @@ Use `get_context`, then start at offset zero without a token. Follow each `nextO
 
 Limits are 1–100 records per requested page, 4096 visible documents, 16 KiB per metadata record and 1 MiB total metadata. Pages shrink to fit the bridge bound; identity/path fields are never truncated and no unsupported documents are silently omitted. An oversized inventory returns an explicit error. All reads run through the shared queue inside a native API callback without a transaction. `get_operation` can recover the caller's original read; replay/recovery returns that point-in-time page, so use a fresh capture/request to inspect current state. See [qualification status](../verification/document-discovery.md) and [CLI](CLI.md#discover-open-documents-unreleased).
 
-## Exact view and sheet images (unreleased)
+<a id="exact-view-and-sheet-images-unreleased"></a>
+
+## Exact view and sheet images
 
 After an edit, call `get_context` again, use `list_views` to identify a native view UniqueId, then call:
 
@@ -74,7 +78,7 @@ Keep the request GUID before submitting. On timeout, cancellation or disconnect,
 
 Files live under `%LOCALAPPDATA%\RevitThyme\view-images\SESSION_GUID\REQUEST_GUID`; a create-new ownership marker prevents overwriting a previous attempt. They contain private model imagery and remain until explicitly removed. Output files are not part of Revit Undo. `export_incomplete`/`export_unconfirmed` mean partial files or unverifiable completion, with no automatic regeneration. `image_artifact_unavailable` means the retained PNG is missing, unreadable or hash-changed: metadata is retained and no replacement export occurs. Exact replay is a completion receipt, not a new render or a new check of today's model. Capture and use a new GUID only when intentionally requesting a new image after resolving prior uncertainty.
 
-Native qualification and limits are recorded in [image-export verification](../verification/view-images.md). The earlier signed candidate passed an external SDK run against normal Revit startup with trusted code disabled. Those results retain their original source/package identities; the rebuilt 0.11.0 candidate needs its own package and native verification before publication. Published v0.10.0 is unchanged.
+Native qualification and limits are recorded in [image-export verification](../verification/view-images.md). The 0.11.0 runtime passed 59 external SDK checks against normal Revit startup with trusted code disabled, including edit/readback, real Pending recovery and verified inline PNG bytes. Earlier results retain their original source/package identities; [release qualification](../verification/release-0.11.0.md) identifies the frozen payload.
 
 ## TimberFold kit runs
 
@@ -88,7 +92,9 @@ Cancellation remains cooperative. Once a native callback starts, wait for its de
 
 The pinned actual-SDK harness is `dotnet run --project tests/Mcp/RevitThyme.McpTests.csproj -- --timberfold-live ABSOLUTE_DEV_RUN ABSOLUTE_FIXTURE_RECEIPT`. It checks preview, generation, verification, saved output hashes and source RVT preservation through the immutable installed MCP executable. Run it only against its isolated disposable fixture; it leaves generated native documentation unsaved for inspection. A successful build alone does not establish a native pass.
 
-## Explicit document lifecycle (unreleased)
+<a id="explicit-document-lifecycle-unreleased"></a>
+
+## Explicit document lifecycle
 
 Start with `get_context`, including at Home. `snapshot.hasDocument:false` explicitly identifies no active document: native document/view IDs and path are empty, `canModify:false`, while process/start/session/revision still pin a valid lifecycle capture. Document reads/edits refuse Home; no fallback model is selected. Every lifecycle call uses its `captureId` and a new caller-generated `requestId`, and executes on the existing ExternalEvent queue outside a model transaction. The current process/start/session/document/view/revision must still match. The scope is canonical absolute fixed-local-drive `.rvt` paths, Revit 2027 and nonworkshared project documents. Reparse aliases, family/linked/workshared projects and unsupported edit modes are refused. Fixture-bound development sessions retain their original single-path/reopen guards.
 
@@ -165,7 +171,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. The source candidate uses protocol 13; published v0.10.0 uses protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. Version 0.11.0 uses protocol 13; version 0.10.0 used protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

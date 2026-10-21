@@ -19,7 +19,7 @@ Open-source C# tools for Revit 2027. Use TimberFold, View Range and Room Dimensi
 | **Room Dimensions** | Preview and create an associative width/depth pair for a rectangular room with native finish references and room-tag clearance. |
 | **Inspection and editing** | Inspect views, elements and typed parameters; rename views and apply expected-value parameter batches with verified native readback. |
 | **TimberFold** | Turn supported planar exterior walls and roofs into DWG/DXF cutting kits, source-mapped guides and native review sheets. Digital verification is complete; physical fabrication remains outstanding. |
-| **CLI and MCP** | Use shared operations through `rthyme` and local MCP with explicit targeting and outcome recovery. Published v0.10.0 has 25 tools; source adds unreleased native image export and five explicit document/view-lifecycle tools (31 total). |
+| **CLI and MCP** | Use shared operations through `rthyme` and local MCP with explicit targeting and outcome recovery. The 0.11.0 candidate has 32 tools, including exact native images, document discovery and explicit document/view lifecycle. Published v0.10.0 has 25 tools. |
 | **Built-in Agent** | Work from an optional dockable Codex panel with ChatGPT sign-in, saved conversations, approvals and skills. |
 
 ![View Range: native plane settings and section preview](docs/images/native-view-range.png)

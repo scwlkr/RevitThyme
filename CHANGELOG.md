@@ -4,7 +4,7 @@
 
 ## 0.11.0 — release candidate (unreleased)
 
-- Retire closed native document identities without hashing disposed Revit wrappers. Preserve valid document identities after a cancelled close and assign a fresh identity on reopen. A Home-screen close/reopen qualification exposed the failure; rebuilt-package native qualification remains pending.
+- Retire closed native document identities without hashing disposed Revit wrappers. Preserve valid document identities after a cancelled close and assign a fresh identity on reopen. The rebuilt candidate passes 56 actual-Revit Home/lifecycle SDK checks and 16 additional discovery/view-image checks after the failing close/reopen sequence; remaining release qualification is separate.
 
 - Correct the normal-installed image qualification client to poll a valid Pending outcome after response loss, retaining the original GUID and a bounded wait. The rebuilt 0.11.0 candidate passes 59 actual-Revit external SDK image checks, including one Pending observation; the earlier failed test attempt remains retained. Runtime behavior is unchanged.
 

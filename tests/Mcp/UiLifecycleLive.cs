@@ -135,6 +135,11 @@ internal static class UiLifecycleLive
         }
         var context = await Context();
         Program.Check("visual client starts only on clean disposable B", context.Snapshot.DocumentPath == Text("b") && !context.Snapshot.IsModified);
+        var documents = await Program.Call(client, "list_documents", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString() });
+        Program.Check("native document discovery survives close and reopen without retired identities", documents.Result.IsError != true
+            && documents.Data.GetProperty("documents").GetProperty("total").GetInt32() == 1
+            && documents.Data.GetProperty("documents").GetProperty("items")[0].GetProperty("documentId").GetString() == context.Snapshot.Target.DocumentId
+            && documents.Data.GetProperty("documents").GetProperty("items")[0].GetProperty("path").GetString() == Text("b"));
         var views = await Program.Call(client, "list_views", new() { ["captureId"] = context.Id, ["limit"] = 100 });
         var page = views.Data.GetProperty("elements").Deserialize<ElementPage>(Protocol.Json)!;
         foreach (string name in new[] { "Image QA 3D", "Image QA Sheet" })

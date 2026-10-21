@@ -35,7 +35,7 @@ Check 'setup executable installs using Windows PowerShell' ((Setup 'first-instal
 $receipt = Get-Content -LiteralPath (Join-Path $setup 'receipt.json') -Raw | ConvertFrom-Json
 $packageHash = (Get-FileHash -LiteralPath (Join-Path $PackageDirectory 'manifest.json')).Hash.ToLowerInvariant()
 Check 'setup installs exact package with add-in CLI MCP' ((Split-Path $receipt.installed -Leaf) -eq $packageHash -and (Test-Path $receipt.cli) -and (Test-Path $receipt.mcp))
-if ($receipt.version -in @('0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1')) {
+if ($receipt.version -in @('0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1','0.12.0-tools.1')) {
     $commandPath = [IO.File]::ReadAllText((Join-Path $run 'user-path.txt'))
     Check 'Windows PowerShell setup publishes global native command and PATH ownership' ((Test-Path $receipt.global_command) -and ($commandPath.Split(';')[0] -eq (Split-Path $receipt.global_command -Parent)) -and (Test-Path (Join-Path $installed 'command.json')))
     & (Join-Path $root 'scripts\check-cli-tool.ps1') -Executable $receipt.global_command
@@ -56,7 +56,7 @@ $cliHelp = & $receipt.cli --help
 Check 'installed CLI executes' ($LASTEXITCODE -eq 0 -and ($cliHelp -join '') -match 'revitthyme sessions')
 $mcpVersion = & $receipt.mcp --version
 Check 'installed MCP executes' ($LASTEXITCODE -eq 0 -and $mcpVersion -eq $receipt.version)
-if ($receipt.version -in @('0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1')) {
+if ($receipt.version -in @('0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1','0.12.0-tools.1')) {
     Check 'setup retains Agent validation helper for uninstall' (Test-Path (Join-Path $setup 'agent-files.ps1'))
     $runtime = & (Join-Path $receipt.installed 'codex\codex.exe') --version
     Check 'setup installs runnable pinned Codex runtime' ($LASTEXITCODE -eq 0 -and $runtime -eq 'codex-cli 0.162.1')
@@ -71,7 +71,7 @@ Check 'uninstaller refuses foreign registration and preserves recovery files' ((
 [IO.File]::WriteAllText($registration,$owned)
 Check 'uninstaller unregisters only fixture and preserves bundle' ((Uninstall 'uninstall') -eq 0 -and -not (Test-Path $registration) -and (Test-Path $receipt.installed))
 Check 'uninstall creates recoverable registration' (@(Get-ChildItem -LiteralPath $installed -Filter 'uninstalled-*.addin').Count -eq 1)
-if ($receipt.version -in @('0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1')) {
+if ($receipt.version -in @('0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1','0.12.0-tools.1')) {
     Check 'Windows uninstaller removes its owned command PATH entry and preserves immutable alias' ([IO.File]::ReadAllText((Join-Path $run 'user-path.txt')) -eq '' -and -not (Test-Path (Join-Path $installed 'command.json')) -and (Test-Path $receipt.global_command))
 }
 Remove-Item -LiteralPath (Join-Path $run 'revit\2027\Revit.exe')

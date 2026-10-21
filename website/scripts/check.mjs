@@ -55,7 +55,7 @@ const cliCommands = [
     const [command, subcommand] = match[1].split(' ');
     return command.includes('|')
       ? command.split('|')
-      : /^(update|view-range|room-dimensions|timberfold)$/.test(command)
+      : /^(update|view-range|room-dimensions|timberfold|tool)$/.test(command)
         ? subcommand.split('|').map((name) => `${command} ${name}`)
         : [command];
   })

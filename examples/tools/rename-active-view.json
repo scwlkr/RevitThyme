@@ -1,0 +1,16 @@
+{
+  "name": "Rename active view",
+  "request": "Make a reusable tool that renames the active view to the name I supply.",
+  "description": "Renames the captured active view. Revit rejects invalid or duplicate names. One native Undo restores the prior name.",
+  "mode": "modify",
+  "source": "var before = doc.ActiveView.Name; doc.ActiveView.Name = inputs.GetProperty(\"name\").GetString(); return new { viewId = doc.ActiveView.Id.Value, before, after = doc.ActiveView.Name };",
+  "inputs": [{ "name": "name", "type": "string", "description": "New unique Revit view name.", "required": true }],
+  "expectedResult": "The exact active view has the requested name and the returned before/after values match native readback.",
+  "tests": [{
+    "name": "name-readback",
+    "inputs": { "name": "RevitThyme disposable tool test" },
+    "assumptions": "A disposable nonworkshared project with an editable active project view; the test name is unused. Restore its original name after the test.",
+    "expectedResult": "Native active view name equals the requested name after execution.",
+    "assertionSource": "return doc.ActiveView.Name == inputs.GetProperty(\"name\").GetString();"
+  }]
+}

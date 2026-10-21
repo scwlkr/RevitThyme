@@ -21,7 +21,8 @@ public static class Program
             var builder = Host.CreateApplicationBuilder(Array.Empty<string>());
             builder.Logging.ClearProviders(); builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
             builder.Services.AddSingleton(options); builder.Services.AddSingleton<RevitConnection>();
-            builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<RevitTools>();
+            builder.Services.AddMcpServer().WithStdioServerTransport().WithTools<RevitTools>()
+                .WithRequestFilters(filters => filters.AddListToolsFilter(SavedToolSchemas.Filter));
             await builder.Build().RunAsync(); return 0;
         }
         catch (Exception error) { Console.Error.WriteLine(error.Message); return 2; }

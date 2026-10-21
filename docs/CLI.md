@@ -13,7 +13,7 @@ rthyme sessions --json
 
 Version output separates the executing CLI, development checkout and registered installation. Update commands target the installed copy. Native commands require a running compatible add-in and an explicit session.
 
-Version 0.11.0 uses protocol 13 and package `0.11.0-mcp.1`; install matching CLI, MCP and add-in binaries together. Version 0.10.0 used protocol 8 and package `0.10.0-timberfold.4`.
+Version 0.12.0 retains protocol 13 and uses package `0.12.0-tools.1`; install matching CLI, MCP and add-in binaries together. Version 0.10.0 used protocol 8 and package `0.10.0-timberfold.4`.
 
 ## Inspect a chosen session
 
@@ -72,9 +72,25 @@ Replace 20 with the actual returned `nextParameterOffset`; stop at null. Paramet
 | `timberfold verify` | Rehash retained `--run-id GUID` evidence |
 | `get-operation` | Recover an outcome using `--request-id GUID` |
 | `run-query`, `run-modify` | Trusted C# with source, capture, trust and request ID |
+| `tool save`, `tool show` | Save or retrieve a reusable tool definition by ID without connecting to Revit |
+| `tool run` | Run an exact saved-tool digest with validated inputs, native capture, trust and request ID |
 | `update check`, `update download`, `update install` | Check/download/install a release |
 
 Native commands take `--session ABSOLUTE_FILE`. `rthyme --help` gives exact flags. Generic parameter editing is exposed through MCP; there is no CLI `set-parameters` command.
+
+## Saved Revit tools
+
+Save a complete definition and preserve its returned digest. The [Agent](AGENT.md#create-a-reusable-tool) can create the definition from a plain-language request; external callers can supply the same [JSON contract](MCP.md#saved-revit-tools).
+
+```powershell
+rthyme tool save --id TOOL_GUID --definition C:\Test\tool.json --json
+rthyme tool show --id TOOL_GUID --json
+rthyme tool run --id TOOL_GUID --digest DEFINITION_SHA256 --inputs C:\Test\inputs.json --session $session --capture C:\Test\capture.json --request-id NEW_REQUEST_GUID --trusted true --json
+```
+
+`tool save` and `tool show` do not require a Revit session. `tool run` requires an absolute input JSON file containing an object that matches the definition, a successful fresh inspection capture, explicit trust and the exact digest from save/show. It uses the existing trusted host; query tools roll back current-document changes and modify tools create one Undo item. Optional `--budget-ms` uses the existing 100–30000 ms cooperative bound.
+
+To run a saved test assertion, add `--test TEST_NAME` to `tool run`. It executes only that assertion as a rollback query, using the supplied inputs. Run the main tool and assertion explicitly in the test's disposable fixture, refreshing the capture between calls. A definition's `not_run` status records that saving did not qualify it; successful native execution alone is not proof of a passing test. Preserve the original request ID for `get-operation` recovery after uncertainty. See [execution and source-hash limits](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
 
 ## TimberFold cutting kits
 

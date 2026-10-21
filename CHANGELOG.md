@@ -4,6 +4,14 @@
 
 - Add reproducible native utility qualification against the normal installed CLI/MCP with trusted C# disabled. Cover floor/RCP range edits, template refusal, invalid-order rollback, native room measurements, exact-view images, retained reconnect recovery and one native Undo. Preserve source-built qualification separately and correct its obsolete tool inventory; the unchanged v0.11.0 runtime passes 85 new external/native checks. No replacement release asset.
 
+## 0.12.0 — Reusable Tool Builder — 2026-10-21
+
+- Turn a plain-language Agent request into a saved, parameterized trusted C# Revit tool through the bundled creation skill and MCP. Keep its original request, typed inputs, expected result and executable test with model assumptions.
+- Add MCP `save_tool`, `get_tool` and `run_tool`, with CLI `tool save`, `tool show` and `tool run`. Save definitions outside the installation, refuse conflicting replacement, bind execution to the exact definition digest and validate inputs before submitting native code.
+- Reuse the existing trusted execution host, capture checks, caller-owned request IDs, rollback queries and one-Undo modifications. Saved tools receive an `inputs` JSON object; the expanded source retains the 24 KiB bound. The native bridge remains protocol 13; MCP now exposes 35 tools.
+- Store tests without claiming that a saved tool has passed them. Run a stored assertion explicitly on a disposable fixture. Managed test runs, result checking, versions, automatic repair and tool search remain future features.
+- Package as `0.12.0-tools.1` with the creation skill and the complete existing toolkit payload. Retain prior package cohorts, installer ownership checks and separate physical TimberFold qualification limits.
+
 ## 0.11.0 — 2026-10-21
 
 - Retire closed native document identities without hashing disposed Revit wrappers. Preserve valid document identities after a cancelled close and assign a fresh identity on reopen. The rebuilt candidate passes 56 actual-Revit Home/lifecycle SDK checks and 16 additional discovery/view-image checks after the failing close/reopen sequence; remaining release qualification is separate.

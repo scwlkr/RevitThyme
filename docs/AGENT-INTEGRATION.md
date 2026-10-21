@@ -2,7 +2,7 @@
 
 The local stdio MCP server gives external clients structured access to shared native operations. It uses the official C# MCP SDK and explicitly connects to a matching RevitThyme add-in. No cloud Revit bridge or HTTP listener is required.
 
-Version 0.11.0 exposes 32 tools, including seven TimberFold controls, through protocol 13. Install matching add-in, CLI and MCP binaries together. The package is `0.11.0-mcp.1`; [release qualification](../verification/release-0.11.0.md) records its tested native build.
+Version 0.12.0 exposes 35 tools, including three saved-tool controls and seven TimberFold controls, through protocol 13. Install matching add-in, CLI and MCP binaries together. The package is `0.12.0-tools.1`. [Earlier release qualification](../verification/release-0.11.0.md) records the 0.11.0 native build; it does not qualify newly saved tool source.
 
 Use read-only session document discovery at Home, Home-aware document open/activate, explicit save, clean close with explicit active-document handoff, exact view/sheet activation and [`export_view_image`](MCP.md#exact-view-and-sheet-images-unreleased). Active close requires a different already-open clean document selected explicitly; last-document close to Home is refused. Image export returns a verified inline native PNG and retained completion metadata. Version 0.10.0 used protocol 8 and did not contain these operations. Keep development testing separate from working models; do not mix protocol versions.
 

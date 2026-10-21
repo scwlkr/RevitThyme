@@ -1,6 +1,6 @@
 # MCP interface
 
-Thirty-two tools share the native execution host: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools and seven TimberFold tools. **Version 0.11.0 uses package `0.11.0-mcp.1` and protocol 13.** Version 0.10.0 used 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [release qualification](../verification/release-0.11.0.md), [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
+Thirty-five tools expose native operations and saved tool creation: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools, three saved-tool tools and seven TimberFold tools. **Version 0.12.0 uses package `0.12.0-tools.1` and protocol 13.** Version 0.10.0 used 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [release qualification](../verification/release-0.11.0.md), [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -31,6 +31,9 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `create_room_dimensions` | Recomputed exact preview, verified native associative pair and one Undo |
 | `run_query` | Explicitly trusted Roslyn C# method body, serialized JSON result, always rolls back current-document changes |
 | `run_modify` | Explicitly trusted Roslyn C# method body, native change IDs, rollback on failure and one Undo |
+| `save_tool` | Save an individual trusted C# definition, typed inputs, expected result and executable tests outside the installation |
+| `get_tool` | Retrieve the saved definition, exact digest and unverified test status by tool ID |
+| `run_tool` | Validate inputs and the exact definition digest, then execute the saved method body or a named test through trusted native execution |
 | `timberfold_inspect` | Captured exterior-shell accounting and private evidence, without model changes |
 | `timberfold_preview` | Accept a retained request/run ID; capture, fit, nest and stage digital DXF preview files |
 | `timberfold_generate` | Generate from an unchanged captured target and verified preview ID; native kit documentation and exports in one Undo group, without model save |
@@ -40,6 +43,22 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `timberfold_reconcile` | Check an existing committed native kit using a fresh capture; retain separate recovery evidence without recreating documentation |
 
 MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
+
+## Saved Revit tools
+
+The [Agent creation skill](AGENT.md#create-a-reusable-tool) turns a plain-language request into an individual reusable trusted C# tool. These MCP calls also work for external clients:
+
+| Call | Contract |
+| --- | --- |
+| `save_tool(toolId, definition)` | Create a definition under a caller-owned GUID. Repeating the same ID and definition is safe; conflicting replacement is refused. Does not connect to Revit or execute code. |
+| `get_tool(toolId)` | Return `toolId`, definition `digest`, the complete definition and `testStatus: "not_run"`. |
+| `run_tool(captureId, requestId, toolId, digest, inputs, trusted=false, budgetMilliseconds=10000, testName=null)` | Verify the exact saved definition and typed input object, then submit its query or modify body. A named test runs only its assertion as a rollback query. |
+
+A definition contains `name`, the original `request`, `description`, `mode` (`query` or `modify`), C# `source`, `inputs`, `expectedResult` and `tests`. Input definitions contain `name`, `type`, `description` and `required`; supported types are `string`, `number`, `integer`, `boolean` and `string[]`. Tests contain `name`, an example `inputs` object, model `assumptions`, `expectedResult` and an `assertionSource` method body returning a Boolean. The body receives the same `inputs` JSON object as the main tool. Review the full definition before execution.
+
+Definitions persist in `%LOCALAPPDATA%\RevitThyme\tools` across server and Revit restarts, independently of installed package versions. `REVITTHYME_TOOLS_DIRECTORY` selects an absolute alternate folder for isolated qualification. The save call writes local files and is declared as a mutation; get is read-only. Neither implies compilation or successful testing. Saved code and test assertions retain full-process trust requirements; `run_tool` is potentially destructive even for rollback queries.
+
+Retain the definition digest returned by save/get and provide it at execution. Changed definitions, invalid IDs, unknown/duplicate input properties, missing required inputs and type mismatches are rejected before native execution. A fresh capture and caller-owned GUID are still required. The tool's expected result describes intent; this release does not automatically check it after every run. See [input binding, test use and recovery](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
 
 <a id="open-document-discovery-unreleased"></a>
 
@@ -171,7 +190,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. Version 0.11.0 uses protocol 13; version 0.10.0 used protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. Version 0.12.0 retains protocol 13 from 0.11.0; version 0.10.0 used protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

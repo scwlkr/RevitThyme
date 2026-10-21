@@ -35,6 +35,9 @@ public static class Program
                 revitthyme room-dimensions create --session ABSOLUTE_FILE --capture PREVIEW_RESULT --json
                 revitthyme run-query|run-modify --session ABSOLUTE_FILE --capture INSPECTION --source CS_BODY_FILE --trusted true --request-id GUID [--budget-ms 10000] --json
                 revitthyme get-operation --session ABSOLUTE_FILE --request-id GUID --json
+                revitthyme tool save --id GUID --definition ABSOLUTE_JSON --json
+                revitthyme tool show --id GUID --json
+                revitthyme tool run --id GUID --digest SHA256 --inputs ABSOLUTE_JSON --session ABSOLUTE_FILE --capture INSPECTION --request-id GUID --trusted true [--test NAME] [--budget-ms 10000] --json
                 revitthyme timberfold inspect --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
                 revitthyme timberfold preview --run-id GUID --session ABSOLUTE_FILE [--profile JSON] [--scope JSON] [--json]
                 revitthyme timberfold generate --preview-run-id GUID --run-id GUID --session ABSOLUTE_FILE [--json]
@@ -53,6 +56,7 @@ public static class Program
         }
         if (args[0] is "--version" or "version" or "update") return await UpdateCli.Run(args, output);
         if (args[0] is "run-query" or "run-modify" or "get-operation") return await DynamicCli.Run(args, output, error, clientFactory);
+        if (args[0] == "tool") return await SavedToolCli.Run(args, output, error, clientFactory);
         if (args[0] == "timberfold") return await TimberFoldCli.Run(args, output, error, clientFactory);
         if (args.Length >= 2 && args[0] is "view-range" or "room-dimensions") args = [args[0] + "-" + args[1], .. args[2..]];
         var options = Parse(args[1..]);

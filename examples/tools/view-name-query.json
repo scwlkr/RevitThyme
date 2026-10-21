@@ -1,0 +1,16 @@
+{
+  "name": "Active view name with prefix",
+  "request": "Make a reusable tool that reports the active view name with a prefix I supply.",
+  "description": "Reads the active view and returns its name with the requested prefix. No model changes are committed.",
+  "mode": "query",
+  "source": "return new { viewId = doc.ActiveView.Id.Value, label = inputs.GetProperty(\"prefix\").GetString() + doc.ActiveView.Name };",
+  "inputs": [{ "name": "prefix", "type": "string", "description": "Text before the native view name.", "required": true }],
+  "expectedResult": "JSON contains the active native view ID and a label equal to prefix plus its current name.",
+  "tests": [{
+    "name": "active-view-readable",
+    "inputs": { "prefix": "Review: " },
+    "assumptions": "A disposable nonworkshared project with an active view and trusted C# enabled.",
+    "expectedResult": "The active view has a valid ID and name; the supplied prefix remains literal input data.",
+    "assertionSource": "return doc.ActiveView.Id.Value > 0 && !string.IsNullOrEmpty(doc.ActiveView.Name) && inputs.GetProperty(\"prefix\").GetString() == \"Review: \";"
+  }]
+}

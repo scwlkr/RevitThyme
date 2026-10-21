@@ -146,7 +146,7 @@ internal sealed class ResultCheckLive(ResultCheckFixture fixture)
     }
     private async Task DeletedObject(McpClient client)
     {
-        var created = await Modify(client, "var e = DataStorage.Create(doc); return new { id = e.Id.Value, uniqueId = e.UniqueId };");
+        var created = await Modify(client, "var e = Autodesk.Revit.DB.ExtensibleStorage.DataStorage.Create(doc); return new { id = e.Id.Value, uniqueId = e.UniqueId };");
         var element = created.GetProperty("execution").GetProperty("value"); long id = element.GetProperty("id").GetInt64();
         var plan = Plan([Check("required object after execution", "var e = doc.GetElement(new ElementId(" + id + "L)); return new { exists = e != null, value = e == null ? null : e.UniqueId };", "exists")],
             "return new { modified = System.Array.Empty<long>(), deleted = new long[] { " + id + "L } };");

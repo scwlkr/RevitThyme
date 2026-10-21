@@ -26,7 +26,9 @@ Every run used newly copied disposable nonworkshared models, exact process/start
 | Normal-host edit → see → verify | 59 checks with trusted C# disabled; native height and changed PNGs agree, original values and disk files are preserved, one real Pending precedes original export recovery without rerender. |
 | Electrical workflow | 418 assertions in one invocation; bounded duplicate/copy, explicit save/reopen, native identity/type/placement persistence, image capture, stale-ID refusal and original-request recovery pass. Two native warnings require explicit agent intervention; the original GUIDs recover after 22 and 8 Pending observations. |
 
-The Home regression exposed invalid native document hashing during `DocumentClosed`. The fix retires invalid entries by position while preserving native equality for live wrappers. The fixed run's journal contains no closed-handler exceptions. Dedicated cancelled-close qualification retains its earlier build attribution; that probe was not repeated on this package. [Home evidence](ui-lifecycle.md), [image evidence](view-images.md) and [electrical evidence](electrical-lab.md) retain exact host identities and outcomes.
+The Home regression exposed invalid native document hashing during `DocumentClosed`. The fix retires invalid entries by position while preserving native equality for live wrappers. The fixed run's journal contains no closed-handler exceptions. [Home evidence](ui-lifecycle.md), [image evidence](view-images.md) and [electrical evidence](electrical-lab.md) retain exact host identities and outcomes.
+
+After publication on 2026-10-21, the unchanged external client passed **58 additional active-close checks** against this exact installed runtime, including three real native cancellations that preserve live identities, wrong/stale/dirty handoff guards, lost-response recovery and reopened-target preservation. The temporary scoped cancellation probe was removed after normal process shutdown. This later evidence is recorded separately in [active-close qualification](active-close.md#installed-v0110-qualification--2026-10-21); it is not attributed to the earlier prepublication runs.
 
 ## Source, installer and preservation checks
 
@@ -36,7 +38,13 @@ The Home regression exposed invalid native document hashing during `DocumentClos
 - Source website checks include dependency installation, production build, strict links/anchors, source contracts and metadata. These checks do not publish the website.
 - All owned native processes close normally. Original models, untouched handoff copies, unrelated checkout and logo remain unchanged. Earlier immutable bundles and recoverable registration backups remain retained. Only the owned CLI PATH entry changes; unrelated raw entries and `REG_EXPAND_SZ` remain preserved.
 
-Final release-asset checks and public GitHub metadata verification are performed separately against the final installer source and hashes. Source/installer checks do not replace the pinned native proof above.
+## Public delivery verification — 2026-10-21
+
+[v0.11.0](https://github.com/scwlkr/RevitThyme/releases/tag/v0.11.0) was published at `2026-10-21T13:17:11Z`, release ID `419578919`. The release tag and clean installer/documentation source are `8ed45b3b6dcb6d57177f3d130451eaa057054aba`; its tree matches the merged release cut. The frozen runtime and package manifest remain those listed above.
+
+The final setup SHA-256 is `01ac733ade968b509ec7b1731c815f4cc34cdafa2a24a88a60b0c307b64eda1e` (108,444,695 bytes), identical to the actual installed/tested setup. All seven public assets were downloaded without authentication and verified against their GitHub sizes/digests and adjacent checksums. The downloaded pinned bootstrap passed `-DownloadOnly` under Windows PowerShell 5.1; that public-download check did not execute another installer. The installed updater reports current, and the read-only release checker confirms v0.11.0 is the latest stable release with all required assets. Existing v0.10.0 assets, including the physical-test ZIP, remain unchanged.
+
+These delivery checks establish published file integrity and updater discovery; the pinned native proof above establishes Revit behavior. Private publication, download and preservation receipts remain under ignored `artifacts/release-0.11.0`.
 
 ## Remaining limits
 

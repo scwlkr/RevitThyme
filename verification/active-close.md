@@ -1,6 +1,6 @@
 # Explicit active-document close
 
-Unreleased `0.10.0-lifecycle.3`, protocol 12, keeps 31 MCP tools. It extends `close_document` with an optional exact already-open clean document to activate before closing the captured active document. It does not close the last active document to Home. The [contract](../docs/MCP.md#home-clean-close-and-exact-view-switching) distinguishes preflight refusal, verified completion and partial native lifecycle uncertainty.
+Released v0.11.0, package `0.11.0-mcp.1`, protocol 13 and 32 MCP tools, includes `close_document` with an optional exact already-open clean document to activate before closing the captured active document. It does not close the last active document to Home. The [contract](../docs/MCP.md#home-clean-close-and-exact-view-switching) distinguishes preflight refusal, verified completion and partial native lifecycle uncertainty. Earlier candidate evidence below retains its original build attribution.
 
 ## Design and test boundaries
 
@@ -27,4 +27,16 @@ The qualified installed native source is `a6b720c3c997cf77a268b78db0b04b112d8792
 
 Private process/session bindings, original intents, null-view and cancellation observations, SDK transcripts, signed package/install receipts and cleanup records stay under ignored `artifacts/active-close`. Earlier Home/view/image and open/activate/save evidence remains intact and attributed separately.
 
-Last-active-document close to Home, wider modal/native I/O failures, other machines and bounded model promotion remain separate gaps. Keep the >512 changed-ID work separate. No release, website deployment or promotional posts. Physical TimberFold fabrication remains outstanding.
+Last-active-document close to Home, wider modal/native I/O failures, other machines and bounded model promotion remained separate gaps. No release, website deployment or promotional posts occurred during that candidate qualification.
+
+## Installed v0.11.0 qualification — 2026-10-21
+
+After [v0.11.0 publication](https://github.com/scwlkr/RevitThyme/releases/tag/v0.11.0), the unchanged external SDK client repeated all **58 checks** against the exact installed release runtime source `8aae9f9c11e9df629cfbb0a033cb9154e9536ddc`, manifest SHA-256 `bdfaa317a3b61d9b49277803d33f168b4b3fe0ecdb94ebd2f498a76976056445`. Revit 2027.3 was PID 2200/start `639281859062853176`/session `38b5eeaf-000f-4b50-bf6b-7301e975e563`. Trusted C# was disabled. The copied, signed test probe only cancelled explicitly armed native close events; lifecycle operations used the installed MCP executable and existing production queue.
+
+Three native cancellations preserved both live document identities and returned identical retained `Unconfirmed` receipts on recovery. Background cancellation preserved the active view. Active cancellation left the explicitly selected handoff active and the original open under its unchanged identity. Wrong, stale and retired IDs, dirty target/handoff documents and mismatched saved hashes were refused. Completed close/reopen produced fresh identities. This qualification covers the document-identity storage fix that followed the earlier candidate run.
+
+Accepted active-close request `cabab703-ffd5-4bab-aede-66b275383c25` lost its original response after only its owned MCP server was terminated. A separate external client recovered the original `Completed` receipt and exact handoff. Reopening the closed target and recovering again neither replayed close nor affected the reopened document. Reverse handoff and last-active-close refusal passed.
+
+The original fixture retained SHA-256 `3ae0941f3b5043c430a8df4e3e2e902189a899b4b2ef81b85336e6fb39bfd173`. Explicit disposable saves produced A `2478c30e61ccab1bf450648efbb6e160f97caacb5e125bc8f47e1de991b2bbf9` and B `92f6ef0445638da352414f4d49a9f079661c60fe39bb42c73110074484e7aff4`; close/recovery and normal process shutdown preserved those bytes. The final native A was unmodified. The temporary probe registration was hash-checked and removed after process exit; original registrations remained unchanged. The run journal contains no invalid-document or closed-handler exception.
+
+Private intents, cancellation observations, native binding, SDK transcript, saved copies, journal identity and cleanup receipts remain under ignored `artifacts/active-close/1bc97019-66a8-4688-9433-e6650806d35a`. This is additional evidence for the published runtime; no binary rebuild or replacement asset is involved. Last-active close to Home and generic unattended warning handling remain unsupported. Keep >512 changed-ID work separate. Physical TimberFold calibration, cutting and assembly remain outstanding; `ManufacturingReady=false`. Website deployment and promotional posts remain separate.

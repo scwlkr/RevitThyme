@@ -18,9 +18,19 @@ The default Agent folder is `%LOCALAPPDATA%\RevitThyme\agent`: `codex-home` hold
 
 The panel launches one owned stdio process with this Agent Codex home. Its MCP server is pinned to the parent Revit process/session file. Closing the panel's pane keeps the conversation running; closing Revit stops its child runtime. Reconnect uses a new client and refreshes session identities. Resuming history does not reuse a dead Revit connection: the new runtime receives this process's current MCP binding, and the agent must inspect fresh document/view context.
 
-Shell, apps, plugins, hooks, browser/computer tools and agent delegation are disabled for this panel runtime. Other tools' configuration and credentials are not inherited. Personal skills are trusted instructions; install only skills you intend to run. The two bundled skills cover native inspection and verified edits. Each is an ordinary `SKILL.md` folder and can be version-controlled and shared. Personal skills are discovered by the runtime, not copied into the install bundle.
+Shell, apps, plugins, hooks, browser/computer tools and agent delegation are disabled for this panel runtime. Other tools' configuration and credentials are not inherited. Personal skills are trusted instructions; install only skills you intend to run. The three bundled skills cover native inspection, verified edits and reusable tool creation. Each is an ordinary `SKILL.md` folder and can be version-controlled and shared. Personal skills are discovered by the runtime, not copied into the install bundle.
 
 Trusted C# remains disabled by default and requires `REVITTHYME_TRUSTED_CODE=1` at Revit startup plus the existing per-call trust acknowledgement. The Agent adds no new execution bypass. Native operations retain target checks, expected-value guards, transactions, structured results and request history from Dynamic execution.
+
+## Create a reusable tool
+
+Ask the Agent to create a tool in plain language, for example: “Save a tool that counts walls whose names contain text I provide. Include an input and a test.” Choose **create-revit-tool** or leave skill selection on **Automatic**. The Agent inspects the relevant native data, writes a parameterized C# method body and saves it through `save_tool`. Its reply should include the tool ID, definition digest, inputs, expected result and test assumptions.
+
+Saved definitions live in `%LOCALAPPDATA%\RevitThyme\tools`, outside the versioned installation and conversation history. They include the original request, typed input descriptions, execution mode, expected result and one or more executable test assertions. Saving a definition does not run it, compile it or establish that its test passes. Preserve the ID and digest to retrieve it in a later conversation with `get_tool`.
+
+When asked to run a saved tool, the Agent reads its definition and submits validated inputs through `run_tool`, using a fresh native capture and a caller-owned request ID. Execution still requires trusted C# opt-in and acknowledgement. Test on a disposable model first. A test assertion runs only when explicitly requested with its test name; it returns its result through the rollback-query contract. This is an individual saved-tool workflow; automatic repair and a managed test runner are separate features.
+
+See the [MCP contract](MCP.md#saved-revit-tools), [CLI commands](CLI.md#saved-revit-tools) and [execution limits](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
 
 ## Development and qualification
 

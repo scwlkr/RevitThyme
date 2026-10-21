@@ -45,3 +45,9 @@ Roslyn compilation lives in Addin; Core validates captured targets, trust and re
 External Codex still launches the same MCP directly. Optional visual planning, reflection discovery and the Exploration experiment remain deferred.
 
 Superseded Rust, Electron and pyRevit implementation and earlier evidence live in `legacy/pre-foundation`. Existing installed bundles and private `artifacts` are preserved. That archive is outside the solution, CI and package allowlist; see [migration](MIGRATION.md).
+
+## Saved tool definitions
+
+Reusable Tool Builder stores individual trusted C# definitions in Core-managed private user data. MCP and CLI share definition validation, typed input binding, digest checks and storage. The Agent creates definitions through MCP because its ordinary shell and file-edit tools remain disabled. Saving source does not compile or qualify it.
+
+Execution validates the in-memory definition digest and canonicalizes JSON inputs, then submits an expanded method body through the existing trusted query/modify operations. Tool definitions and concrete test assertions stay outside the native host; protocol 13 and captured-target/request recovery semantics remain unchanged. A named test executes only its assertion as a rollback query. Result checking, managed test fixtures, version promotion, workflows and automatic repair are separate capabilities.

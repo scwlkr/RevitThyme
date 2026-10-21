@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>
-    <Version>0.11.0</Version>
-    <InformationalVersion>0.11.0-mcp.1</InformationalVersion>
+    <Version>0.12.0</Version>
+    <InformationalVersion>0.12.0-tools.1</InformationalVersion>
   </PropertyGroup>
 </Project>

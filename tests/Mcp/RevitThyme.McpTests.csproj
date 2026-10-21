@@ -1,4 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
-  <ItemGroup><ProjectReference Include="../../src/RevitThyme.Mcp/RevitThyme.Mcp.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/RevitThyme.Mcp/RevitThyme.Mcp.csproj" />
+    <ProjectReference Include="../../src/RevitThyme.Codex/RevitThyme.Codex.csproj" />
+    <ProjectReference Include="../../src/RevitThyme.Cli/RevitThyme.Cli.csproj" />
+  </ItemGroup>
 </Project>

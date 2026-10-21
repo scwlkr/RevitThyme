@@ -1,6 +1,6 @@
 # Install RevitThyme
 
-Version **0.11.0** (`0.11.0-mcp.1`, protocol 13 / 32 MCP tools) adds exact native images, document discovery and explicit document/view lifecycle. Install matching add-in, CLI and MCP binaries together. [Release qualification](../verification/release-0.11.0.md) identifies the exact tested runtime and separates native, installer and preservation evidence.
+Version **0.12.0** (`0.12.0-tools.1`, protocol 13 / 35 MCP tools) adds reusable trusted C# tools with typed inputs, expected results and executable tests. Install matching add-in, CLI and MCP binaries together. [Earlier release qualification](../verification/release-0.11.0.md) records the 0.11.0 runtime; saved source needs its own disposable-model testing.
 
 It retains TimberFold cutting kits, native review documentation, parameter identity, the dockable Agent client and global `rthyme` command. TimberFold digital qualification is complete; physical calibration, cutting and assembly remain outstanding and `ManufacturingReady` stays false. See [TimberFold](timberfold/README.md), [parameter inspection](MCP.md#parameter-identity), [Agent use](AGENT.md) and [updates](UPDATES.md).
 
@@ -14,19 +14,19 @@ Close Revit normally, preserving unsaved work. Run this in PowerShell to install
 irm https://revitthyme.wlkrlabs.com/install | iex
 ```
 
-To keep the installation pinned to **v0.11.0**, including after newer releases appear:
+To keep the installation pinned to **v0.12.0**, including after newer releases appear:
 
 ```powershell
-irm https://github.com/scwlkr/RevitThyme/releases/download/v0.11.0/install.ps1 | iex
+irm https://github.com/scwlkr/RevitThyme/releases/download/v0.12.0/install.ps1 | iex
 ```
 
-Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download [RevitThyme-0.11.0-win-x64.exe](https://github.com/scwlkr/RevitThyme/releases/download/v0.11.0/RevitThyme-0.11.0-win-x64.exe) and its [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.11.0/RevitThyme-0.11.0-win-x64.exe.sha256), verify the checksum, and run the executable.
+Both commands download and verify the Windows installer before running it. Setup detects supported installed versions from Autodesk registration and the standard install location, then registers the bundled add-in for the current user. For a manual installation, download [RevitThyme-0.12.0-win-x64.exe](https://github.com/scwlkr/RevitThyme/releases/download/v0.12.0/RevitThyme-0.12.0-win-x64.exe) and its [SHA-256](https://github.com/scwlkr/RevitThyme/releases/download/v0.12.0/RevitThyme-0.12.0-win-x64.exe.sha256), verify the checksum, and run the executable.
 
-The **0.11.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.11.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.11.0) contains the installer, both bootstrappers, adjacent checksums and source/package metadata. The [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip) retains its original v0.10.0 evidence. It includes calibration pieces, an original editable six-panel gable RVT and DWG/DXF/SVG files; follow its instructions and [physical limits](timberfold/delivery.md).
+The **0.12.0 installer is unsigned**. Checksum verification proves consistency with the release assets; it is not a publisher signature. The [0.12.0 release](https://github.com/scwlkr/RevitThyme/releases/tag/v0.12.0) contains the installer, both bootstrappers, adjacent checksums and source/package metadata. The [TimberFold-physical-test.zip](https://github.com/scwlkr/RevitThyme/releases/download/v0.10.0/TimberFold-physical-test.zip) retains its original v0.10.0 evidence. It includes calibration pieces, an original editable six-panel gable RVT and DWG/DXF/SVG files; follow its instructions and [physical limits](timberfold/delivery.md).
 
-`/install` selects the latest stable release; the older `/install-0.8.1` remains pinned to 0.8.1. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The 0.11.0 release's `install.ps1` asset defaults to 0.11.0; `install-revitthyme.ps1` retains its latest-release default.
+`/install` selects the latest stable release; the older `/install-0.8.1` remains pinned to 0.8.1. HTTPS, strict GitHub download URLs, installer SHA-256 and available asset-digest checks remain in place. Piping to `iex` executes the downloaded script, so it trusts `revitthyme.wlkrlabs.com`, GitHub and this repository. You can download and inspect the script first instead. The 0.12.0 release's `install.ps1` asset defaults to 0.12.0; `install-revitthyme.ps1` retains its latest-release default.
 
-For a saved bootstrapper, `-Version 0.11.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
+For a saved bootstrapper, `-Version 0.12.0` selects an exact release, `-Silent` runs unattended, and `-DownloadOnly -Destination C:\Offline` saves a verified installer without installing. Existing downloads are preserved. Failures retain a setup log and return an error. Setup never closes Revit or restarts Windows.
 
 ## Installed files and recovery
 
@@ -42,7 +42,7 @@ Uninstall from Windows **Installed apps → RevitThyme**, with Revit closed. The
 
 Source-package users can still run `install.ps1` or `uninstall.ps1` in Windows PowerShell. Explicit custom install roots must also be passed to uninstall. `-CheckOnly` validates prerequisites and ownership without installing or unregistering.
 
-Package `0.11.0-mcp.1` uses protocol 13 and retains the complete toolkit payload, including TimberFold and its managed geometry/DXF dependencies. Install host, CLI and MCP together with Revit closed; do not mix protocol versions. The fixed runtime passed separate [image-export](../verification/view-images.md), [Home lifecycle/discovery](../verification/ui-lifecycle.md) and [electrical-lab](../verification/electrical-lab.md) qualification. Earlier results retain their original installed-host provenance. See [release qualification](../verification/release-0.11.0.md) for the frozen runtime and installer-source distinction.
+Package `0.12.0-tools.1` uses protocol 13 and retains the complete toolkit payload, including TimberFold and its managed geometry/DXF dependencies. Install host, CLI and MCP together with Revit closed; do not mix protocol versions. The earlier 0.11.0 runtime passed separate [image-export](../verification/view-images.md), [Home lifecycle/discovery](../verification/ui-lifecycle.md) and [electrical-lab](../verification/electrical-lab.md) qualification. Earlier results retain their original installed-host provenance. See [release qualification](../verification/release-0.11.0.md) for that frozen runtime and installer-source distinction. This does not qualify newly authored saved-tool code.
 
 ## Build and verify a candidate
 
@@ -63,4 +63,4 @@ Set `$package` to the fresh package folder and `$testSetup` to the isolated setu
 
 Isolated setup builds have a `-test.exe` suffix and require a UUID test root with simulated Revit discovery. They create no Windows uninstall registry entry and cannot be published by the release workflow. Tests exercise actual setup/install/uninstall processes through Windows PowerShell 5.1 while leaving real Revit registrations untouched. These are installer tests, not new actual-Revit tool qualification or another-computer evidence.
 
-The manual [release workflow](../.github/workflows/release.yml) requires a deliberately provisioned `revitthyme-release` Windows x64 runner with licensed local Revit API binaries. It checks and uploads review artifacts. An explicit `publish_draft` dispatch from clean tag `v0.11.0` creates a **draft** only after verifying the 0.11.0 product, `0.11.0-mcp.1` cohort, asset hashes and source identity. Public publication requires native qualification and owner authorization. Public publisher signing and another-machine qualification remain separate work. The [release checker](UPDATES.md) uses the existing installer; no background service or separate package manager is installed. Website hosting deployment is a separate action from publishing GitHub release assets.
+The manual [release workflow](../.github/workflows/release.yml) requires a deliberately provisioned `revitthyme-release` Windows x64 runner with licensed local Revit API binaries. It checks and uploads review artifacts. An explicit `publish_draft` dispatch from clean tag `v0.12.0` creates a **draft** only after verifying the 0.12.0 product, `0.12.0-tools.1` cohort, asset hashes and source identity. Public publication requires native qualification and owner authorization. Public publisher signing and another-machine qualification remain separate work. The [release checker](UPDATES.md) uses the existing installer; no background service or separate package manager is installed. Website hosting deployment is a separate action from publishing GitHub release assets.

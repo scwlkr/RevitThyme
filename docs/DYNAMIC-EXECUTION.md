@@ -35,7 +35,19 @@ CLI uses exactly the same operation and caller-supplied request ID:
 .\project.cmd cli get-operation --session C:\test\session.json --request-id YOUR_GUID --json
 ```
 
-Use `run-modify` for a committed edit. CLI returns JSON, exit 0 for success, 1 for a native rejection/rollback/uncertain result, and 2 for invalid CLI input/connection failure. Protocol **4** requires add-in/Core/CLI/MCP to be upgraded together. Roslyn 5.9.0 is pinned and bundled next to the add-in; Autodesk assemblies remain locally supplied.
+Use `run-modify` for a committed edit. CLI returns JSON, exit 0 for success, 1 for a native rejection/rollback/uncertain result, and 2 for invalid CLI input/connection failure. The current native bridge uses protocol **13**; install matching add-in/Core/CLI/MCP binaries. Roslyn 5.9.0 is pinned and bundled next to the add-in; Autodesk assemblies remain locally supplied.
+
+## Saved tool inputs and tests
+
+[Reusable Tool Builder](AGENT.md#create-a-reusable-tool) saves an individual trusted C# definition with typed inputs, expected results and concrete tests. MCP `run_tool` and CLI `tool run` load the exact digest-selected definition and validate the supplied input object before using the existing native execution operation. Stored query tools use `run_query`; stored modify tools use `run_modify`.
+
+Authored method bodies can read a `System.Text.Json.JsonElement` named `inputs`, for example `inputs.GetProperty("text").GetString()`. The caller supplies JSON data, never C# fragments or string replacements. The adapter serializes validated inputs in a stable order and prepends their JSON binding to the method body. `inputs` is reserved for that binding. The final expanded source, including the binding, must fit 24 KiB UTF-8. Compiler source locations map back to the authored body.
+
+The saved definition digest identifies the complete saved contract. The native result's `sourceSha256` identifies the expanded submission, so different input values can produce different source hashes for the same definition. Request replay requires the same tool digest, inputs, execution/test choice and other native arguments. Poll the original request ID after an uncertain result before submitting another edit.
+
+A saved test contains input values, model assumptions, an expected-result description and an assertion body returning a Boolean. Running with a test name executes that assertion as a rollback query; it does not first run the main tool. Prepare the stated disposable fixture, run the main tool explicitly, inspect its outcome, then run the assertion with a fresh capture. A saved definition reports `not_run`; its existence or a successful native operation is not proof that a test passed. This release does not manage test fixtures, promote tested versions or repair failures automatically.
+
+All existing full-process trust limits apply to saved source and assertions. Rollback does not undo external side effects. Definition storage is private user data; keep source, inputs and returned model data out of public repositories when they contain project information.
 
 ## Disposable qualification and Cabin Eval
 

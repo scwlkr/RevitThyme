@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 namespace RevitThyme.Core;
 
 public enum OperationKind { Inspect, RenameView, ListViews, QueryElements, InspectElements, GetSelection, SetSelection, SetParameters, GetOperation,
-    GetViewRange, SetViewRange, PreviewRoomDimensions, CreateRoomDimensions, RunQuery, RunModify, InspectTimberFold,
+    GetViewRange, SetViewRange, PreviewRoomDimensions, CreateRoomDimensions, RunQuery, RunModify, RunObservation, InspectTimberFold,
     PreviewTimberFold, GetTimberFoldRun, CancelTimberFoldRun, GenerateTimberFold, VerifyTimberFoldRun, ReconcileTimberFold, ExportViewImage,
     OpenDocument, ActivateDocument, SaveDocument, CloseDocument, ActivateView, ListDocuments }
 public enum Outcome { Inspected, Applied, Unchanged, Rejected, RolledBack, Unconfirmed, Completed }
@@ -26,7 +26,7 @@ public sealed record OperationRequest(Guid Id, OperationKind Operation,
     DocumentQuery? DocumentQuery = null)
 {
     public bool IsWrite => Operation is OperationKind.RenameView or OperationKind.SetParameters or OperationKind.SetSelection
-        or OperationKind.SetViewRange or OperationKind.CreateRoomDimensions or OperationKind.RunModify or OperationKind.RunQuery
+        or OperationKind.SetViewRange or OperationKind.CreateRoomDimensions or OperationKind.RunModify or OperationKind.RunQuery or OperationKind.RunObservation
         or OperationKind.InspectTimberFold or OperationKind.PreviewTimberFold or OperationKind.CancelTimberFoldRun or OperationKind.GenerateTimberFold
         or OperationKind.ReconcileTimberFold or OperationKind.ExportViewImage or OperationKind.OpenDocument or OperationKind.ActivateDocument or OperationKind.SaveDocument
         or OperationKind.CloseDocument or OperationKind.ActivateView;
@@ -38,7 +38,8 @@ public sealed record OperationResult(Guid Id, Outcome Outcome, string Code, stri
     ParameterEdit[]? ParameterChanges = null, ViewRangeInfo? ViewRange = null,
     RoomDimensionPreview? RoomDimensions = null, CodeResult? Execution = null, TimberFoldReply? TimberFold = null,
     TimberRunSummary? TimberRun = null, ViewImageResult? ImageExport = null, DocumentLifecycleResult? DocumentLifecycle = null,
-    DocumentPage? Documents = null)
+    DocumentPage? Documents = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] ResultVerification? Verification = null)
 {
     public bool Succeeded => Outcome is Outcome.Inspected or Outcome.Applied or Outcome.Unchanged or Outcome.Completed;
     public static OperationResult Reject(OperationRequest request, string code, string message) =>
@@ -50,8 +51,10 @@ public interface IOperationClient
 }
 public static class Protocol
 {
-    public const int Version = 13;
-    public const int MaxBytes = 65536;
+    public const int Version = 14;
+    public const int MaxBytes = 262144;
+    // Existing operation budgets stay fixed while observation source/data get a larger escaped transport envelope.
+    public const int MaxOperationBytes = 65536;
     public static readonly JsonSerializerOptions Json = CreateOptions();
     private static JsonSerializerOptions CreateOptions()
     {

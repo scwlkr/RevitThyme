@@ -40,7 +40,7 @@ internal static class ElementInspection
         foreach (var p in parameters.Take(20))
         {
             page.Add(Read(p));
-            if (JsonSerializer.SerializeToUtf8Bytes(new ElementDetail(summary, page.ToArray(), offset + page.Count), Protocol.Json).Length > (Protocol.MaxBytes - 4096) / 5)
+            if (JsonSerializer.SerializeToUtf8Bytes(new ElementDetail(summary, page.ToArray(), offset + page.Count), Protocol.Json).Length > (Protocol.MaxOperationBytes - 4096) / 5)
             { page.RemoveAt(page.Count - 1); break; }
         }
         return new(summary, page.ToArray(), parameters.Length > page.Count ? offset + page.Count : null);
@@ -51,7 +51,7 @@ internal static class ElementInspection
         var page = elements.Where(e => query.NameContains is null || e.Name.Contains(query.NameContains, StringComparison.OrdinalIgnoreCase))
             .Skip(query.Offset).Take(query.Limit + 1).ToArray();
         var items = page.Take(query.Limit).Select(Summary).ToList();
-        while (JsonSerializer.SerializeToUtf8Bytes(items, Protocol.Json).Length > Protocol.MaxBytes - 4096) items.RemoveAt(items.Count - 1);
+        while (JsonSerializer.SerializeToUtf8Bytes(items, Protocol.Json).Length > Protocol.MaxOperationBytes - 4096) items.RemoveAt(items.Count - 1);
         return new(items.ToArray(), page.Length > items.Count ? query.Offset + items.Count : null);
     }
     public static void Set(Document doc, ParameterEdit edit)

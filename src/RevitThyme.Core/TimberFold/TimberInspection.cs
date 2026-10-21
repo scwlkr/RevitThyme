@@ -2,7 +2,7 @@ namespace RevitThyme.Core;
 
 public static class TimberInspection
 {
-    // Even JSON-escaped strings fit the shared 64 KiB envelope. Full evidence is retained in run files.
+    // Even JSON-escaped strings fit the shared 256 KiB envelope. Full evidence is retained in run files.
     public const int MaximumDiagnostics = 24;
     public const int MaximumSourceSamples = 12;
     public const int MaximumDesignOptions = 8;

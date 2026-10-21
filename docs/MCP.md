@@ -1,6 +1,6 @@
 # MCP interface
 
-Thirty-five tools expose native operations and saved tool creation: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools, three saved-tool tools and seven TimberFold tools. **Version 0.12.0 uses package `0.12.0-tools.1` and protocol 13.** Version 0.10.0 used 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [release qualification](../verification/release-0.11.0.md), [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
+Thirty-eight tools expose native operations, saved tools and result checks: thirteen generic tools, five document/view-lifecycle tools, one image-export tool, four utility tools, two trusted C# tools, three saved-tool tools, three result-check tools and seven TimberFold tools. **Version 0.13.0 uses package `0.13.0-checks.1` and protocol 14.** Version 0.10.0 used 25 tools/protocol 8 (`0.10.0-timberfold.4`), without typed image export or document lifecycle/discovery. Both external clients and the optional [built-in Agent](AGENT.md) use this interface. TimberFold physical cutting and assembly remain outstanding. See [release qualification](../verification/release-0.11.0.md), [Native utilities](NATIVE-UTILITIES.md), [Dynamic execution](DYNAMIC-EXECUTION.md) and [TimberFold](timberfold/README.md) for their scope.
 
 The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet lockfile, and local stdio. It calls the same Autodesk-independent Core and OS-verified local pipe as the CLI; the add-in drains operations through ExternalEvent. No legacy bridge or arbitrary-code fallback exists.
 
@@ -34,6 +34,9 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `save_tool` | Save an individual trusted C# definition, typed inputs, expected result and executable tests outside the installation |
 | `get_tool` | Retrieve the saved definition, exact digest and unverified test status by tool ID |
 | `run_tool` | Validate inputs and the exact definition digest, then execute the saved method body or a named test through trusted native execution |
+| `prepare_result_checks` | Resolve a declared plan's allowed changes against the pre-action native target and original request ID |
+| `verify_result` | Recover the retained native operation, read declared observations and compare expected values and allowed changes without resubmitting the edit |
+| `verify_tool` | Recover/check a saved tool's original operation using its exact definition digest, original inputs and configured result checks |
 | `timberfold_inspect` | Captured exterior-shell accounting and private evidence, without model changes |
 | `timberfold_preview` | Accept a retained request/run ID; capture, fit, nest and stage digital DXF preview files |
 | `timberfold_generate` | Generate from an unchanged captured target and verified preview ID; native kit documentation and exports in one Undo group, without model save |
@@ -42,7 +45,7 @@ The server uses official `ModelContextProtocol` **2.2.0**, pinned with a NuGet l
 | `timberfold_verify` | Rehash and validate retained preview or kit evidence by run ID, without native edits or a capture |
 | `timberfold_reconcile` | Check an existing committed native kit using a fresh capture; retain separate recovery evidence without recreating documentation |
 
-MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB bridge bound. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
+MCP tool annotations identify reads/writes; results include JSON text and structured content. Rejected, rolled back and uncertain results set MCP `isError=true`. SDK schema/argument errors also fail the tool call. Query limits are 1–100; element/parameter pages shrink further to fit the 64 KiB operation budget inside the 256 KiB bridge frame. Follow `nextOffset`/`nextParameterOffset` until null. Parameter strings over 512 characters are marked truncated and cannot be edited.
 
 ## Saved Revit tools
 
@@ -54,11 +57,39 @@ The [Agent creation skill](AGENT.md#create-a-reusable-tool) turns a plain-langua
 | `get_tool(toolId)` | Return `toolId`, definition `digest`, the complete definition and `testStatus: "not_run"`. |
 | `run_tool(captureId, requestId, toolId, digest, inputs, trusted=false, budgetMilliseconds=10000, testName=null)` | Verify the exact saved definition and typed input object, then submit its query or modify body. A named test runs only its assertion as a rollback query. |
 
-A definition contains `name`, the original `request`, `description`, `mode` (`query` or `modify`), C# `source`, `inputs`, `expectedResult` and `tests`. Input definitions contain `name`, `type`, `description` and `required`; supported types are `string`, `number`, `integer`, `boolean` and `string[]`. Tests contain `name`, an example `inputs` object, model `assumptions`, `expectedResult` and an `assertionSource` method body returning a Boolean. The body receives the same `inputs` JSON object as the main tool. Review the full definition before execution.
+A definition contains `name`, the original `request`, `description`, `mode` (`query` or `modify`), C# `source`, `inputs`, `expectedResult`, `tests` and optional `resultChecks`. Input definitions contain `name`, `type`, `description` and `required`; supported types are `string`, `number`, `integer`, `boolean` and `string[]`. Tests contain `name`, an example `inputs` object, model `assumptions`, `expectedResult` and an `assertionSource` method body returning a Boolean. The body receives the same `inputs` JSON object as the main tool. Review the full definition before execution.
 
 Definitions persist in `%LOCALAPPDATA%\RevitThyme\tools` across server and Revit restarts, independently of installed package versions. `REVITTHYME_TOOLS_DIRECTORY` selects an absolute alternate folder for isolated qualification. The save call writes local files and is declared as a mutation; get is read-only. Neither implies compilation or successful testing. Saved code and test assertions retain full-process trust requirements; `run_tool` is potentially destructive even for rollback queries.
 
-Retain the definition digest returned by save/get and provide it at execution. Changed definitions, invalid IDs, unknown/duplicate input properties, missing required inputs and type mismatches are rejected before native execution. A fresh capture and caller-owned GUID are still required. The tool's expected result describes intent; this release does not automatically check it after every run. See [input binding, test use and recovery](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
+Retain the definition digest returned by save/get and provide it at execution. Changed definitions, invalid IDs, unknown/duplicate input properties, missing required inputs and type mismatches are rejected before native execution. A fresh capture and caller-owned GUID are still required. The tool's expected-result description expresses intent. Optional `resultChecks` defines structured checks that run automatically after a definite successful main operation; definitions without a plan retain their original behavior. See [input binding, test use and recovery](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
+
+## Workflow result checks
+
+Saved definitions may include `resultChecks`. `run_tool` prepares that plan before its main operation and verifies it after definite native success. An unchanged tool without a plan behaves as before. A named test remains a separate explicitly requested assertion, rather than an automatically managed fixture test.
+
+A `ResultCheckPlan` contains `checks`, `allowedChangesSource`, `maxAdded` (default zero) and optional `addedCategoryIds`. Each check has a `name`, C# `source`, `comparison` (default `equals`), optional JSON `expected`, optional `expectedInput` name, and optional numeric `minimum`/`maximum`. Equality requires exactly one fixed `expected` value or `expectedInput` referencing the invocation's input object. Observation source returns an object with `exists` and `value`; Core evaluates `equals`, `exists`, `absent` or `range`. Missing data, source errors and uncertain native state are reported rather than treated as matching values.
+
+`allowedChangesSource` runs before the action and returns `modified` and `deleted` arrays of native element IDs. Added elements must match both the declared maximum and allowed native category IDs. The report compares the original operation's actual native added/modified/deleted IDs with these permitted changes and flags unexpected IDs. Declare the intended policy before running the action; do not derive permission from the changes after they occur.
+
+Plans contain 1–16 uniquely named checks. Added-element limits are 0–512; permitting additions requires up to 64 declared negative native category IDs. Plans are bounded to 64 KiB, input objects to 8 KiB and observation data to 32 KiB of serialized JSON. The protocol-14 bridge frame is bounded to 256 KiB so independently bounded source and data fit after JSON escaping. The generated observation method body must fit the trusted 24 KiB source limit, including its adapter, and its complete returned JSON must fit 8 KiB. A plan that fits storage can still exceed an execution bound; such failures are not verification passes.
+
+For a caller-managed sequence, prepare the plan against a fresh `captureId` with `prepare_result_checks`, using the original action `requestId`, input object and intended `sourceSha256`. After executing or recovering that action under the same request ID, call `verify_result` with the same plan, inputs and source identity. Both calls require `trusted=true`; their cooperative `budgetMilliseconds` uses the trusted execution limits. Verification retrieves authoritative retained native results rather than accepting an arbitrary caller-supplied success record. It does not execute the action again.
+
+| Call | Arguments |
+| --- | --- |
+| `prepare_result_checks(captureId, requestId, plan, inputs, sourceSha256, trusted=false, budgetMilliseconds=10000)` | Fresh captured target, original action request ID and declared plan/inputs/source identity |
+| `verify_result(requestId, plan, inputs, sourceSha256, trusted=false, budgetMilliseconds=10000)` | Original request ID and unchanged prepared plan/inputs/source identity |
+| `verify_tool(requestId, toolId, digest, inputs, trusted=false, budgetMilliseconds=10000)` | Original request ID, exact saved definition digest and original inputs |
+
+Preparation returns `operationId`, deterministic `preparationId`/`verificationId`, `planDigest`, `sourceSha256` and a retained native `receipt`. Stop before the action if the receipt failed. `verify_tool` resolves the saved definition and expanded action source itself; it requires the original preparation and does not execute the saved tool. Missing preparation cannot produce a passing check. A first observation rejects an intervening native revision; recovery of an already retained observation describes the original checked state and does not certify later model changes.
+
+The report keeps its check status (`passed`, `failed`, `error` or `unconfirmed`) distinct from the original native outcome. A committed Applied operation remains Applied even when a comparison fails, an unexpected change is found or verification is uncertain. Observations include expected and observed values/errors; change coverage includes actual, permitted and unexpected IDs. Attribution binds the report to the original operation and exact captured target, definition where available, plan and inputs. Inspect these records before another edit; there is no automatic Undo or retry.
+
+Verification is returned on the original operation result's `verification` field, with status, operation/preparation/verification IDs, plan/source identity, message, per-check comparisons, `actualChanges`, `allowedChanges`, `unexpectedChanges` and policy `violations`. The MCP call sets `isError=true` when the original operation failed or its check status is not `passed`; inspect both the original `outcome` and `verification.status` to understand whether model changes were committed.
+
+Readback uses a native observation path without a writable model transaction; comparison occurs in Core. Trusted C# still has full process permissions and no sandbox. The result covers only the declared observations and allowed-change policy, rather than every possible model defect. See [execution boundaries](DYNAMIC-EXECUTION.md#workflow-result-checks) and [CLI recovery](CLI.md#workflow-result-checks).
+
+[Qualification](../verification/workflow-result-checks.md) records the exact installed package, actual-Revit comparison/guard/recovery matrix, real Agent integration and preservation evidence. Offline checks and release/publication checks remain separate from native proof.
 
 <a id="open-document-discovery-unreleased"></a>
 
@@ -190,7 +221,7 @@ For an isolated or otherwise pinned target:
 codex mcp add revitthyme_test -- 'C:\absolute\mcp\revitthyme-mcp.exe' --session 'C:\absolute\sessions\session-id.json'
 ```
 
-Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. Version 0.12.0 retains protocol 13 from 0.11.0; version 0.10.0 used protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
+Normal sessions are in `%LOCALAPPDATA%\RevitThyme\sessions`. Optional `--sessions-directory ABSOLUTE_FOLDER` limits discovery. Startup `--session ABSOLUTE_FILE` prevents switching to another binding. Dead/reused processes and mismatched protocols are rejected. Version 0.13.0 uses protocol 14; versions 0.11.0 and 0.12.0 used protocol 13; version 0.10.0 used protocol 8. Upgrade the add-in, CLI and MCP together. Every server starts disconnected unless pinned; it never chooses the first running Revit process. These configuration examples are supported by [official Codex MCP documentation](https://developers.openai.com/codex/mcp).
 
 For source development, `project.cmd mcp` builds to stderr and then starts stdio. Installed/published executables avoid startup compilation. No account configuration is edited automatically by packaging or qualification.
 

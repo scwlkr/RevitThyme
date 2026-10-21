@@ -8,7 +8,7 @@ namespace RevitThyme.McpTests;
 // All generated tool data and temporary authentication stay in a fresh owned run directory.
 internal static class SavedToolAgentLive
 {
-    public static async Task Run(string folder)
+    public static async Task Run(string folder, bool requireResultChecks = false)
     {
         folder = Path.GetFullPath(folder);
         var launch = JsonDocument.Parse(File.ReadAllText(Path.Combine(folder, "launch.json"))).RootElement.Clone();
@@ -21,7 +21,7 @@ internal static class SavedToolAgentLive
             throw new InvalidDataException("Owned process/start changed.");
         string root = Directory.GetCurrentDirectory();
         if (!File.Exists(Path.Combine(root, "RevitThyme.sln"))) throw new ArgumentException("Run from the candidate checkout root.");
-        string evidence = Path.Combine(folder, "saved-tool-agent-" + Guid.NewGuid().ToString("N"));
+        string evidence = Path.Combine(folder, (requireResultChecks ? "result-check-agent-" : "saved-tool-agent-") + Guid.NewGuid().ToString("N"));
         string agentHome = Path.Combine(evidence, "agent"), store = Path.Combine(evidence, "tools");
         Directory.CreateDirectory(Path.Combine(agentHome, "codex-home"));
         string auth = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".codex", "auth.json");
@@ -36,7 +36,7 @@ internal static class SavedToolAgentLive
         var options = new AgentOptions(AgentOptions.FindRuntime(bundle), executable, sessionFile, Path.Combine(agentHome, "workspace"),
             skills, Path.Combine(agentHome, "skills"), true);
         var checks = new List<object>(); var events = new List<object>(); var completedTools = new List<string>();
-        JsonElement? lastCall = null; int approvalCount = 0;
+        JsonElement? lastCall = null; int approvalCount = 0; bool agentVerifiedResult = false;
         string hash = SavedToolLive.Hash(fixture), originalAuthHash = SavedToolLive.Hash(auth);
         bool passed = false; string? failure = null;
         void Write(string name, object value) => File.WriteAllText(Path.Combine(evidence, name), JsonSerializer.Serialize(value, Core.Protocol.Json));
@@ -62,7 +62,20 @@ internal static class SavedToolAgentLive
                         if (e.Method == "item/started" && e.Parameters.TryGetProperty("item", out var started)
                             && AgentSession.Text(started, "type") == "mcpToolCall") lastCall = started.Clone();
                         if (e.Method == "item/completed" && e.Parameters.TryGetProperty("item", out var item)
-                            && AgentSession.Text(item, "type") == "mcpToolCall" && AgentSession.Text(item, "status") == "completed") completedTools.Add(AgentSession.Text(item, "tool"));
+                            && AgentSession.Text(item, "type") == "mcpToolCall" && AgentSession.Text(item, "status") == "completed")
+                        {
+                            string tool = AgentSession.Text(item, "tool"); completedTools.Add(tool);
+                            if (requireResultChecks && tool.EndsWith("run_tool", StringComparison.Ordinal)
+                                && (!item.GetProperty("arguments").TryGetProperty("testName", out var testName) || testName.ValueKind == JsonValueKind.Null))
+                            {
+                                var reply = item.GetProperty("result");
+                                var native = reply.TryGetProperty("structuredContent", out var structured) && structured.ValueKind == JsonValueKind.Object ? structured
+                                    : JsonDocument.Parse(reply.GetProperty("content")[0].GetProperty("text").GetString()!).RootElement;
+                                agentVerifiedResult = native.TryGetProperty("verification", out var verified) && verified.ValueKind == JsonValueKind.Object
+                                    && AgentSession.Text(verified, "status") == "passed"
+                                    && AgentSession.Text(verified, "operationId") == AgentSession.Text(item.GetProperty("arguments"), "requestId");
+                            }
+                        }
                     }
                 };
                 agent.Approval += request => _ = Approve(request);
@@ -105,6 +118,8 @@ internal static class SavedToolAgentLive
                     skillSha256 = SavedToolLive.Hash(skill.Path), agentAssemblySha256 = SavedToolLive.Hash(typeof(AgentSession).Assembly.Location), binding, agent.ThreadId });
                 string marker = "agent-marker-" + Guid.NewGuid().ToString("N")[..8];
                 string prompt = $"Create and save a reusable tool named Qualification View Marker. It must be a read-only query with one required string input named marker, returning a JSON object with properties marker (the supplied string) and viewName (the native active view name). Include a concrete executable assertion test with assumptions and expected results. Then retrieve the saved tool and run it with marker {marker}. This is an explicitly authorized trusted query only in disposable fixture {fixture}, process {binding.ProcessId}; inspect and verify this exact target first. Do not modify the model, save or sync, or execute any other code. Report the saved tool ID, digest and actual native returned values. Saving does not mean its tests passed.";
+                if (requireResultChecks)
+                    prompt += " Include a resultChecks plan that automatically observes the native active view name after execution and compares it with the exact name you inspected. Permit no added, modified or deleted elements. Use real native observation sources, not a constant true or a claimed result from the action. Run the saved tool and report its separate verification status and native observations. Also run its stored assertion test. A successful action alone does not mean its result checks passed.";
                 Write("request.json", new { prompt });
                 var send = agent.Send(prompt, skill);
                 TurnOutcome outcome;
@@ -118,12 +133,19 @@ internal static class SavedToolAgentLive
                 lock (events)
                     Check("Agent actually saves, retrieves and runs a tool through MCP", new[] { "save_tool", "get_tool", "run_tool" }
                         .All(name => completedTools.Any(tool => tool.EndsWith(name, StringComparison.Ordinal))));
+                if (requireResultChecks) Check("actual Agent action received a passing native result verification", agentVerifiedResult);
                 var files = Directory.GetFiles(store, "*.json"); Check("one generated reusable definition is persisted", files.Length == 1);
                 string id = Path.GetFileNameWithoutExtension(files.Single()); var artifact = new SavedToolStore(store).Get(id);
                 Check("generated contract contains required typed input, expected result and executable test", artifact.Definition.Mode == "query"
                     && artifact.Definition.Inputs is [{ Name: "marker", Type: "string", Required: true }]
                     && artifact.Definition.Tests.Length > 0 && !string.IsNullOrWhiteSpace(artifact.Definition.ExpectedResult)
                     && artifact.TestStatus == "not_run");
+                if (requireResultChecks)
+                {
+                    var definition = JsonSerializer.SerializeToElement(artifact.Definition, Core.Protocol.Json);
+                    Check("Agent persisted an explicit automatic native result plan", definition.TryGetProperty("resultChecks", out var plan)
+                        && plan.ValueKind == JsonValueKind.Object && plan.GetProperty("checks").GetArrayLength() > 0);
+                }
                 await using var client = await SavedToolLive.Client(sessionFile, store);
                 var context = await Program.Call(client, "get_context");
                 var snapshot = context.Data.GetProperty("result").GetProperty("snapshot");
@@ -140,6 +162,9 @@ internal static class SavedToolAgentLive
                 Check("Agent-generated source compiles and accepts a new input in actual Revit", result.Result.IsError != true
                     && result.Data.GetProperty("execution").GetProperty("value").GetProperty("marker").GetString() == independentMarker
                     && result.Data.GetProperty("execution").GetProperty("value").GetProperty("viewName").GetString() == snapshot.GetProperty("viewName").GetString());
+                if (requireResultChecks)
+                    Check("Agent-generated native checks automatically verify the actual query", result.Data.GetProperty("verification").GetProperty("status").GetString() == "passed"
+                        && result.Data.GetProperty("verification").GetProperty("checks").GetArrayLength() > 0);
                 foreach (var test in artifact.Definition.Tests)
                 {
                     var testContext = await Program.Call(client, "get_context");
@@ -152,6 +177,8 @@ internal static class SavedToolAgentLive
                     Check("Agent-generated assertion compiles and returns native boolean true: " + test.Name, assertion.Result.IsError != true
                         && assertion.Data.GetProperty("execution").GetProperty("value").ValueKind == JsonValueKind.True);
                 }
+                if (requireResultChecks)
+                    await ResultCheckAgentLive.CheckSensitivity(client, artifact, independentMarker, snapshot.GetProperty("viewName").GetString()!, Check, Write);
                 var after = await Program.Call(client, "get_context");
                 Check("Agent creation and assertions preserve native view and modification state", after.Result.IsError != true
                     && after.Data.GetProperty("result").GetProperty("snapshot").GetProperty("viewName").GetString() == snapshot.GetProperty("viewName").GetString()

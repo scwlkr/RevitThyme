@@ -21,7 +21,7 @@ internal static class NativeDynamicExecution
             "using System; using System.Linq; using System.Collections.Generic; using System.Threading; using Autodesk.Revit.DB; using Autodesk.Revit.DB.Architecture; using Autodesk.Revit.UI;",
             [typeof(Document).Assembly, typeof(UIApplication).Assembly]);
         using var submission = compiled.Code;
-        CodeResult Report(JsonElement? value = null, CodeChanges? changes = null) => new(hash, watch.ElapsedMilliseconds, value, compiled.Diagnostics, changes);
+        CodeResult Report(JsonElement? value = null, CodeChanges? changes = null) => new(hash, watch.ElapsedMilliseconds, value, compiled.Diagnostics, changes, request.Target);
         if (submission is null) return new(request.Id, Outcome.Rejected, "compile_error", "C# compilation failed; no transaction opened.", Execution: Report());
         var doc = app.ActiveUIDocument.Document;
         var originalIds = Ids(doc);
@@ -60,7 +60,7 @@ internal static class NativeDynamicExecution
             var after = model.Capture(); var report = Report(value, changes);
             var result = new OperationResult(request.Id, Outcome.Applied, "applied", "Trusted C# completed; native changes committed as one Revit Undo item.", after,
                 ChangedIds: changes.Added.Concat(changes.Modified).Concat(changes.Deleted).Distinct().ToArray(), Execution: report);
-            if (JsonSerializer.SerializeToUtf8Bytes(result, Protocol.Json).Length > Protocol.MaxBytes / 2)
+            if (JsonSerializer.SerializeToUtf8Bytes(result, Protocol.Json).Length > Protocol.MaxOperationBytes / 2)
                 throw new OperationException("result_too_large", "Execution response exceeds the native result budget.");
             Require(change.Assimilate(), Completion.Committed); return result;
         }

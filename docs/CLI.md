@@ -13,7 +13,7 @@ rthyme sessions --json
 
 Version output separates the executing CLI, development checkout and registered installation. Update commands target the installed copy. Native commands require a running compatible add-in and an explicit session.
 
-Version 0.12.0 retains protocol 13 and uses package `0.12.0-tools.1`; install matching CLI, MCP and add-in binaries together. Version 0.10.0 used protocol 8 and package `0.10.0-timberfold.4`.
+Version 0.13.0 uses protocol 14 and package `0.13.0-checks.1`; install matching CLI, MCP and add-in binaries together. Version 0.10.0 used protocol 8 and package `0.10.0-timberfold.4`.
 
 ## Inspect a chosen session
 
@@ -30,7 +30,7 @@ Captures contain private model paths and metadata. Model events invalidate them;
 
 ## Discover open documents
 
-Version 0.11.0 includes a read-only command, including at Home. Install matching protocol-13 binaries first:
+Read-only document discovery is available at Home. Install matching protocol-14 binaries first:
 
 ```powershell
 rthyme list-documents --session $session --limit 1 --request-id CALLER_GUID --json > C:\Test\documents.json
@@ -74,6 +74,8 @@ Replace 20 with the actual returned `nextParameterOffset`; stop at null. Paramet
 | `run-query`, `run-modify` | Trusted C# with source, capture, trust and request ID |
 | `tool save`, `tool show` | Save or retrieve a reusable tool definition by ID without connecting to Revit |
 | `tool run` | Run an exact saved-tool digest with validated inputs, native capture, trust and request ID |
+| `tool verify` | Check a saved tool's retained native operation against its declared result-check plan |
+| `result-check prepare`, `result-check verify` | Prepare an explicit workflow result-check plan before an action, then verify its retained outcome |
 | `update check`, `update download`, `update install` | Check/download/install a release |
 
 Native commands take `--session ABSOLUTE_FILE`. `rthyme --help` gives exact flags. Generic parameter editing is exposed through MCP; there is no CLI `set-parameters` command.
@@ -91,6 +93,23 @@ rthyme tool run --id TOOL_GUID --digest DEFINITION_SHA256 --inputs C:\Test\input
 `tool save` and `tool show` do not require a Revit session. `tool run` requires an absolute input JSON file containing an object that matches the definition, a successful fresh inspection capture, explicit trust and the exact digest from save/show. It uses the existing trusted host; query tools roll back current-document changes and modify tools create one Undo item. Optional `--budget-ms` uses the existing 100–30000 ms cooperative bound.
 
 To run a saved test assertion, add `--test TEST_NAME` to `tool run`. It executes only that assertion as a rollback query, using the supplied inputs. Run the main tool and assertion explicitly in the test's disposable fixture, refreshing the capture between calls. A definition's `not_run` status records that saving did not qualify it; successful native execution alone is not proof of a passing test. Preserve the original request ID for `get-operation` recovery after uncertainty. See [execution and source-hash limits](DYNAMIC-EXECUTION.md#saved-tool-inputs-and-tests).
+
+## Workflow result checks
+
+A saved tool's optional `resultChecks` plan is prepared before its main action and checked automatically after definite native success. `tool run` reports the original operation independently of its check result. Tools saved without a plan keep their existing execution behavior. `tool verify` checks the original retained request without running the action again.
+
+Use `result-check prepare` and `result-check verify` when another caller owns the action sequence. Preparation uses a fresh inspection capture, the original action request ID, the declared plan, input object and intended expanded-source SHA-256. Verification must retain those exact identities and recover the authoritative native result. It reports expected/observed comparisons and permitted/unexpected added, modified and deleted IDs. See [plan fields](MCP.md#workflow-result-checks).
+
+```powershell
+rthyme result-check prepare --session $session --capture C:\Test\capture.json --request-id ORIGINAL_ACTION_GUID --plan C:\Test\plan.json --inputs C:\Test\inputs.json --source-sha256 ACTION_SOURCE_SHA256 --trusted true --json
+# Execute the exact action only after successful preparation, retaining its request ID.
+rthyme result-check verify --session $session --request-id ORIGINAL_ACTION_GUID --plan C:\Test\plan.json --inputs C:\Test\inputs.json --source-sha256 ACTION_SOURCE_SHA256 --trusted true --json
+rthyme tool verify --session $session --request-id ORIGINAL_ACTION_GUID --id TOOL_GUID --digest DEFINITION_SHA256 --inputs C:\Test\inputs.json --trusted true --json
+```
+
+Plan and input paths must be absolute JSON files. `--source-sha256` identifies the exact action source; it is distinct from a saved definition's digest. Saved-tool verification resolves the action's expanded source from that definition and its original inputs. Optional `--budget-ms` uses the existing cooperative 100–30000 ms bound. Verification returns exit 1 when either the original operation failed or its verification status is not `passed`; inspect the returned original `outcome` and `verification.status` separately. Recovering an already retained check reports the original checked state, rather than certifying later model changes.
+
+An Applied operation can have a failed or uncertain check. That does not undo or reject its already committed model change. Inspect the operation and report before another edit; these commands never automatically replay, repair, Undo, save or sync. Native observation is outside a writable model transaction but retains full-process trusted C# permissions. Use the exact flags from `rthyme --help` and keep input/plan/capture files private.
 
 ## TimberFold cutting kits
 

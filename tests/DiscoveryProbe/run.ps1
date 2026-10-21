@@ -94,7 +94,7 @@ if (Test-Path (Join-Path $RunFolder 'probe-error.json')) { throw (Get-Content (J
 $sessions = @(Get-ChildItem -LiteralPath $launch.sessions -Filter '*.json')
 if ($sessions.Count -ne 1) { throw 'Exact binding not ready.' }
 $binding = Get-Content $sessions[0].FullName -Raw | ConvertFrom-Json
-if ($binding.protocolVersion -ne 13 -or $binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start) { throw 'Session differs from owned launch.' }
+if ($binding.protocolVersion -ne 14 -or $binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.start) { throw 'Session differs from owned launch.' }
 $ready = Get-Content (Join-Path $RunFolder 'ready.json') -Raw | ConvertFrom-Json
 $expectedDocuments=$(if($Profile -eq 'restricted'){5}else{4})
 if ($ready.pid -ne $launch.pid -or $ready.start -ne $launch.start -or $ready.activePath -ne $plan.a -or $ready.documents.Count -ne $expectedDocuments) { throw 'Independent fixture preparation not ready.' }

@@ -4,6 +4,13 @@
 
 - Add reproducible native utility qualification against the normal installed CLI/MCP with trusted C# disabled. Cover floor/RCP range edits, template refusal, invalid-order rollback, native room measurements, exact-view images, retained reconnect recovery and one native Undo. Preserve source-built qualification separately and correct its obsolete tool inventory; the unchanged v0.11.0 runtime passes 85 new external/native checks. No replacement release asset.
 
+## 0.13.0 — Workflow Result Checks — 2026-10-21
+
+- Add optional structured result-check plans to saved tools and automatic checking after a definite native success. Plans describe expected native observations and allowed model changes; checks report mismatches and unexpected added, modified or deleted element IDs separately from the original operation outcome.
+- Read native observations outside a writable model transaction, then compare their returned data in Core. Attribute checks to the exact retained operation, captured target, definition, plan and inputs. A failed or uncertain check never changes an already Applied operation into a rollback or silently repeats its edit.
+- Allow explicit checking of a retained operation for workflows outside a saved tool. Keep managed workflows, test fixtures, durable run history and automatic repair separate. Existing definitions without a result-check plan retain their behavior.
+- Package as `0.13.0-checks.1` with native bridge protocol 14. Retain previous installer cohorts and the bundled tool-creation skill; install matching add-in, CLI and MCP binaries together.
+
 ## 0.12.0 — Reusable Tool Builder — 2026-10-21
 
 - Turn a plain-language Agent request into a saved, parameterized trusted C# Revit tool through the bundled creation skill and MCP. Keep its original request, typed inputs, expected result and executable test with model assumptions.

@@ -1,5 +1,7 @@
 # Current verification
 
+[workflow-result-checks.md](workflow-result-checks.md) records the 0.13.0 candidate's exact installed package and module hashes, 277 actual-Revit assertions, 18 real Agent assertions plus 6 preservation checks, and separate source/installer evidence. It preserves the distinction between a native operation outcome and its result-check report.
+
 [release-0.11.0.md](release-0.11.0.md) identifies the frozen 0.11.0 runtime package, native SDK results, installer checks and preservation boundaries. Release-source metadata and native runtime source are recorded separately.
 
 [foundation.md](foundation.md) records the C# Foundation build, native Revit and installer evidence. Private machine-readable reports and fixtures remain under ignored `artifacts/foundation`.

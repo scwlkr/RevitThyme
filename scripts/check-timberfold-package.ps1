@@ -29,7 +29,7 @@ function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabr
         'Microsoft.CodeAnalysis.dll','Microsoft.CodeAnalysis.CSharp.dll','DYNAMIC-EXECUTION.md','prerequisites.ps1',
         'setup-entry.ps1','global-command.ps1','cli/rthyme.exe')
     $files += @(Get-McpPackageFiles | ForEach-Object { 'mcp/'+$_ })
-    $files += Get-AgentPackageFiles -ToolBuilder:($Version -eq '0.12.0-tools.1')
+    $files += Get-AgentPackageFiles -ToolBuilder:($Version -in @('0.12.0-tools.1','0.13.0-checks.1'))
     if ($TimberFold) { $files += 'TIMBERFOLD.md' }
     if ($Fabrication) { $files += @('Clipper2Lib.dll','cli/Clipper2Lib.dll','mcp/Clipper2Lib.dll','notices/CLIPPER2-LICENSE.txt') }
     if ($CutFiles) { $files += @('IxMilia.Dxf.dll','cli/IxMilia.Dxf.dll','mcp/IxMilia.Dxf.dll','notices/IXMILIA-DXF-LICENSE.txt') }
@@ -45,6 +45,24 @@ function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabr
     return $folder
 }
 
+Check 'Result Checks release cohort keeps the complete native toolkit and creation skill' {
+    $candidate = New-PackageFixture '0.13.0-checks.1' -ProductVersion '0.13.0' -TimberFold -Fabrication -CutFiles
+    $null = Assert-FoundationPackage $candidate
+}
+Check 'Result Checks release cohort refuses a different product version' {
+    $candidate = New-PackageFixture '0.13.0-checks.1' -TimberFold -Fabrication -CutFiles
+    Refused { Assert-FoundationPackage $candidate } 'product version'
+}
+Check 'Result Checks release cohort retains the creation skill requirement' {
+    $candidate = New-PackageFixture '0.13.0-checks.1' -ProductVersion '0.13.0' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'skills/create-revit-tool/SKILL.md')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
+Check 'Result Checks release cohort refuses a missing existing toolkit dependency' {
+    $candidate = New-PackageFixture '0.13.0-checks.1' -ProductVersion '0.13.0' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
 Check 'Tool Builder release cohort keeps the complete native toolkit and creation skill' {
     $candidate = New-PackageFixture '0.12.0-tools.1' -ProductVersion '0.12.0' -TimberFold -Fabrication -CutFiles
     $null = Assert-FoundationPackage $candidate

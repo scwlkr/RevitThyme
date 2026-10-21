@@ -21,7 +21,8 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     public SessionBinding Binding { get; private set; } = null!;
     public long Revision { get; private set; }
     public bool TrustedCodeEnabled { get; private set; }
-    private readonly Dictionary<Document, string> documents = [];
+    // Revit's native hash/equality access can throw after a document closes.
+    private readonly List<(Document Document, string Id)> documents = [];
     private ExternalEvent? externalEvent;
     private PipeServer? server;
     private PipeServer? timberStatusServer, timberCancelServer, outcomeServer;
@@ -107,7 +108,12 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     }
     public string DocumentId(Document document)
     {
-        if (!documents.TryGetValue(document, out string? id)) documents.Add(document, id = Guid.NewGuid().ToString());
+        if (!document.IsValidObject) throw new OperationException("wrong_document", "This native document is no longer open.");
+        // Different managed wrappers can represent the same live native document.
+        foreach (var entry in documents)
+            if (entry.Document.IsValidObject && entry.Document.Equals(document)) return entry.Id;
+        string id = Guid.NewGuid().ToString();
+        documents.Add((document, id));
         return id;
     }
     public TimberFoldWindow ShowTimberFold(UIApplication app)
@@ -147,10 +153,12 @@ public sealed class FoundationApplication : IExternalApplication, IExternalEvent
     private void Closed(object? sender, DocumentClosedEventArgs e)
     {
         // DocumentClosing can be cancelled by another add-in. Retire only objects actually closed.
-        foreach (var document in documents.Keys.Where(d => !d.IsValidObject).ToArray())
+        for (int index = documents.Count - 1; index >= 0; index--)
         {
-            if (documents[document] == fixtureDocumentId) fixtureClosed = true;
-            documents.Remove(document);
+            var entry = documents[index];
+            if (entry.Document.IsValidObject) continue;
+            if (entry.Id == fixtureDocumentId) fixtureClosed = true;
+            documents.RemoveAt(index);
         }
     }
     private void Activated(object? sender, ViewActivatedEventArgs e) => Revision++;

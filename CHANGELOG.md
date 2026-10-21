@@ -4,6 +4,8 @@
 
 ## 0.11.0 — release candidate (unreleased)
 
+- Retire closed native document identities without hashing disposed Revit wrappers. Preserve valid document identities after a cancelled close and assign a fresh identity on reopen. A Home-screen close/reopen qualification exposed the failure; rebuilt-package native qualification remains pending.
+
 - Correct the normal-installed image qualification client to poll a valid Pending outcome after response loss, retaining the original GUID and a bounded wait. The rebuilt 0.11.0 candidate passes 59 actual-Revit external SDK image checks, including one Pending observation; the earlier failed test attempt remains retained. Runtime behavior is unchanged.
 
 - Prepare product 0.11.0 / package `0.11.0-mcp.1` for the reviewed MCP image, discovery and lifecycle operations, retaining protocol 13 and 32 tools. Require the complete toolkit payload and matching product identity, preserve earlier cohorts, and pin the optional draft workflow to the new source tag. Rebuilt-package, installer and native qualification precede publication; earlier native results retain their original provenance. Physical fabrication remains outstanding.

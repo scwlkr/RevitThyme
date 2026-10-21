@@ -10,7 +10,7 @@ namespace RevitThyme.McpTests;
 // Normal installed host: no trusted C#, test loader or native callback fixture wiring.
 internal static class UtilitiesInstalled
 {
-    public static async Task Run(string folder)
+    public static async Task Run(string folder, bool targetGuards = false)
     {
         if (File.Exists(Path.Combine(folder, "pending.json")) || File.Exists(Path.Combine(folder, "complete.json")))
             throw new InvalidOperationException("Recover the retained pending request, or use a fresh run after completion; do not replay this workflow.");
@@ -46,7 +46,8 @@ internal static class UtilitiesInstalled
                     && reply.Data.TryGetProperty("outcome", out var outcome) && outcome.GetString() != "Unconfirmed" && reply.Data.GetProperty("code").GetString() != "pending")
                 { Save("terminal-" + requestId + ".json", reply.Data); File.Delete(Path.Combine(folder, "pending.json")); }
                 if (code is not null) Program.Check("installed " + name + ": " + code, reply.Data.GetProperty("code").GetString() == code
-                    && reply.Result.IsError == (code is not ("inspected" or "applied" or "unchanged" or "view_activated" or "image_exported")));
+                    && reply.Result.IsError == (code is not ("inspected" or "applied" or "unchanged" or "view_activated" or "image_exported"
+                        or "document_opened" or "document_activated" or "document_closed")));
                 else if (reply.Result.IsError == true) throw new InvalidDataException(name + ": " + reply.Data.GetRawText());
                 if (reply.Data.TryGetProperty("imageExport", out var metadata) && metadata.ValueKind == JsonValueKind.Object && reply.Result.IsError != true)
                 {
@@ -58,10 +59,10 @@ internal static class UtilitiesInstalled
                 }
                 return reply.Data;
             }
-            async Task<(string Id, Snapshot Snapshot)> Context()
+            async Task<(string Id, Snapshot Snapshot)> Context(string? expectedPath = null)
             {
                 var r = await Call("get_context"); var snapshot = r.GetProperty("result").GetProperty("snapshot").Deserialize<Snapshot>(Protocol.Json)!;
-                Program.Check("utility context stays on exact disposable native document", snapshot.DocumentPath == fixture && !snapshot.IsWorkshared);
+                Program.Check("utility context stays on exact disposable native document", snapshot.DocumentPath == (expectedPath ?? fixture) && !snapshot.IsWorkshared);
                 return (r.GetProperty("captureId").GetString()!, snapshot);
             }
             var context = await Context(); var baseline = context.Snapshot;
@@ -77,6 +78,71 @@ internal static class UtilitiesInstalled
             async Task<JsonElement> Set(ViewRangeSettings expected, ViewRangeSettings wanted, string code = "applied", string? id = null) => await Call("set_view_range",
                 new() { ["captureId"] = context.Id, ["requestId"] = id ?? Guid.NewGuid().ToString(), ["expectedRange"] = expected, ["range"] = wanted }, code);
             async Task<JsonElement> Image(string name) => await Call("export_view_image", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["viewId"] = View(name), ["pixelSize"] = 1600 }, "image_exported");
+            if (targetGuards)
+            {
+                await Activate("Utilities Plan"); var originalRange = await Range();
+                var roomPage = (await Call("query_elements", new() { ["captureId"] = context.Id, ["categoryId"] = "-2000160", ["limit"] = 10 }))
+                    .GetProperty("elements").Deserialize<ElementPage>(Protocol.Json)!;
+                string rectangle = roomPage.Items.Single(e => e.Name.StartsWith("Rectangle", StringComparison.Ordinal)).UniqueId;
+                var roomPreview = (await Call("preview_room_dimensions", new() { ["captureId"] = context.Id, ["roomId"] = rectangle }, "inspected"))
+                    .GetProperty("roomDimensions").Deserialize<RoomDimensionPreview>(Protocol.Json)!;
+                Program.Check("target qualification starts without room dimensions", roomPreview.ExistingIds.Length == 0 && roomPage.NextOffset is null);
+                string other = Path.Combine(folder, "Other.rvt"); File.Copy(fixture, other, overwrite: false);
+                Program.Check("second disposable copy matches original saved fixture", Hash(other) == savedHash);
+                Dictionary<string, object?> Lifecycle(string path, string? documentId = null, bool verifyHash = false)
+                {
+                    var args = new Dictionary<string, object?> { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["path"] = path };
+                    if (documentId is not null) args["documentId"] = documentId;
+                    if (verifyHash) args["expectedSha256"] = savedHash;
+                    return args;
+                }
+                var opened = await Call("open_document", Lifecycle(other, verifyHash: true), "document_opened");
+                string otherId = opened.GetProperty("documentLifecycle").Deserialize<DocumentLifecycleResult>(Protocol.Json)!.DocumentId;
+                Program.Check("background open preserves original native state", (await Context()).Snapshot == context.Snapshot);
+                string originalCapture = context.Id, originalDocument = context.Snapshot.Target.DocumentId;
+                await Call("activate_document", Lifecycle(other, otherId), "document_activated");
+                context = await Context(other);
+                await Call("activate_view", new() { ["captureId"] = context.Id, ["requestId"] = Guid.NewGuid().ToString(), ["viewId"] = View("Utilities Plan") }, "view_activated");
+                context = await Context(other); var otherBefore = context.Snapshot;
+                Program.Check("identical saved copies have distinct native identities", otherId != originalDocument && context.Snapshot.Target.DocumentId == otherId && !context.Snapshot.IsModified);
+                await Call("get_view_range", new() { ["captureId"] = originalCapture }, "stale_target");
+                string rejectedId = Guid.NewGuid().ToString();
+                var rejected = await Call("set_view_range", new() { ["captureId"] = originalCapture, ["requestId"] = rejectedId,
+                    ["expectedRange"] = originalRange.Settings, ["range"] = originalRange.Settings with { Cut = originalRange.Settings.Cut with { OffsetFeet = 5 } } }, "stale_target");
+                await Call("preview_room_dimensions", new() { ["captureId"] = originalCapture, ["roomId"] = rectangle }, "stale_target");
+                await Call("create_room_dimensions", new() { ["captureId"] = originalCapture, ["requestId"] = Guid.NewGuid().ToString(), ["preview"] = roomPreview }, "stale_target");
+                Program.Check("cross-document utility refusals preserve native snapshot and all range planes", (await Context(other)).Snapshot == otherBefore && (await Range()).Settings == originalRange.Settings);
+                var otherDimensions = (await Call("query_elements", new() { ["captureId"] = context.Id, ["categoryId"] = "-2000260", ["limit"] = 100 })).GetProperty("elements").Deserialize<ElementPage>(Protocol.Json)!;
+                Program.Check("wrong-target room creation produces no native dimensions", otherDimensions.Items.Length == 0 && otherDimensions.NextOffset is null);
+                await client.DisposeAsync(); client = await Client();
+                Program.Check("reconnect recovers original refused range write without executing it", (await Call("get_operation", new() { ["requestId"] = rejectedId }, "stale_target")).GetRawText() == rejected.GetRawText());
+                context = await Context(other);
+                await Call("activate_document", Lifecycle(fixture, originalDocument), "document_activated"); context = await Context();
+                await Activate("Utilities Plan");
+                Program.Check("original document and saved copies remain unchanged after target refusal", !context.Snapshot.IsModified && (await Range()).Settings == originalRange.Settings
+                    && Hash(original) == savedHash && Hash(fixture) == savedHash && Hash(other) == savedHash);
+                await Call("close_document", Lifecycle(other, otherId, verifyHash: true), "document_closed"); context = await Context();
+                await Activate("Template Controlled"); var controlledRange = await Range();
+                Program.Check("template exclusion probe starts with a controlled range", !controlledRange.CanEdit);
+                Save("template-exclude-ready.json", new { binding, context.Snapshot, controlledRange, instruction = "In this owned Revit copy, uncheck Include for View Range in the assigned template, accept the dialog, then write template-excluded.json." });
+                var templateWait = Stopwatch.StartNew();
+                while (!File.Exists(Path.Combine(folder, "template-excluded.json")) && templateWait.Elapsed.TotalMinutes < 10) await Task.Delay(250);
+                if (!File.Exists(Path.Combine(folder, "template-excluded.json"))) throw new TimeoutException("Native template exclusion remains outstanding; retain this run.");
+                await Call("get_view_range", new() { ["captureId"] = context.Id }, "stale_target"); context = await Context();
+                var excludedRange = await Range();
+                Program.Check("assigned template excluding range permits native editing without changing planes", excludedRange.CanEdit && excludedRange.Settings == controlledRange.Settings);
+                var excludedWanted = excludedRange.Settings with { Cut = excludedRange.Settings.Cut with { OffsetFeet = excludedRange.Settings.Cut.OffsetFeet + 1.0 / 96 } };
+                await Set(excludedRange.Settings, excludedWanted); context = await Context();
+                Program.Check("template-excluded exact eighth-inch edit reads back natively", (await Range()).Settings == excludedWanted);
+                await Image("Template Controlled"); await Set(excludedWanted, excludedRange.Settings); context = await Context();
+                Program.Check("template-excluded original planes restored", (await Range()).Settings == excludedRange.Settings);
+                await Activate("Utilities Plan");
+                Program.Check("target qualification preserves original plan and all saved files", (await Range()).Settings == originalRange.Settings
+                    && Hash(original) == savedHash && Hash(fixture) == savedHash && Hash(other) == savedHash);
+                Save("complete.json", new { passed = true, qualification = "utility-targets-and-template-exclusion", binding, baseline, originalRange,
+                    controlledRange, excludedRange, rejectedId, other, otherId, context.Snapshot, savedHash, calls });
+                return;
+            }
             await Activate("Utilities Plan"); var floor = await Range();
             Program.Check("floor native four-plane oracle matches fixture", floor.CanEdit && floor.Settings.Top.OffsetFeet == 8 && floor.Settings.Cut.OffsetFeet == 4
                 && floor.Settings.Bottom.OffsetFeet == 0 && floor.Settings.Depth.OffsetFeet == -1 && floor.AssociatedLevelFeet == 0

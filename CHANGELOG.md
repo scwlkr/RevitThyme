@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Extend installed MCP utility qualification with 61 actual-Revit checks for cross-document capture refusals, retained refused-write recovery and range edits excluded from an assigned template. Explicitly select the view after document activation, preserve both disposable copies, and keep these results separate from the earlier 85 checks. Runtime and release assets are unchanged.
+
 - Add reproducible native utility qualification against the normal installed CLI/MCP with trusted C# disabled. Cover floor/RCP range edits, template refusal, invalid-order rollback, native room measurements, exact-view images, retained reconnect recovery and one native Undo. Preserve source-built qualification separately and correct its obsolete tool inventory; the unchanged v0.11.0 runtime passes 85 new external/native checks. No replacement release asset.
 
 ## 0.11.0 — 2026-10-21

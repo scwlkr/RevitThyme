@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory)][ValidateSet('start','ready','check','close')][string]$Action,
-    [string]$FixtureSource, [string]$RunFolder
+    [string]$FixtureSource, [string]$RunFolder, [switch]$TargetGuards
 )
 $ErrorActionPreference='Stop'
 $root=Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
@@ -40,6 +40,8 @@ if($process -and ($process.ProcessName -ne 'Revit' -or $process.StartTime.ToUniv
 if($Action -eq 'close' -and -not$process) {
     if(-not(Test-Path -LiteralPath (Join-Path $RunFolder 'close-request.json'))) { throw 'Process exited without a recorded normal close request; inspect its actual outcome.' }
     if((Hash $launch.fixture) -ne $launch.fixtureSha256) { throw 'Saved fixture changed; preserve it and investigate.' }
+    $other=Join-Path $RunFolder 'Other.rvt'
+    if((Test-Path -LiteralPath $other) -and (Hash $other) -ne $launch.fixtureSha256) { throw 'Saved second fixture changed; preserve it and investigate.' }
     foreach($prior in $launch.prior) {
         $p=Get-Process -Id $prior.pid -ErrorAction SilentlyContinue
         if(-not$p -or $p.StartTime.ToUniversalTime().Ticks.ToString() -ne $prior.start) { throw 'A pre-existing Revit process changed; record it separately.' }
@@ -58,6 +60,8 @@ if($binding.processId -ne $launch.pid -or $binding.processStart -ne $launch.star
 $context=& (Join-Path $launch.bundle 'cli\revitthyme.exe') inspect --session $files[0].FullName --json|ConvertFrom-Json
 if(-not$context.succeeded -or $context.snapshot.documentPath -ne $launch.fixture -or $context.snapshot.isWorkshared) { throw 'Expected exact disposable nonworkshared fixture; no model fallback.' }
 if((Hash $launch.fixture) -ne $launch.fixtureSha256) { throw 'Saved fixture changed; preserve it and investigate.' }
+$other=Join-Path $RunFolder 'Other.rvt'
+if((Test-Path -LiteralPath $other) -and (Hash $other) -ne $launch.fixtureSha256) { throw 'Saved second fixture changed; preserve it and investigate.' }
 if($Action -eq 'ready') {
     if($context.snapshot.isModified) { throw 'Initial fixture must be unmodified.' }
     $input=$launch|ConvertTo-Json -Depth 8|ConvertFrom-Json -AsHashtable; $input.session=$files[0].FullName
@@ -65,7 +69,8 @@ if($Action -eq 'ready') {
     @{ready=$true;folder=$RunFolder;pid=$process.Id}|ConvertTo-Json; return
 }
 if($Action -eq 'check') {
-    dotnet run --project (Join-Path $root 'tests\Mcp\RevitThyme.McpTests.csproj') -c Release -- --utilities-installed $RunFolder
+    $mode=if($TargetGuards){'--utilities-targets-installed'}else{'--utilities-installed'}
+    dotnet run --project (Join-Path $root 'tests\Mcp\RevitThyme.McpTests.csproj') -c Release -- $mode $RunFolder
     if($LASTEXITCODE) { throw 'Installed utility qualification failed; retain this process and its evidence.' }; return
 }
 Save 'close-request.json' @{pid=$process.Id;start=$launch.start;activeModified=$context.snapshot.isModified;utc=[DateTime]::UtcNow}

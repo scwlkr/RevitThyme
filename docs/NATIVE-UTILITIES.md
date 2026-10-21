@@ -39,6 +39,8 @@ Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JS
 
 The [installed-host client](../tests/UtilitiesInstalled/README.md) uses the immutable installed CLI/MCP executable and normal native host, with trusted execution disabled and no test loader or registration swap. It copies a known disposable utility fixture and verifies floor/RCP edits, template refusal, invalid-order rollback, native room dimensions, exact-view PNGs, reconnect recovery and one native Undo. The v0.11.0 run passed 85 external/native checks; [verification](../verification/native-utilities.md#installed-v0110-follow-up--2026-10-21) retains its exact runtime and host attribution.
 
+A separate `-TargetGuards` run passed 61 external/native checks against the same installed runtime: captures from one document refuse utility reads/writes after switching to an identical copied model, and range edits work when the assigned template excludes View Range. After document activation, inspect fresh context and explicitly activate the required view; Revit can select the document's default view. [Target qualification](../verification/native-utilities.md#installed-target-and-template-follow-up--2026-10-21) records native readback, recovery and preservation separately.
+
 The earlier source-built ribbon/WPF qualification remains available separately:
 
 ```powershell

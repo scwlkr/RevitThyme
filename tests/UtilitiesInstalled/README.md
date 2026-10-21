@@ -32,3 +32,9 @@ pwsh -NoProfile -File tests/UtilitiesInstalled/run.ps1 -Action close -RunFolder 
 ```
 
 Close submits one normal request and never repeats it while outstanding or terminates Revit. After process exit, it verifies source/copy/registration hashes and the pre-existing process identities. All models, PNGs, requests and failed attempts remain private under `artifacts/utilities-installed`. No cleanup deletes their evidence.
+
+## Document targets and excluded template ranges
+
+Use a **fresh start/ready run**, then `-Action check -TargetGuards -RunFolder $run` for the separate target qualification. It copies `Other.rvt` inside the owned run and opens/activates it through typed MCP lifecycle operations. Although copied element UniqueIds match, native document identities must differ. A capture from the first document must refuse range reads/writes and room preview/create in the second. Native snapshots, four range planes, dimension inventory and saved hashes verify that refusals made no changes. Reconnecting recovers the original refused write; the client explicitly returns to the first document and closes the clean second copy.
+
+This mode pauses at `template-exclude-ready.json`. In that exact owned Revit copy, edit the assigned view template and uncheck **Include** for **View Range**, then accept the dialog and write `$run\template-excluded.json` to acknowledge the actual UI action. The client rejects the pre-UI capture, verifies fresh `CanEdit=true`, applies and reads back a 1/8-inch cut-plane change, restores all four planes, exports a verified PNG and writes `complete.json`. Template preparation is a separate deliberate UI edit; it does not use trusted C# or a callback. The changes remain unsaved. Close normally using the same preservation procedure above. Do not acknowledge the file until the native template change is complete.

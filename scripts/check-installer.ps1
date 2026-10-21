@@ -23,7 +23,7 @@ if ($PreviousPackageDirectory) {
 $registration = Join-Path $addins 'RevitThyme.Foundation.addin'
 Check 'registers the exact native assembly' (([xml](Get-Content $registration -Raw)).RevitAddIns.AddIn.Assembly -eq (Join-Path $first.installed 'RevitThyme.Addin.dll'))
 $packageManifest = Get-Content -LiteralPath (Join-Path $PackageDirectory 'manifest.json') -Raw | ConvertFrom-Json
-if ($packageManifest.version -in @('0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5')) {
+if ($packageManifest.version -in @('0.9.0-agent','0.9.1-cli','0.9.2-ribbon','0.9.3-identity','0.10.0-timberfold.1','0.10.0-timberfold.2','0.10.0-timberfold.3','0.10.0-timberfold.4','0.10.0-image-export.1','0.10.0-lifecycle.1','0.10.0-lifecycle.2','0.10.0-lifecycle.3','0.10.0-lifecycle.4','0.10.0-lifecycle.5','0.11.0-mcp.1')) {
     $runtimeVersion = & (Join-Path $first.installed 'codex\codex.exe') --version
     Check 'installed official Codex runtime launches at pinned version' ($LASTEXITCODE -eq 0 -and $runtimeVersion -eq 'codex-cli 0.162.1')
     Check 'Agent client and ordinary bundled skills installed' ((Test-Path (Join-Path $first.installed 'RevitThyme.Codex.dll')) -and (Test-Path (Join-Path $first.installed 'skills\edit-revit\SKILL.md')))

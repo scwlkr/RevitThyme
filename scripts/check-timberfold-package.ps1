@@ -18,7 +18,7 @@ function Refused([scriptblock]$Body, [string]$Pattern) {
     try { $null = & $Body } catch { $failure = $_.Exception.Message }
     if (-not $failure -or $failure -notmatch $Pattern) { throw "Expected refusal $Pattern; got: $failure" }
 }
-function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabrication, [switch]$CutFiles) {
+function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabrication, [switch]$CutFiles, [string]$ProductVersion='0.10.0') {
     $folder = Join-Path $run ([Guid]::NewGuid().ToString())
     New-Item -ItemType Directory -Path $folder | Out-Null
     # Nonexecutable payloads exercise the package boundary without installation or native execution.
@@ -40,11 +40,24 @@ function New-PackageFixture([string]$Version, [switch]$TimberFold, [switch]$Fabr
         [IO.File]::WriteAllText($path, 'Offline package validator fixture; not executable.')
         $hashes[$name] = (Get-FileHash -LiteralPath $path).Hash.ToLowerInvariant()
     }
-    @{version=$Version;product_version='0.10.0';revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$hashes} |
+    @{version=$Version;product_version=$ProductVersion;revit_year='2027';supported_revit_years=@('2027');codex_version='0.162.1';files=$hashes} |
         ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $folder 'manifest.json') -Encoding utf8
     return $folder
 }
 
+Check 'MCP release cohort keeps the complete native toolkit payload' {
+    $candidate = New-PackageFixture '0.11.0-mcp.1' -ProductVersion '0.11.0' -TimberFold -Fabrication -CutFiles
+    $null = Assert-FoundationPackage $candidate
+}
+Check 'MCP release cohort refuses a different product version' {
+    $candidate = New-PackageFixture '0.11.0-mcp.1' -TimberFold -Fabrication -CutFiles
+    Refused { Assert-FoundationPackage $candidate } 'product version'
+}
+Check 'MCP release cohort refuses a missing existing toolkit dependency' {
+    $candidate = New-PackageFixture '0.11.0-mcp.1' -ProductVersion '0.11.0' -TimberFold -Fabrication -CutFiles
+    Remove-Item -LiteralPath (Join-Path $candidate 'mcp/IxMilia.Dxf.dll')
+    Refused { Assert-FoundationPackage $candidate } 'Unexpected or missing'
+}
 Check 'native-kit candidate keeps the complete managed geometry and DXF payload' {
     $candidate = New-PackageFixture '0.10.0-timberfold.4' -TimberFold -Fabrication -CutFiles
     $manifest = Assert-FoundationPackage $candidate

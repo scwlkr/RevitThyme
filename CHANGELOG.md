@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.11.0 — release candidate (unreleased)
+
+- Prepare product 0.11.0 / package `0.11.0-mcp.1` for the reviewed MCP image, discovery and lifecycle operations, retaining protocol 13 and 32 tools. Require the complete toolkit payload and matching product identity, preserve earlier cohorts, and pin the optional draft workflow to the new source tag. Rebuilt-package, installer and native qualification precede publication; earlier native results retain their original provenance. Physical fabrication remains outstanding.
+
 - Extend electrical-lab qualification to a single 418-assertion external SDK invocation. Two real native-warning transport timeouts recover after continuous Pending polling of their original GUIDs, without restarting the client or replaying operations. Keep explicit warning intervention, historical acceptance, image-proof limits and last-active-close constraints visible in [verification](verification/electrical-lab.md).
 
 - Qualify the current electrical-lab edit/inspect/image/save/reopen loop through a real external MCP client against the unchanged installed host. Add fixture-specific original-request recovery and direct postcommit companion inspection, distinguishing 12 native additions from 11 collector-visible elements. Preserve the later source revision separately from outstanding historical Fine-detail acceptance; native warning intervention and image-evidence limits are recorded in [electrical-lab verification](verification/electrical-lab.md). No release or protocol change.

@@ -109,6 +109,10 @@ internal static class GenericContract
             Request(model, OperationKind.QueryElements) with { ParameterOffset = 1 }
         }) Reject(model, request, "invalid_request", "unused generic arguments reject before native operations");
         Reject(model, Request(model, OperationKind.QueryElements) with { Target = model.Target with { Revision = 0 }, Query = new(Limit: 0) }, "stale_target", "stale generic target precedes malformed query validation");
+        Program.Check("query diagnostic retains its exact public text", Execute(model,
+            Request(model, OperationKind.QueryElements) with { Query = new(Limit: 0) }).Message == "Use offset 0–1000000, limit 1–100 and a negative category ID.");
+        Program.Check("inspection diagnostic retains its exact public text", Execute(model,
+            Request(model, OperationKind.InspectElements) with { ElementIds = [] }).Message == "Use distinct native unique IDs; inspect 1–5, select 0–100.");
         model.ReadOnly = true;
         Reject(model, Request(model, OperationKind.SetParameters), "write_blocked", "write refusal precedes missing parameter batch validation");
     }

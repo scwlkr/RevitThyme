@@ -24,15 +24,7 @@ public static class CoverageCollection
         if (!(await Commands.Run(commands.Build, root, Path.Combine(logs, "build.txt"), commands.TimeoutSeconds)).Passed)
             throw new InvalidDataException("Coverage build failed: " + logs);
         var reports = new List<SnapshotFile>();
-        for (int i = 0; i < tests.Length; i++)
-        {
-            string report = Path.Combine(root, "target", "coverage", "csharp", run, "suite-" + i, "coverage.cobertura.xml");
-            string[] command = [collector, "collect", "-f", "cobertura", "-o", report, "--", .. tests[i]];
-            var result = await Commands.Run(command, root, Path.Combine(logs, "suite-" + i + ".txt"), commands.TimeoutSeconds);
-            if (!result.Passed || !File.Exists(report)) throw new InvalidDataException("Coverage tests failed or produced no report: " + logs);
-            _ = Coverage.Load(root, report); // Reject empty or malformed evidence before issuing a receipt.
-            reports.Add(new(Path.GetRelativePath(root, report).Replace('\\', '/'), SourceSnapshot.HashFile(report)));
-        }
+        for (int i = 0; i < tests.Length; i++) reports.Add(await CollectReport(i));
         SourceSnapshot.Verify(root, sources);
         if (SourceSnapshot.Revision(root) != revision) throw new IOException("Git revision changed during coverage collection.");
         var receipt = new CoverageReceipt(Path.GetFullPath(root), revision, SourceSnapshot.Digest(sources),
@@ -40,6 +32,16 @@ public static class CoverageCollection
         Reports.Write(output, receipt);
         Validate(root, config, output);
         return receipt;
+
+        async Task<SnapshotFile> CollectReport(int i)
+        {
+            string report = Path.Combine(root, "target", "coverage", "csharp", run, "suite-" + i, "coverage.cobertura.xml");
+            string[] command = [collector, "collect", "-f", "cobertura", "-o", report, "--", .. tests[i]];
+            var result = await Commands.Run(command, root, Path.Combine(logs, "suite-" + i + ".txt"), commands.TimeoutSeconds);
+            if (!result.Passed || !File.Exists(report)) throw new InvalidDataException("Coverage tests failed or produced no report: " + logs);
+            _ = Coverage.Load(root, report); // Reject empty or malformed evidence before issuing a receipt.
+            return new(Path.GetRelativePath(root, report).Replace('\\', '/'), SourceSnapshot.HashFile(report));
+        }
     }
 
     public static CoverageReceipt Validate(string root, string config, string path)

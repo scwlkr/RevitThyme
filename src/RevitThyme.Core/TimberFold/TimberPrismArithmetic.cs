@@ -12,7 +12,7 @@ internal readonly struct TimberPrismRational : IComparable<TimberPrismRational>,
     internal TimberPrismRational(BigInteger numerator, BigInteger divisor)
     {
         if (divisor.IsZero) throw new TimberPrismUnresolved("degenerate_geometry", "Exact geometry produced a zero divisor.");
-        if (divisor.Sign < 0) { numerator = -numerator; divisor = -divisor; }
+        if (divisor.Sign == -1) { numerator = -numerator; divisor = -divisor; }
         var common = BigInteger.GreatestCommonDivisor(BigInteger.Abs(numerator), divisor);
         Numerator = numerator / common; denominator = divisor / common;
         if (BigInteger.Abs(Numerator).GetBitLength() > 8192 || denominator.GetBitLength() > 8192)
@@ -26,9 +26,10 @@ internal readonly struct TimberPrismRational : IComparable<TimberPrismRational>,
         long mantissa = bits & 0x000fffffffffffffL;
         int exponent = (int)((bits >> 52) & 0x7ff);
         if (exponent != 0) mantissa |= 1L << 52;
-        int power = exponent == 0 ? -1074 : exponent - 1075;
-        BigInteger numerator = bits < 0 ? -new BigInteger(mantissa) : new BigInteger(mantissa);
-        return power >= 0 ? new(numerator << power, 1) : new(numerator, BigInteger.One << -power);
+        // The 1e12 input bound is below 2^40, so the denominator exponent is always positive.
+        int denominatorPower = exponent == 0 ? 1074 : 1075 - exponent;
+        BigInteger numerator = (bits & long.MinValue) != 0 ? -new BigInteger(mantissa) : new BigInteger(mantissa);
+        return new(numerator, BigInteger.One << denominatorPower);
     }
     internal double Approximate()
     {

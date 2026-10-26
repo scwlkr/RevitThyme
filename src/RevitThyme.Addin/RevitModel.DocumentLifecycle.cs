@@ -1,105 +1,51 @@
-using System.IO;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
 public sealed partial class RevitModel
 {
-    public DocumentLifecycleResult ChangeDocument(OperationKind operation, DocumentLifecycleRequest options)
+    public DocumentLifecycleResult ChangeDocument(OperationKind operation, DocumentLifecycleRequest options) =>
+        new DocumentLifecycleCoordinator(new LifecycleRuntime(app, host)).ChangeDocument(operation, options);
+
+    private sealed class LifecycleRuntime(UIApplication application, FoundationApplication owner) : IDocumentLifecycleRuntime
     {
-        host.AssertLifecyclePath(options.Path);
-        // File/UI lifecycle must never run inside the query/modify transaction.
-        if (app.ActiveUIDocument?.Document is { } active && (active.IsModifiable || active.IsReadOnly || active.IsFamilyDocument || active.IsWorkshared))
-            throw new OperationException("lifecycle_blocked", "Use an editable local nonworkshared project outside a transaction.");
-        NativeLifecycleFiles.AssertLocal(options.Path);
-        string beforeHash = NativeLifecycleFiles.Hash(options.Path);
-        if (options.ExpectedSha256 is { } expected && !beforeHash.Equals(expected, StringComparison.OrdinalIgnoreCase))
-            throw new OperationException("file_changed", "Saved file SHA-256 differs from the expected value. Nothing was opened or saved.");
-        var document = app.Application.Documents.Cast<Document>().SingleOrDefault(d => string.Equals(d.PathName, options.Path, StringComparison.OrdinalIgnoreCase));
-        if (operation != OperationKind.OpenDocument && (document is null || host.DocumentId(document) != options.DocumentId))
-            throw new OperationException("wrong_document", "The exact document ID/path is not open in this session.");
-        if (document is not null && (document.IsLinked || document.IsFamilyDocument || document.IsWorkshared || document.IsReadOnly || document.IsModifiable))
-            throw new OperationException("lifecycle_blocked", "Linked, family, workshared, read-only or modifiable documents are outside this scope.");
-        if (operation == OperationKind.SaveDocument && document!.IsReadOnlyFile)
-            throw new OperationException("read_only_file", "This document was opened from a read-only file. Nothing was saved. Saving to another path requires SaveAs, which is outside this operation's scope.");
-        if (operation == OperationKind.OpenDocument)
-        {
-            using var info = BasicFileInfo.Extract(options.Path);
-            if (info.IsWorkshared || info.Format != "2027") throw new OperationException("unsupported_document", "Open only an existing Revit 2027 nonworkshared RVT; no upgrade or detach.");
-            if (document?.IsModified == true) throw new OperationException("document_dirty", "This path is already open with unsaved changes. Inspect its native identity instead.");
-        }
-        Document? nextDocument = null; string? nextView = null;
-        if (operation == OperationKind.CloseDocument)
-        {
-            if (document!.IsModified) throw new OperationException("document_dirty", "Close refuses unsaved changes. Save explicitly first; no implicit discard.");
-            if (document.Equals(app.ActiveUIDocument?.Document) && options.ActivateBeforeClose is null)
-                throw new OperationException("close_blocked", "Active close requires an explicit different already-open clean document to activate first. Nothing was closed.");
-            if (options.ActivateBeforeClose is { } next)
-            {
-                host.AssertLifecyclePath(next.Path); NativeLifecycleFiles.AssertLocal(next.Path);
-                nextDocument = app.Application.Documents.Cast<Document>().SingleOrDefault(d => string.Equals(d.PathName, next.Path, StringComparison.OrdinalIgnoreCase));
-                if (nextDocument is null || host.DocumentId(nextDocument) != next.DocumentId)
-                    throw new OperationException("wrong_document", "The exact activation document ID/path is not open in this session.");
-                AssertCleanCloseDocument(nextDocument, next.Path, next.DocumentId, next.ExpectedSha256);
-            }
-        }
-        bool performed = false;
-        try
-        {
-            if (operation == OperationKind.CloseDocument)
-            {
-                string id = host.DocumentId(document!), title = document!.Title;
-                if (nextDocument is not null)
-                {
-                    if (!app.OpenAndActivateDocument(options.ActivateBeforeClose!.Path).Document.Equals(nextDocument))
-                        throw new InvalidDataException("Activated a different native document.");
-                    // Background-only documents can have no ActiveView until first UI activation.
-                    nextView = nextDocument.ActiveView.UniqueId;
-                    // Activation can invoke other add-ins. Revalidate both documents before the direct close.
-                    AssertCleanCloseDocument(document, options.Path, id, beforeHash);
-                    VerifyCloseActivation(nextDocument, options.ActivateBeforeClose, nextView!);
-                }
-                if (!document.Close(false) || app.Application.Documents.Cast<Document>().Any(d => host.DocumentId(d) == id)
-                    || NativeLifecycleFiles.Hash(options.Path) != beforeHash) throw new InvalidDataException("Native close did not verify.");
-                if (nextDocument is not null) VerifyCloseActivation(nextDocument, options.ActivateBeforeClose!, nextView!);
-                return new(id, options.Path, title, false, false, beforeHash, true);
-            }
-            if (operation == OperationKind.OpenDocument && document is null)
-            { performed = true; document = app.Application.OpenDocumentFile(options.Path); }
-            else if (operation == OperationKind.ActivateDocument && !document!.Equals(app.ActiveUIDocument?.Document))
-            {
-                performed = true;
-                if (!app.OpenAndActivateDocument(options.Path).Document.Equals(document)) throw new InvalidDataException("Activated a different native document.");
-            }
-            else if (operation == OperationKind.SaveDocument)
-            {
-                if (!document!.Equals(Document)) throw new InvalidDataException("Save target is no longer active.");
-                if (document.IsModified) { performed = true; document.Save(); }
-            }
-            if (document is null || !document.IsValidObject || document.IsWorkshared || document.IsFamilyDocument || document.IsLinked
-                || !string.Equals(document.PathName, options.Path, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Native document identity changed.");
-            string hash = NativeLifecycleFiles.Hash(options.Path);
-            if (operation != OperationKind.SaveDocument && hash != beforeHash) throw new InvalidDataException("Open/activation changed the saved file.");
-            return new(host.DocumentId(document), document.PathName, document.Title, document.Equals(app.ActiveUIDocument?.Document), document.IsModified, hash, performed);
-        }
-        catch (Exception)
-        { throw new OperationException("lifecycle_unconfirmed", "Native lifecycle call or completion verification failed. It may have opened, activated, saved or closed the file. Recover this request and inspect native state; no automatic restoration or retry."); }
+        public ILifecycleDocument? ActiveDocument => Wrap(application.ActiveUIDocument?.Document);
+        public IEnumerable<ILifecycleDocument> Documents => application.Application.Documents.Cast<Document>().Select(d => new LifecycleDocument(d, owner));
+        public void AssertPath(string path) => owner.AssertLifecyclePath(path);
+        public void AssertLocalFile(string path) => NativeLifecycleFiles.AssertLocal(path);
+        public string Hash(string path) => NativeLifecycleFiles.Hash(path);
+        public ILifecycleFileInfo ReadFileInfo(string path) => new LifecycleFileInfo(BasicFileInfo.Extract(path));
+        public ILifecycleDocument? Open(string path) => Wrap(application.Application.OpenDocumentFile(path));
+        public ILifecycleDocument Activate(string path) => new LifecycleDocument(application.OpenAndActivateDocument(path).Document, owner);
+        private ILifecycleDocument? Wrap(Document? document) => document is null ? null : new LifecycleDocument(document, owner);
     }
-    private void VerifyCloseActivation(Document document, CloseActivationTarget target, string viewId)
+
+    private sealed class LifecycleFileInfo(BasicFileInfo info) : ILifecycleFileInfo
     {
-        AssertCleanCloseDocument(document, target.Path, target.DocumentId, target.ExpectedSha256);
-        if (!document.Equals(app.ActiveUIDocument?.Document) || document.ActiveView.UniqueId != viewId)
-            throw new InvalidDataException("Close activation context changed.");
+        public bool IsWorkshared => info.IsWorkshared;
+        public string Format => info.Format;
+        public void Dispose() => info.Dispose();
     }
-    private void AssertCleanCloseDocument(Document document, string path, string id, string expectedHash)
+
+    private sealed class LifecycleDocument(Document document, FoundationApplication owner) : ILifecycleDocument
     {
-        if (!document.IsValidObject || host.DocumentId(document) != id || !string.Equals(document.PathName, path, StringComparison.OrdinalIgnoreCase)
-            || document.IsLinked || document.IsFamilyDocument || document.IsWorkshared || document.IsReadOnly || document.IsModifiable)
-            throw new OperationException("lifecycle_blocked", "Close requires exact editable nonworkshared local documents outside a transaction.");
-        if (document.IsModified) throw new OperationException("document_dirty", "Both close and activation documents must be clean; no implicit save or discard.");
-        NativeLifecycleFiles.AssertLocal(path);
-        if (!NativeLifecycleFiles.Hash(path).Equals(expectedHash, StringComparison.OrdinalIgnoreCase))
-            throw new OperationException("file_changed", "Saved file differs from the expected activation/close hash.");
+        private Document Native { get; } = document;
+        public string Id => owner.DocumentId(Native);
+        public string PathName => Native.PathName;
+        public string Title => Native.Title;
+        public string ActiveViewId => Native.ActiveView.UniqueId;
+        public bool IsValidObject => Native.IsValidObject;
+        public bool IsLinked => Native.IsLinked;
+        public bool IsFamilyDocument => Native.IsFamilyDocument;
+        public bool IsWorkshared => Native.IsWorkshared;
+        public bool IsReadOnly => Native.IsReadOnly;
+        public bool IsModifiable => Native.IsModifiable;
+        public bool IsReadOnlyFile => Native.IsReadOnlyFile;
+        public bool IsModified => Native.IsModified;
+        public bool Matches(ILifecycleDocument? other) => other is LifecycleDocument peer && Native.Equals(peer.Native);
+        public bool Close(bool saveModified) => Native.Close(saveModified);
+        public void Save() => Native.Save();
     }
 }

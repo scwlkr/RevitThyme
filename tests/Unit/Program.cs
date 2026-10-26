@@ -49,6 +49,7 @@ internal static class Program
         Sync(nameof(TimberRationalContracts), TimberRationalContracts.Run),
         Sync(nameof(TimberRoofExposureContract), TimberRoofExposureContract.Run),
         Sync(nameof(NativeLifecycleFilesChecks), NativeLifecycleFilesChecks.Run),
+        Sync(nameof(LifecycleCoordination), LifecycleCoordination.Run),
     ];
 
     private static Suite Sync(string name, Action<Action<string, bool>> run) => new(name, () =>

@@ -84,6 +84,39 @@ internal static class SavedToolIntegration
                 "--capture", capture, "--request-id", requestId, "--trusted", "true", "--json"];
             Check("CLI invokes exact captured trusted query", await RevitThyme.Cli.Program.RunAsync(run, output, error, _ => native) == 0
                 && native.Last is { Operation: OperationKind.RunQuery, Code.Trusted: true } && native.Last.Id.ToString() == requestId && native.Last.Code.Source == bound);
+            foreach (var (arguments, message) in new[]
+            {
+                (new[] { "tool" }, "Use tool save, show, run or verify. See --help."),
+                (new[] { "tool", "unknown" }, "Use tool save, show, run or verify. See --help."),
+                (new[] { "tool", "save", "--capture", capture }, "Unknown/repeated option: --capture"),
+                (new[] { "tool", "show", "--inputs", inputFile }, "Unknown/repeated option: --inputs"),
+                (new[] { "tool", "run", "--json", "--json" }, "Unknown/repeated option: --json"),
+                (new[] { "tool", "show", "--id" }, "Missing value: --id"),
+                (new[] { "tool", "show" }, "Required: --id"),
+                (new[] { "tool", "save", "--id", cliId, "--definition", "relative.json" }, "Use absolute JSON paths."),
+            })
+            {
+                bool rejected = false;
+                try { await RevitThyme.Cli.Program.RunAsync(arguments, output, error, _ => throw new InvalidOperationException("Transport constructed before validation")); }
+                catch (ArgumentException exception) { rejected = exception.Message == message; }
+                Check("CLI preserves validation message and order: " + message, rejected);
+            }
+            foreach (var (changedCapture, message) in new[]
+            {
+                (native.Inspection() with { Outcome = Outcome.Rejected }, "unsuccessful capture"),
+                (native.Inspection() with { Snapshot = null }, "missing snapshot"),
+                (native.Inspection() with { Snapshot = native.Inspection().Snapshot! with { Target = native.Inspection().Snapshot!.Target with { ProcessId = binding.ProcessId + 1 } } }, "different process"),
+                (native.Inspection() with { Snapshot = native.Inspection().Snapshot! with { Target = native.Inspection().Snapshot!.Target with { ProcessStart = "other" } } }, "different process start"),
+                (native.Inspection() with { Snapshot = native.Inspection().Snapshot! with { Target = native.Inspection().Snapshot!.Target with { SessionId = Guid.NewGuid().ToString() } } }, "different session"),
+            })
+            {
+                File.WriteAllText(capture, JsonSerializer.Serialize(changedCapture, Protocol.Json));
+                bool rejected = false;
+                try { await RevitThyme.Cli.Program.RunAsync(run, output, error, _ => throw new InvalidOperationException("Transport constructed for invalid capture")); }
+                catch (ArgumentException exception) { rejected = exception.Message == "Successful inspection capture from this exact session required."; }
+                Check("CLI refuses " + message + " before transport", rejected);
+            }
+            File.WriteAllText(capture, JsonSerializer.Serialize(native.Inspection(), Protocol.Json));
             var connection = new RevitConnection(new(root, session), _ => native);
             var mcp = new RevitTools(connection); var context = await connection.Context(default);
             var invoked = await mcp.RunTool(context.CaptureId, Guid.NewGuid().ToString(), id, saved.Digest, inputs, true);

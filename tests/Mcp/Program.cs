@@ -46,6 +46,7 @@ internal static class Program
             else if (args is ["--packaged-stdio", var bundle, var manifestSha256, var evidence]) await PackagedStdio.Run(bundle, manifestSha256, evidence);
             else if (args is ["--parameter-identity-live", var identityFolder, var identityStage]) await ParameterIdentityLive.Run(identityFolder, identityStage);
             else if (args is ["--generic-unit"]) { Console.WriteLine("Selected generic operation checks."); GenericContract.Run(); await Generic(); await ParameterIdentity.Run(); }
+            else if (args is ["--saved-tool-unit"]) { await SavedToolIntegration.Run(); await ResultCheckIntegration.Run(); }
             else { GenericContract.Run(); await Generic(); await ParameterIdentity.Run(); await ImageExportReplies.Run(); await TimberFoldRuns.Run(); await SavedToolIntegration.Run(); await ResultCheckIntegration.Run(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }

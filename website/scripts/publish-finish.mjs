@@ -79,34 +79,7 @@ export function finish(
   state.phase = 'baseline-pr';
   saveRun(state);
   const baseline = state.baseline;
-  if (!fs.existsSync(baseline.checkout))
-    gitCommand(['worktree', 'add', '-b', baseline.branch, baseline.checkout, baseline.base]);
-  assert.equal(gitCommand(['branch', '--show-current'], baseline.checkout), baseline.branch);
-  fs.copyFileSync(candidateFile, path.join(baseline.checkout, '.github/website-publication.json'));
-  assert.equal(
-    canonical(readJson(path.join(baseline.checkout, '.github/website-publication.json'))),
-    canonical(record),
-  );
-  const changed = gitCommand(['status', '--porcelain'], baseline.checkout);
-  if (changed) {
-    assert.equal(
-      changed.trim(),
-      'M .github/website-publication.json',
-      'Baseline checkout contains unrelated edits',
-    );
-    gitCommand(['add', '.github/website-publication.json'], baseline.checkout);
-    gitCommand(
-      ['commit', '-m', `Record approved website version ${state.saved.number}`],
-      baseline.checkout,
-    );
-  }
-  assert.equal(
-    gitCommand(['diff', '--name-only', baseline.base, 'HEAD'], baseline.checkout),
-    '.github/website-publication.json',
-    'Baseline PR must change exactly one file',
-  );
-  baseline.head = gitCommand(['rev-parse', 'HEAD'], baseline.checkout);
-  saveRun(state);
+  prepareBaselineCheckout(state, record, candidateFile, gitCommand);
   gitCommand(['push', '-u', 'origin', baseline.branch], baseline.checkout);
   ensureBaselinePullRequest(state, record, ghCommand);
   if (mergedReceipt()) return;
@@ -195,5 +168,37 @@ function ensureBaselinePullRequest(state, record, ghCommand) {
       body,
     ]);
   }
+  saveRun(state);
+}
+
+function prepareBaselineCheckout(state, record, candidateFile, gitCommand) {
+  const baseline = state.baseline;
+  if (!fs.existsSync(baseline.checkout))
+    gitCommand(['worktree', 'add', '-b', baseline.branch, baseline.checkout, baseline.base]);
+  assert.equal(gitCommand(['branch', '--show-current'], baseline.checkout), baseline.branch);
+  fs.copyFileSync(candidateFile, path.join(baseline.checkout, '.github/website-publication.json'));
+  assert.equal(
+    canonical(readJson(path.join(baseline.checkout, '.github/website-publication.json'))),
+    canonical(record),
+  );
+  const changed = gitCommand(['status', '--porcelain'], baseline.checkout);
+  if (changed) {
+    assert.equal(
+      changed.trim(),
+      'M .github/website-publication.json',
+      'Baseline checkout contains unrelated edits',
+    );
+    gitCommand(['add', '.github/website-publication.json'], baseline.checkout);
+    gitCommand(
+      ['commit', '-m', `Record approved website version ${state.saved.number}`],
+      baseline.checkout,
+    );
+  }
+  assert.equal(
+    gitCommand(['diff', '--name-only', baseline.base, 'HEAD'], baseline.checkout),
+    '.github/website-publication.json',
+    'Baseline PR must change exactly one file',
+  );
+  baseline.head = gitCommand(['rev-parse', 'HEAD'], baseline.checkout);
   saveRun(state);
 }

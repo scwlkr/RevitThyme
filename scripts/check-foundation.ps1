@@ -21,6 +21,8 @@ dotnet run --project (Join-Path $root 'tests\Mcp') -c Release --no-build | Tee-O
 if ($LASTEXITCODE) { throw 'MCP protocol and operation checks failed.' }
 dotnet run --project (Join-Path $root 'tests\Agent') -c Release --no-build | Tee-Object -FilePath (Join-Path $report 'agent.txt')
 if ($LASTEXITCODE) { throw 'Agent protocol and lifecycle checks failed.' }
+dotnet run --project (Join-Path $root 'tests\Quality') -c Release --no-build | Tee-Object -FilePath (Join-Path $report 'quality.txt')
+if ($LASTEXITCODE) { throw 'C# quality tool checks failed.' }
 if (-not $Portable) {
     dotnet run --project (Join-Path $root 'tests\UI\RevitThyme.UiTests.csproj') -c Release --nologo | Tee-Object -FilePath (Join-Path $report 'ui.txt')
     if ($LASTEXITCODE) { throw 'Native window behavior checks failed.' }

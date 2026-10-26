@@ -1,5 +1,7 @@
 # Keep Revit open during development
 
+For source refactoring, use the [C# quality workflow](QUALITY.md) alongside the normal project checks. Its offline evidence complements the isolated Revit checks described here.
+
 Use one signed RevitThyme installation and a separate Revit process for trusted C# development. Edit and rerun `.csx` method bodies in that process without reinstalling the toolkit. Changes to compiled host assemblies, startup registration, the ribbon or bundled dependencies still require a normal restart and installation.
 
 The development launcher uses the installed host. It never swaps add-in registrations. It copies a known disposable, nonworkshared `.rvt` into a new run folder, enables trusted execution only in the child process and pins requests to that run's process, session and document. Normal Revit launches retain their existing environment and models.

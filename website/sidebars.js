@@ -14,6 +14,7 @@ module.exports = {
       'CONTRIBUTING',
       'docs/ARCHITECTURE',
       'docs/DEVELOPMENT',
+      'docs/QUALITY',
       'docs/RIBBON',
       'docs/WEBSITE',
       'docs/ROADMAP',

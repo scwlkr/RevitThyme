@@ -9,7 +9,9 @@
       "src\\RevitThyme.Mcp\\RevitThyme.Mcp.csproj",
       "tests\\Unit\\RevitThyme.Unit.csproj",
       "tests\\Mcp\\RevitThyme.McpTests.csproj",
-      "tests\\Agent\\RevitThyme.AgentTests.csproj"
+      "tests\\Agent\\RevitThyme.AgentTests.csproj",
+      "tools\\Quality\\RevitThyme.Quality.csproj",
+      "tests\\Quality\\RevitThyme.QualityTests.csproj"
     ]
   }
 }

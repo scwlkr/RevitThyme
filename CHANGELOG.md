@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add reproducible C# complexity, duplication and mutation checks, with pinned tooling, isolated mutation workers and coverage receipts bound to tested source. See the developer quality workflow; native Revit qualification remains separate.
+
 - Add reproducible native utility qualification against the normal installed CLI/MCP with trusted C# disabled. Cover floor/RCP range edits, template refusal, invalid-order rollback, native room measurements, exact-view images, retained reconnect recovery and one native Undo. Preserve source-built qualification separately and correct its obsolete tool inventory; the unchanged v0.11.0 runtime passes 85 new external/native checks. No replacement release asset.
 
 ## 0.13.0 — Workflow Result Checks — 2026-10-21

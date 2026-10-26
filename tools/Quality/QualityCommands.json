@@ -1,0 +1,11 @@
+{
+  "build": ["dotnet", "build", "RevitThyme.sln", "-c", "Release", "--nologo", "-p:RestoreLockedMode=true", "-p:UseSharedCompilation=false", "-nr:false"],
+  "tests": [
+    ["dotnet", "tests/Unit/bin/Release/net10.0/RevitThyme.Unit.dll"],
+    ["dotnet", "tests/Mcp/bin/Release/net10.0/RevitThyme.McpTests.dll"],
+    ["dotnet", "tests/Agent/bin/Release/net10.0/RevitThyme.AgentTests.dll"],
+    ["dotnet", "tests/UI/bin/Release/net10.0-windows/RevitThyme.UiTests.dll"]
+  ],
+  "toolTests": [["dotnet", "tests/Quality/bin/Release/net10.0/RevitThyme.QualityTests.dll"]],
+  "timeoutSeconds": 180
+}

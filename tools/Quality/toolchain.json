@@ -1,0 +1,7 @@
+{
+  "crapperRepository": "https://github.com/scwlkr/crapper",
+  "crapperRevision": "f3a8b0ade9dcf6db1228ee3e2705b117d6b0778a",
+  "treeSitter": "0.26.0",
+  "treeSitterLanguagePack": "1.22.1",
+  "dotnetCoverage": "18.12.0"
+}

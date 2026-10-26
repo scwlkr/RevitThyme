@@ -16,6 +16,9 @@ obj/
 node_modules/
 
 # Generated or private project data
+/.metrics/
+/coverage/
+/TestResults/
 /runs/
 /artifacts/
 /logs/

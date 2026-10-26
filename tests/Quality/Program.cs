@@ -34,6 +34,12 @@ Check("constructor initializer decisions belong to their constructor", initializ
 var sites = MutationSites.Find("class C { bool F(int n) => n > 0 && true; string G() => \"n > 0 && true\"; }", "src/C.cs");
 Check("mutator finds syntax operators and booleans, never string content", sites.Count == 4 && sites.All(s => s.UnitName == "C.F"));
 Check("mutation replaces exactly one source span", sites.Count(s => s.Apply().Contains("n >= 0", StringComparison.Ordinal)) == 1);
+var patterns = MutationSites.Find("class C { bool F(int n) => n is >= 0 and <= 10; }", "src/C.cs");
+Check("C# relational and logical patterns are mutation sites", patterns.Count == 4 && patterns.Any(s => s.Original == "and" && s.Replacement == "or"));
+var negation = MutationSites.Find("class C { bool F(bool value) => !value; }", "src/C.cs");
+Check("logical negation can be removed without changing its operand", negation is [{ Original: "!", Replacement: "" }] && negation[0].Apply().Contains("=> value;", StringComparison.Ordinal));
+var notPattern = MutationSites.Find("class C { bool F(string? value) => value is not null; }", "src/C.cs");
+Check("not patterns are inverted at their syntax token", notPattern is [{ Original: "not", Replacement: "" }] && notPattern[0].Apply().Contains("is  null", StringComparison.Ordinal));
 Check("CRAP formula uses measured fractional coverage", Math.Abs(Complexity.Crap(4, .5) - 6) < 1e-9);
 Check("full coverage does not hide complexity", Complexity.Crap(10, 1) == 10);
 Check("uncovered code retains risk", Complexity.Crap(4, 0) == 20);

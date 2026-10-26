@@ -1,0 +1,9 @@
+{
+  "build": ["dotnet", "build", "tests/Unit/RevitThyme.Unit.csproj", "-c", "Release", "--nologo", "-p:RestoreLockedMode=true", "-p:UseSharedCompilation=false", "-nr:false"],
+  "tests": [
+    ["dotnet", "tests/Unit/bin/Release/net10.0/RevitThyme.Unit.dll", "--suite", "TimberRoofExposureContract"],
+    ["dotnet", "tests/Unit/bin/Release/net10.0/RevitThyme.Unit.dll", "--suite", "TimberFoldRoofs"],
+    ["dotnet", "tests/Unit/bin/Release/net10.0/RevitThyme.Unit.dll", "--suite", "TimberFoldGridPartition"]
+  ],
+  "timeoutSeconds": 180
+}

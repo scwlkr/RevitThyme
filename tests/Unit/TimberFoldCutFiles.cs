@@ -70,6 +70,39 @@ internal static class TimberFoldCutFiles
         DocumentCorrupt("reader rejects incomplete code pairs", text => text + "999\r\n", "Incomplete DXF code pair");
         DocumentCorrupt("reader rejects trailing payload after EOF", text => text + "0\r\nEXTRA\r\n", "Expected DXF SECTION");
         DocumentCorrupt("reader rejects unreviewed metadata dialects", text => text.Replace("$INSUNITS", "$UNREVIEWED\r\n1\r\npayload\r\n9\r\n$INSUNITS", StringComparison.Ordinal), "Unsupported DXF metadata dialect");
+        Corrupt("identity extrusion reaches the independent receipt check", "230", "1", "Staging receipt differs", append: true);
+        Corrupt("zero elevation reaches the independent receipt check", "38", "0", "Staging receipt differs", append: true);
+        DocumentCorrupt("reader rejects DEL inside the EOF marker at the structural boundary", text => text.Replace("EOF\r\n", "EOF\u007f\r\n", StringComparison.Ordinal), "DXF must end exactly at EOF");
+        DocumentCorrupt("reader rejects embedded NUL before parsing", text => "\0" + text, "Expected ASCII DXF");
+        DocumentCorrupt("reader rejects duplicate section names before insertion", text => text.Replace("CLASSES", "HEADER", StringComparison.Ordinal), "Invalid/duplicate DXF section");
+        DocumentCorrupt("reader rejects an unterminated final section", text => text.Remove(text.LastIndexOf("0\r\nENDSEC\r\n", StringComparison.Ordinal), "0\r\nENDSEC\r\n".Length), "Unterminated DXF section");
+        DocumentCorrupt("reader requires the final EOF marker", text => text.Replace("EOF\r\n", "NOEOF\r\n", StringComparison.Ordinal), "DXF must end exactly at EOF");
+        DocumentCorrupt("complete zero per-vertex widths reach the receipt check", text => text.Replace("LWPOLYLINE\r\n", "LWPOLYLINE\r\n" + string.Concat(Enumerable.Repeat("40\r\n0\r\n", 4)), StringComparison.Ordinal), "Staging receipt differs");
+        DocumentCorrupt("reader rejects unexpected class payload before hashing", text => text.Replace("CLASSES\r\n", "CLASSES\r\n0\r\nCLASS\r\n", StringComparison.Ordinal), "Unexpected object/class payload");
+        DocumentCorrupt("reader rejects entity fields before a record boundary", text =>
+        {
+            var lines = text.Split("\r\n");
+            lines[Array.IndexOf(lines, "LWPOLYLINE") - 1] = "5";
+            return string.Join("\r\n", lines);
+        }, "Invalid DXF record");
+        try
+        {
+            using (var oversized = new FileStream(saved, FileMode.Create, FileAccess.Write)) oversized.SetLength(64 * 1024 * 1024);
+            var limitRead = TimberCutFiles.Verify(directory, panels, stock, profile);
+            check("exactly 64 MiB reaches content validation", limitRead.Diagnostics.Any(d => d.Message.Contains("Expected ASCII DXF", StringComparison.Ordinal)));
+        }
+        finally { File.WriteAllBytes(saved, original); }
+        CalibrationVariants(directory, panels, stock, profile, check);
+        ToleranceBoundaries(directory + "-zero", panels, check);
+        var triangle = panels[0] with
+        {
+            RingsInches = [[new(0, 0), new(6, 0), new(6, 3)]],
+            Triangles = [new(new(0, 0), new(6, 0), new(6, 3))], AreaSquareInches = 9
+        };
+        var triangleStock = TimberStockLayout.Create([triangle], profile);
+        var triangleResult = TimberCutFiles.Stage(directory + "-triangle", [triangle], triangleStock, profile);
+        check("three-vertex physical contours remain valid", triangleResult.Staged &&
+            TimberCutFiles.Verify(directory + "-triangle", [triangle], triangleStock, profile).Staged);
         var diagonal = Encoding.ASCII.GetString(original).Split("\r\n");
         int diagonalStart = Array.IndexOf(diagonal, "LWPOLYLINE") + 1;
         for (int i = diagonalStart; i + 1 < diagonal.Length && diagonal[i].Trim() != "0"; i += 2)
@@ -168,6 +201,66 @@ internal static class TimberFoldCutFiles
         }
     }
 
+    private static void CalibrationVariants(string directory, TimberPanel[] panels, TimberStockPlan stock,
+        TimberFoldProfile profile, Action<string, bool> check)
+    {
+        string path = Path.Combine(directory, "CALIBRATION.dxf");
+        byte[] original = File.ReadAllBytes(path);
+        var baseline = Encoding.ASCII.GetString(original).Split("\r\n");
+        int start = Array.IndexOf(baseline, "LWPOLYLINE") + 1;
+        var xs = new List<int>(); var ys = new List<int>();
+        for (int i = start; i + 1 < baseline.Length && baseline[i].Trim() != "0"; i += 2)
+        {
+            if (baseline[i].Trim() == "10") xs.Add(i + 1);
+            if (baseline[i].Trim() == "20") ys.Add(i + 1);
+        }
+        for (int variant = 0; variant < 3; variant++)
+        {
+            var lines = baseline.ToArray();
+            void Move(int index, double delta) => lines[index] = (double.Parse(lines[index], CultureInfo.InvariantCulture) + delta).ToString("R", CultureInfo.InvariantCulture);
+            if (variant == 0) { Move(xs[0], -.000009); Move(xs[2], .000009); }
+            if (variant == 1) { Move(ys[0], -.000009); Move(ys[2], .000009); }
+            if (variant == 2)
+            {
+                Move(xs[0], -.00000499995); Move(xs[1], .00000499995);
+                Move(ys[0], -.0000086); Move(ys[1], .0000086);
+            }
+            try
+            {
+                File.WriteAllText(path, string.Join("\r\n", lines), Encoding.ASCII);
+                string diagnostic = variant == 2 ? "calibration edge" : "calibration dimensions";
+                var read = TimberCutFiles.Verify(directory, panels, stock, profile);
+                check("calibration independently measures shear/edge variant " + variant,
+                    !read.Staged && read.Diagnostics.Any(d => d.Message.Contains(diagnostic, StringComparison.Ordinal)));
+            }
+            finally { File.WriteAllBytes(path, original); }
+        }
+    }
+
+    private static void ToleranceBoundaries(string directory, TimberPanel[] panels, Action<string, bool> check)
+    {
+        var profile = new TimberFoldProfile(MarginInches: 0);
+        var stock = TimberStockLayout.Create(panels, profile);
+        check("zero-border fixture stages before tolerance checks", TimberCutFiles.Stage(directory, panels, stock, profile).Staged);
+        string path = Path.Combine(directory, "CUT-001.dxf");
+        byte[] original = File.ReadAllBytes(path);
+        for (int variant = 0; variant < 2; variant++)
+        {
+            var lines = Encoding.ASCII.GetString(original).Split("\r\n");
+            int start = variant == 0 ? Array.IndexOf(lines, "LWPOLYLINE") : Array.IndexOf(lines, "$EXTMIN");
+            for (int i = start + 1; i + 1 < lines.Length; i += 2)
+                if (lines[i].Trim() == "10") { lines[i + 1] = "0.00001"; break; }
+            try
+            {
+                File.WriteAllText(path, string.Join("\r\n", lines), Encoding.ASCII);
+                var read = TimberCutFiles.Verify(directory, panels, stock, profile);
+                check("inclusive physical tolerance reaches receipt validation: " + variant,
+                    !read.Staged && read.Diagnostics.Any(d => d.Message.Contains("Staging receipt differs", StringComparison.Ordinal)));
+            }
+            finally { File.WriteAllBytes(path, original); }
+        }
+    }
+
     private static double[] Coordinates(string[] lines)
     {
         var coordinates = new List<double>(); bool entities = false;
@@ -180,3 +273,4 @@ internal static class TimberFoldCutFiles
         return coordinates.ToArray();
     }
 }
+

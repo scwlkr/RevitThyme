@@ -46,14 +46,8 @@ internal sealed record TimberJointShadow(Paths64 Cuts, double ClearanceU, double
         }
         budget.Check();
         return new(Clipper.Union(cuts, FillRule.NonZero), gapU / TimberContours.Grid, gapV / TimberContours.Grid,
-            frame.ClearanceDepth.Approximate(), UpperDouble(gridExcess), UpperDouble(boxExpansion));
+            frame.ClearanceDepth.Approximate(), gridExcess.UpperApproximation(), boxExpansion.UpperApproximation());
     }
     private static Q GridArea(Path64 path) => new(BigInteger.CreateChecked(TimberContours.TwiceArea(path)),
         2 * BigInteger.Pow(10, 16));
-    private static double UpperDouble(Q area)
-    {
-        double value = area.Approximate();
-        while (Q.From(value) < area) value = Math.BitIncrement(value);
-        return value;
-    }
 }

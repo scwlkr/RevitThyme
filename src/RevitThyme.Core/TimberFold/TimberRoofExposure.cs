@@ -59,7 +59,7 @@ internal static class TimberRoofExposure
                 output[receiver.Id] = receiver with { RingsInches = Decode(after), Triangles = TimberTriangulation.Create(after).ToImmutableArray(), AreaSquareInches = TimberContours.Area(after) };
                 records.Add(new(receiver.Id, receiver.SourceId, receiver.FaceId, owners.ToImmutableArray(), receiver.AreaSquareInches,
                     TimberContours.Area(after), Decode(removed), TimberContours.Area(removed), measured.ToString(CultureInfo.InvariantCulture),
-                    (delta - measured).ToString(CultureInfo.InvariantCulture), UpperDouble(enclosureExcess)) { Refinement = partition.Refinement });
+                    (delta - measured).ToString(CultureInfo.InvariantCulture), enclosureExcess.UpperApproximation()) { Refinement = partition.Refinement });
             }
             catch (TimberPrismUnresolved error)
             {
@@ -73,10 +73,4 @@ internal static class TimberRoofExposure
     }
     private static Paths64 Encode(TimberPanel panel) => TimberContours.Encode(panel.RingsInches.Select(r => r.ToArray()).ToArray(), 0, 0, 1, true);
     private static ImmutableArray<ImmutableArray<TimberPoint2>> Decode(Paths64 paths) => TimberContours.Decode(paths).Select(r => r.ToImmutableArray()).ToImmutableArray();
-    private static double UpperDouble(Q area)
-    {
-        double value = area.Approximate();
-        while (Q.From(value) < area) value = Math.BitIncrement(value);
-        return value;
-    }
 }

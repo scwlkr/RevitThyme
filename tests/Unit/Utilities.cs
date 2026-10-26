@@ -57,6 +57,13 @@ internal static class Utilities
         check("room preview passes through an exact maximum-length native id", executor.Execute(model,
             new(Guid.NewGuid(), OperationKind.PreviewRoomDimensions, model.Target, ElementIds: [maximumId])).Outcome == Outcome.Inspected
             && model.PlannedRoomId == maximumId && model.Transactions == 0);
+        foreach (double boundary in new[] { .25, 20 })
+        {
+            var options = new RoomDimensionOptions(boundary, boundary);
+            check("room preview accepts exact inset and tag-clearance limits", executor.Execute(model,
+                new(Guid.NewGuid(), OperationKind.PreviewRoomDimensions, model.Target, ElementIds: ["room"], RoomOptions: options)).Outcome == Outcome.Inspected
+                && model.PlannedOptions == options && model.Transactions == 0);
+        }
         check("room preview leaves native model unchanged", executor.Execute(model, new(Guid.NewGuid(), OperationKind.PreviewRoomDimensions, model.Target, ElementIds: ["room"])).Outcome == Outcome.Inspected && model.Transactions == 0);
         check("room edit requires reviewed preview", executor.Execute(model, Room() with { RoomPreview = null }).Code == "stale_room");
         check("forged dimension references rejected", executor.Execute(model, Room() with { RoomPreview = model.Preview with { Fingerprint = "forged" } }).Code == "stale_room");
@@ -91,6 +98,7 @@ internal static class Utilities
         public bool Controlled { get; set; }
         public int Reads { get; private set; }
         public string? PlannedRoomId { get; private set; }
+        public RoomDimensionOptions? PlannedOptions { get; private set; }
         public int Transactions { get; set; }
         public long[] Existing { get; set; } = [];
         public List<long> Created { get; } = [];
@@ -100,7 +108,7 @@ internal static class Utilities
         public string ReadViewName() => "plan";
         public IChange BeginChange() => throw new NotSupportedException();
         public ViewRangeInfo ReadViewRange() { Reads++; return new(Fault == "readback" && changed ? Settings with { Cut = new("Current", 1) } : Settings, [], 0, !Controlled, "Template controls range."); }
-        public RoomDimensionPreview PlanRoomDimensions(string id, RoomDimensionOptions options) { Reads++; PlannedRoomId = id; return Preview; }
+        public RoomDimensionPreview PlanRoomDimensions(string id, RoomDimensionOptions options) { Reads++; PlannedRoomId = id; PlannedOptions = options; return Preview; }
         public IUtilityChange BeginUtilityChange(string label) => Fault == "begin" ? throw new InvalidOperationException() : new Change(this);
         public bool VerifyDimensions(long[] ids, RoomDimensionPreview preview) => ids.Length == 2 && Created.Count == 2;
         public bool ElementsAbsent(long[] ids) => ids.All(id => !Created.Contains(id));

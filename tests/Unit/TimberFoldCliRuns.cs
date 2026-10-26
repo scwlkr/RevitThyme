@@ -73,6 +73,10 @@ internal static class TimberFoldCliRuns
                     new[] { "preview", "--run-id", "bad" }, new[] { "status", "--run-id", Guid.Empty.ToString() },
                     new[] { "cancel" }, new[] { "status", "--run-id", runId.ToString(), "--profile", profileFile },
                     new[] { "generate", "--run-id", runId.ToString() },
+                    new[] { "generate", "--run-id", runId.ToString(), "--preview-run-id", Guid.Empty.ToString() },
+                    new[] { "generate", "--run-id", runId.ToString(), "--preview-run-id", "bad" },
+                    new[] { "reconcile", "--run-id", runId.ToString(), "--generation-run-id", Guid.Empty.ToString() },
+                    new[] { "reconcile", "--run-id", runId.ToString(), "--generation-run-id", "bad" },
                     new[] { "generate", "--run-id", runId.ToString(), "--preview-run-id", runId.ToString() },
                     new[] { "reconcile", "--run-id", runId.ToString() },
                     new[] { "reconcile", "--run-id", runId.ToString(), "--generation-run-id", runId.ToString() },
@@ -86,6 +90,17 @@ internal static class TimberFoldCliRuns
                 }
             }
             finally { File.Delete(profileFile); File.Delete(scopeFile); }
+            foreach (var (arguments, message) in new[]
+            {
+                (new[] { "timberfold", "inspect" }, "Required: --session"),
+                (new[] { "timberfold", "preview", "--run-id", runId.ToString(), "--session", session, "--bogus", "bad" }, "Unknown TimberFold preview option.")
+            })
+            {
+                int factories = 0; string? observed = null;
+                try { await RevitThyme.Cli.Program.RunAsync(arguments, new StringWriter(), new StringWriter(), _ => { factories++; return client; }); }
+                catch (ArgumentException exception) { observed = exception.Message; }
+                check("CLI rejection preserves the command-specific diagnostic", observed == message && factories == 0);
+            }
             await ReplyBoundaries(client, session, runId, generationId, check);
             await HumanRun(client, session, runId, check);
             await SettingsBoundaries(client, session, runId, Path.Combine(directory, "settings.json"), check);

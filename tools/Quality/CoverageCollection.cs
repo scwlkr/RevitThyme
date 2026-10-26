@@ -46,9 +46,7 @@ public static class CoverageCollection
     {
         var receipt = JsonSerializer.Deserialize<CoverageReceipt>(File.ReadAllText(path), Reports.Json)
             ?? throw new InvalidDataException("Coverage receipt is missing.");
-        if (!string.Equals(receipt.Root, Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
-            || receipt.Revision != SourceSnapshot.Revision(root) || receipt.CommandsDigest != SourceSnapshot.HashFile(config)
-            || receipt.SourceDigest != SourceSnapshot.Digest(receipt.Sources) || receipt.Reports.Length == 0)
+        if (!MatchesReceipt(root, config, receipt))
             throw new InvalidDataException("Coverage receipt does not match this source, revision and command configuration.");
         SourceSnapshot.Verify(root, receipt.Sources);
         var actual = ConventionalReports(root).Select(p => Path.GetRelativePath(root, p).Replace('\\', '/')).Order(StringComparer.Ordinal).ToArray();
@@ -59,6 +57,11 @@ public static class CoverageCollection
                 throw new InvalidDataException("Coverage report bytes changed; collect fresh evidence.");
         return receipt;
     }
+
+    private static bool MatchesReceipt(string root, string config, CoverageReceipt receipt) =>
+        string.Equals(receipt.Root, Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+        && receipt.Revision == SourceSnapshot.Revision(root) && receipt.CommandsDigest == SourceSnapshot.HashFile(config)
+        && receipt.SourceDigest == SourceSnapshot.Digest(receipt.Sources) && receipt.Reports.Length > 0;
 
     private static void ArchiveReports(string root, string run)
     {

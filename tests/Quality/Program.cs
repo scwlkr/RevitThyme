@@ -25,6 +25,10 @@ var renamed = SourceAnalysis.Parse("class D { int G(int value) => value + 42; }"
 Check("duplicate normalization ignores incidental names and literal values", Duplication.Similarity(straight[0], renamed[0]) == 1);
 var calls = SourceAnalysis.Parse("class C { int F(int n) => Read(n); int G(int n) => Write(n); }", "src/C.cs");
 Check("duplicate normalization preserves called method names", Duplication.Similarity(calls[0], calls[1]) < 1);
+var members = SourceAnalysis.Parse("class C { int F() => owner.Read(); int G() => owner.Write(); }", "src/C.cs");
+Check("duplicate normalization preserves member callees", Duplication.Similarity(members[0], members[1]) < 1);
+var conditionalCalls = SourceAnalysis.Parse("class C { int? F() => owner?.Read(); int? G() => owner?.Write(); }", "src/C.cs");
+Check("duplicate normalization preserves conditional member callees", Duplication.Similarity(conditionalCalls[0], conditionalCalls[1]) < 1);
 var generics = SourceAnalysis.Parse("class C { int F(int n) => Read<int>(n); int G(int n) => Write<int>(n); }", "src/C.cs");
 Check("duplicate normalization preserves generic callees", Duplication.Similarity(generics[0], generics[1]) < 1);
 var constructors = SourceAnalysis.Parse("class C { object F() => new First(); object G() => new Second(); }", "src/C.cs");
@@ -76,6 +80,7 @@ try
     Check("worker copy rejects paths outside its root", escaped);
 }
 finally { File.Delete(firstReport); File.Delete(secondReport); Directory.Delete(directory); }
+await CliIntegration.Run(Check);
 await MutationIntegration.Run(Check);
 Console.WriteLine($"Quality tool checks: {total - failures} passed, {failures} failed.");
 return failures == 0 ? 0 : 1;

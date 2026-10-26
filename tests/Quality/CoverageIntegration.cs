@@ -5,10 +5,14 @@ internal static class CoverageIntegration
     public static async Task Run(string root, string config, string collector, Action<string, bool> check)
     {
         string output = Path.Combine(root, "artifacts", "coverage-receipt.json");
-        var receipt = await CoverageCollection.Collect(root, config, collector, output);
+        int exit = await RevitThyme.Quality.Program.Main(["collect", "--root", root, "--config", config, "--collector", collector, "--report", output]);
+        var receipt = CoverageCollection.Validate(root, config, output);
         check("real collector receipts bind the tested source and reports", receipt.Reports.Length == 1
+            && exit == 0
             && receipt.SourceDigest == SourceSnapshot.Digest(receipt.Sources)
             && CoverageCollection.Validate(root, config, output).SourceDigest == receipt.SourceDigest);
+        check("CLI validates actual measured coverage receipts", await RevitThyme.Quality.Program.Main(
+            ["coverage-status", "--root", root, "--config", config, "--report", output]) == 0);
         string report = SourceSnapshot.Resolve(root, receipt.Reports[0].Path);
         byte[] bytes = File.ReadAllBytes(report);
         File.AppendAllText(report, " ");

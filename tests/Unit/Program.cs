@@ -45,6 +45,7 @@ internal static class Program
         Async(nameof(TimberFoldReconciliation), TimberFoldReconciliation.Run),
         Async("TimberFoldOperations.Cli", TimberFoldOperations.Cli),
         Async(nameof(TimberFoldCliRuns), TimberFoldCliRuns.Run),
+        Sync(nameof(TimberRationalRounding), TimberRationalRounding.Run),
     ];
 
     private static Suite Sync(string name, Action<Action<string, bool>> run) => new(name, () =>

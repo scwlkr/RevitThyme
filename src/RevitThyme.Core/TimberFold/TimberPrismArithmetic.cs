@@ -37,6 +37,12 @@ internal readonly struct TimberPrismRational : IComparable<TimberPrismRational>,
         int ns = (int)Math.Max(0, n.GetBitLength() - 53), ds = (int)Math.Max(0, d.GetBitLength() - 53);
         return Sign * Math.ScaleB((double)(n >> ns) / (double)(d >> ds), ns - ds);
     }
+    internal double UpperApproximation()
+    {
+        double value = Approximate();
+        while (From(value) < this) value = Math.BitIncrement(value);
+        return value;
+    }
     public int CompareTo(TimberPrismRational other) => (Numerator * other.Denominator).CompareTo(other.Numerator * Denominator);
     public bool Equals(TimberPrismRational other) => Numerator == other.Numerator && Denominator == other.Denominator;
     public override bool Equals(object? obj) => obj is TimberPrismRational other && Equals(other);

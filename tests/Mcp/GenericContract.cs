@@ -7,7 +7,7 @@ internal static class GenericContract
 {
     public static void Run()
     {
-        Queries(); Ids(); Edits(); Envelope();
+        Queries(); Ids(); Edits(); Envelope(); Budget(); StorageGuards();
     }
 
     private static OperationRequest Request(FakeGenericModel model, OperationKind operation) => new(Guid.NewGuid(), operation, model.Target);
@@ -25,8 +25,11 @@ internal static class GenericContract
         {
             var model = new FakeGenericModel();
             var result = Execute(model, Request(model, OperationKind.QueryElements) with { Query = query });
-            Program.Check("valid query boundaries reach the native query unchanged", result.Outcome == Outcome.Inspected && result.Elements?.Items.Length == 1 && model.LastQuery == query && model.Reads == 1);
+            Program.Check("valid query boundaries reach the native query unchanged", result.Outcome == Outcome.Inspected && result.Elements?.Items.Length == 1 && model.LastQuery == query && model.Reads == 1 && model.ViewQueries == 0);
         }
+        var views = new FakeGenericModel();
+        Program.Check("view queries use the native view enumeration contract", Execute(views,
+            Request(views, OperationKind.ListViews)).Outcome == Outcome.Inspected && views.ViewQueries == 1);
         foreach (var query in new[] { new ElementQuery(Offset: -1), new(Offset: 1000001), new(Limit: 0), new(Limit: 101),
             new(NameContains: new string('x', 201)), new(CategoryId: "0"), new(CategoryId: "1"), new(CategoryId: "not-an-id") })
         {
@@ -43,10 +46,11 @@ internal static class GenericContract
     private static void Ids()
     {
         foreach (int count in new[] { 1, 5 })
+        foreach (int offset in new[] { 0, 10000 })
         {
             var model = new FakeGenericModel(); var ids = Enumerable.Range(0, count).Select(i => "element-" + i).ToArray();
-            var result = Execute(model, Request(model, OperationKind.InspectElements) with { ElementIds = ids, ParameterOffset = 10000 });
-            Program.Check("inspection accepts inclusive item and parameter bounds", result.Details?.Length == count && model.LastParameterOffset == 10000 && model.Transactions == 0);
+            var result = Execute(model, Request(model, OperationKind.InspectElements) with { ElementIds = ids, ParameterOffset = offset });
+            Program.Check("inspection accepts inclusive item and parameter bounds", result.Details?.Length == count && model.LastParameterOffset == offset && model.Transactions == 0);
         }
         foreach (var ids in new string[]?[] { null, [], ["duplicate", "duplicate"], [""], [new string('x', 201)],
             Enumerable.Range(0, 6).Select(i => "element-" + i).ToArray(), JsonSerializer.Deserialize<string[]>("[null]") })
@@ -63,7 +67,7 @@ internal static class GenericContract
         {
             var model = new FakeGenericModel(); var ids = Enumerable.Range(0, count).Select(i => i == 0 ? new string('x', 200) : "element-" + i).ToArray();
             var result = Execute(model, Request(model, OperationKind.SetSelection) with { ElementIds = ids });
-            Program.Check("selection accepts clear and maximum native id boundaries", result.Outcome is Outcome.Applied or Outcome.Unchanged && model.Selection.SequenceEqual(ids) && model.Transactions == 0);
+            Program.Check("selection accepts clear and maximum native id boundaries", result.Outcome is Outcome.Applied or Outcome.Unchanged && model.Selection.SequenceEqual(ids) && model.Transactions == 0 && model.LastParameterOffset == 0);
         }
         var oversized = new FakeGenericModel();
         Reject(oversized, Request(oversized, OperationKind.SetSelection) with { ElementIds = Enumerable.Range(0, 101).Select(i => "element-" + i).ToArray() }, "invalid_elements", "selection rejects oversized lists before reading native selection");
@@ -71,6 +75,8 @@ internal static class GenericContract
 
     private static void Edits()
     {
+        var empty = new FakeGenericModel();
+        Reject(empty, Request(empty, OperationKind.SetParameters) with { Edits = [] }, "invalid_edits", "an empty parameter batch is rejected before native reads");
         foreach (var value in new[] { new ParameterValue("String", Text: new string('x', 512)), new("Integer", Integer: int.MinValue),
             new("Integer", Integer: int.MaxValue), new("Double", Number: -1000000) })
         {
@@ -102,6 +108,8 @@ internal static class GenericContract
         foreach (var request in new[]
         {
             Request(model, OperationKind.ListViews) with { Name = "unused" },
+            Request(model, OperationKind.ListViews) with { ExpectedName = "unused" },
+            Request(model, OperationKind.ListViews) with { OperationId = Guid.NewGuid() },
             Request(model, OperationKind.GetSelection) with { Query = new() },
             Request(model, OperationKind.QueryElements) with { ElementIds = [] },
             Request(model, OperationKind.SetSelection) with { Query = new(), ElementIds = [] },
@@ -115,5 +123,45 @@ internal static class GenericContract
             Request(model, OperationKind.InspectElements) with { ElementIds = [] }).Message == "Use distinct native unique IDs; inspect 1–5, select 0–100.");
         model.ReadOnly = true;
         Reject(model, Request(model, OperationKind.SetParameters), "write_blocked", "write refusal precedes missing parameter batch validation");
+    }
+
+    private static void Budget()
+    {
+        var model = new FakeGenericModel();
+        string maximumId = new('e', 200);
+        var edits = Enumerable.Range(1, 20).Select(i =>
+        {
+            string id = i.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            model.Values[id] = new("String", Text: "");
+            return new ParameterEdit(maximumId, id, model.Values[id], model.Values[id]);
+        }).ToArray();
+        int budget = Protocol.MaxOperationBytes / 2;
+        int remaining = budget - JsonSerializer.SerializeToUtf8Bytes(edits, Protocol.Json).Length;
+        for (int i = 0; i < edits.Length; i++)
+        {
+            int escaped = Math.Min(512, remaining / 6);
+            int ascii = Math.Min(512 - escaped, remaining - escaped * 6);
+            edits[i] = edits[i] with { Value = new("String", Text: new string('\u2603', escaped) + new string('x', ascii)) };
+            remaining -= escaped * 6 + ascii;
+        }
+        Program.Check("escaped parameter fixture reaches the exact public byte budget", remaining == 0
+            && JsonSerializer.SerializeToUtf8Bytes(edits, Protocol.Json).Length == budget);
+        var result = Execute(model, Request(model, OperationKind.SetParameters) with { Edits = edits });
+        Program.Check("exact byte budget and maximum native ids are accepted", result.Outcome == Outcome.Applied && model.Transactions == 1
+            && result.ParameterChanges is { Length: 20 } && result.ParameterChanges.All(e => e.ElementId == maximumId));
+    }
+
+    private static void StorageGuards()
+    {
+        foreach (var edit in new[]
+        {
+            new ParameterEdit("element", "1", new("Double", Number: 1), new("String", Text: "changed")),
+            new("element", "1", new("Double", Number: 1), new("Double", Number: 2))
+        })
+        {
+            var model = new FakeGenericModel();
+            Program.Check("native and expected storage guards reject independently", Execute(model,
+                Request(model, OperationKind.SetParameters) with { Edits = [edit] }).Code == "parameter_blocked" && model.Transactions == 0 && model.Reads == 1);
+        }
     }
 }

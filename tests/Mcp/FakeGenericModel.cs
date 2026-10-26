@@ -10,6 +10,7 @@ internal sealed class FakeGenericModel : IGenericModel
     public string Name { get; set; } = "Plan";
     public string[] Selection { get; set; } = [];
     public int Reads { get; private set; }
+    public int ViewQueries { get; private set; }
     public ElementQuery? LastQuery { get; private set; }
     public int LastParameterOffset { get; private set; }
     public int Transactions { get; set; }
@@ -23,7 +24,7 @@ internal sealed class FakeGenericModel : IGenericModel
     public string ReadViewName() => Name;
     public IChange BeginChange() => new Change(this);
     public IParameterChange BeginParameterChange() => new Change(this);
-    public ElementPage ListViews(ElementQuery query) => QueryElements(query);
+    public ElementPage ListViews(ElementQuery query) { ViewQueries++; return QueryElements(query); }
     public ElementPage QueryElements(ElementQuery query) { Reads++; LastQuery = query; return new([Info("element")], null); }
     public ElementDetail[] InspectElements(string[] ids, int parameterOffset)
     {

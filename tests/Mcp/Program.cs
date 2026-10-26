@@ -45,7 +45,7 @@ internal static class Program
             else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);
             else if (args is ["--packaged-stdio", var bundle, var manifestSha256, var evidence]) await PackagedStdio.Run(bundle, manifestSha256, evidence);
             else if (args is ["--parameter-identity-live", var identityFolder, var identityStage]) await ParameterIdentityLive.Run(identityFolder, identityStage);
-            else if (args is ["--generic-unit"]) { Console.WriteLine("Selected generic operation checks."); GenericContract.Run(); await Generic(); }
+            else if (args is ["--generic-unit"]) { Console.WriteLine("Selected generic operation checks."); GenericContract.Run(); await Generic(); await ParameterIdentity.Run(); }
             else { GenericContract.Run(); await Generic(); await ParameterIdentity.Run(); await ImageExportReplies.Run(); await TimberFoldRuns.Run(); await SavedToolIntegration.Run(); await ResultCheckIntegration.Run(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }
@@ -57,7 +57,7 @@ internal static class Program
         ParameterEdit[] Edits() => [new("element", "1", model.Values["1"], new("String", Text: "changed")), new("element", "2", model.Values["2"], new("Double", Number: 12))];
         OperationRequest Request() => new(Guid.NewGuid(), OperationKind.SetParameters, model.Target, Edits: Edits());
         var applied = executor.Execute(model, Request());
-        Check("atomic typed batch verifies native readback", applied.Outcome == Outcome.Applied && model.Values["2"].Number == 12 && model.Transactions == 1);
+        Check("atomic typed batch verifies native readback", applied.Outcome == Outcome.Applied && model.Values["2"].Number == 12 && model.Transactions == 1 && model.LastParameterOffset == 0);
         Check("unchanged batch opens no transaction", executor.Execute(model, Request()).Outcome == Outcome.Unchanged && model.Transactions == 1);
         model = new();
         Check("stale target rejected before writes", executor.Execute(model, Request() with { Target = model.Target with { DocumentId = "wrong" } }).Code == "stale_target" && model.Transactions == 0);

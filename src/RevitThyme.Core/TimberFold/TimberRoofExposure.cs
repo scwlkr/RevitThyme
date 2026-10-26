@@ -76,13 +76,16 @@ internal static class TimberRoofExposure
         {
             budget.Check();
             var higher = TimberRoofExposureFrame.Higher([Project(triangle.A), Project(triangle.B), Project(triangle.C)],
-                string.CompareOrdinal(owner.Id, receiverId) < 0, budget);
+                int.IsNegative(string.CompareOrdinal(owner.Id, receiverId)), budget);
             var exact = TimberJointHull.Exact(higher, budget);
-            if (exact.Length < 3 || TimberJointHull.Area(exact) == 0) continue;
+            if (exact.Length < 3) continue;
+            // Exact removes collinear hull points, so this hull has positive area.
+            // Evaluate before gridding to preserve arithmetic-limit error order.
+            var exactArea = TimberJointHull.Area(exact);
             var hull = TimberJointHull.Grid(exact, budget);
             ownerCuts.Add(hull);
             var gridArea = new Q(BigInteger.CreateChecked(TimberContours.TwiceArea(hull)), 2 * BigInteger.Pow(10, 16));
-            var excess = gridArea - TimberJointHull.Area(exact);
+            var excess = gridArea - exactArea;
             if (excess < 0) throw new TimberPrismUnresolved("roof_exposure_enclosure", "Exposure grid enclosure lost exact projected area.");
             enclosureExcess += excess;
         }

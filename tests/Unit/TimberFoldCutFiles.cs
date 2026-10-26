@@ -273,4 +273,3 @@ internal static class TimberFoldCutFiles
         return coordinates.ToArray();
     }
 }
-

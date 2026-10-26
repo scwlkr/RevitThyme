@@ -10,6 +10,17 @@ internal static class Utilities
         OperationRequest Range() => new(Guid.NewGuid(), OperationKind.SetViewRange, model.Target, ExpectedRange: model.Settings,
             Range: model.Settings with { Cut = new("Current", 5) });
         check("utility rejects stale document before read/write", executor.Execute(model, Range() with { Target = model.Target with { DocumentId = "wrong" } }).Code == "stale_target" && model.Transactions == 0);
+        foreach (var invalid in new[]
+        {
+            Range() with { Query = new() }, Range() with { Edits = [] },
+            Range() with { ElementIds = ["room"] }, Range() with { RoomOptions = new() },
+            Range() with { RoomPreview = model.Preview }, Range() with { ParameterOffset = 1 },
+            new OperationRequest(Guid.NewGuid(), OperationKind.GetViewRange, model.Target, Range: model.Settings)
+        })
+            check("utility argument rejection precedes native reads: " + invalid.Operation,
+                executor.Execute(model, invalid).Code == "invalid_request" && model.Reads == 0 && model.Transactions == 0);
+        check("stale target precedes malformed range validation", executor.Execute(model,
+            Range() with { Target = model.Target with { Revision = 0 }, Range = null }).Code == "stale_target" && model.Reads == 0);
         check("range inspection opens no transaction", executor.Execute(model, new(Guid.NewGuid(), OperationKind.GetViewRange, model.Target)).ViewRange?.Settings == model.Settings && model.Transactions == 0);
         check("range rejects missing planes", executor.Execute(model, Range() with { Range = null }).Code == "invalid_range");
         check("range rejects nonfinite offset", executor.Execute(model, Range() with { Range = model.Settings with { Cut = new("Current", double.NaN) } }).Code == "invalid_range");
@@ -56,6 +67,7 @@ internal static class Utilities
         public string Fault { get; init; } = "";
         public bool RollbackFails { get; init; }
         public bool Controlled { get; set; }
+        public int Reads { get; private set; }
         public int Transactions { get; set; }
         public long[] Existing { get; set; } = [];
         public List<long> Created { get; } = [];
@@ -64,7 +76,7 @@ internal static class Utilities
         public Snapshot Capture() => new(Target, "2027", "fixture", "fixture.rvt", false, changed, "plan", "FloorPlan", 9, true, null);
         public string ReadViewName() => "plan";
         public IChange BeginChange() => throw new NotSupportedException();
-        public ViewRangeInfo ReadViewRange() => new(Fault == "readback" && changed ? Settings with { Cut = new("Current", 1) } : Settings, [], 0, !Controlled, "Template controls range.");
+        public ViewRangeInfo ReadViewRange() { Reads++; return new(Fault == "readback" && changed ? Settings with { Cut = new("Current", 1) } : Settings, [], 0, !Controlled, "Template controls range."); }
         public RoomDimensionPreview PlanRoomDimensions(string id, RoomDimensionOptions options) => Preview;
         public IUtilityChange BeginUtilityChange(string label) => new Change(this);
         public bool VerifyDimensions(long[] ids, RoomDimensionPreview preview) => ids.Length == 2 && Created.Count == 2;

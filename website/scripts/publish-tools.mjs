@@ -27,36 +27,40 @@ export function npm(args, cwd = root) {
   command(process.execPath, [cli, ...args], cwd, { stdio: 'inherit' });
 }
 export function gh(args, cwd = root) {
-  const env = { ...process.env };
-  let loggedIn = false;
-  if (!env.GH_TOKEN && !env.GITHUB_TOKEN) {
-    try {
-      command('gh', ['auth', 'status']);
-      loggedIn = true;
-    } catch {
-      /* Try the existing Git credential next. */
-    }
+  return command('gh', args, cwd, { env: githubEnvironment(process.env) });
+}
+export function githubEnvironment(environment, run = command) {
+  const env = { ...environment };
+  if (env.GH_TOKEN || env.GITHUB_TOKEN || githubAuthenticated(run)) return env;
+  const token = githubCredential(run);
+  if (token) env.GH_TOKEN = token;
+  return env;
+}
+function githubAuthenticated(run) {
+  try {
+    run('gh', ['auth', 'status']);
+    return true;
+  } catch {
+    return false;
   }
-  if (!env.GH_TOKEN && !env.GITHUB_TOKEN && !loggedIn) {
+}
+function githubCredential(run) {
+  let credential;
+  try {
     // Reuse Git Credential Manager without persisting or printing its credential.
-    let credential;
-    try {
-      credential = command('git', ['credential', 'fill'], root, {
-        input: 'protocol=https\nhost=github.com\n\n',
-      });
-    } catch {
-      throw new Error(
-        'Authenticate GitHub CLI or configure Git Credential Manager before publication.',
-      );
-    }
-    const token = credential
-      .split('\n')
-      .map((line) => line.replace(/\r$/, ''))
-      .find((line) => line.startsWith('password='))
-      ?.slice(9);
-    if (token) env.GH_TOKEN = token;
+    credential = run('git', ['credential', 'fill'], root, {
+      input: 'protocol=https\nhost=github.com\n\n',
+    });
+  } catch {
+    throw new Error(
+      'Authenticate GitHub CLI or configure Git Credential Manager before publication.',
+    );
   }
-  return command('gh', args, cwd, { env });
+  return credential
+    .split('\n')
+    .map((line) => line.replace(/\r$/, ''))
+    .find((line) => line.startsWith('password='))
+    ?.slice(9);
 }
 export function liveCheck(publication) {
   command(

@@ -117,6 +117,41 @@ internal static class SavedToolIntegration
                 Check("CLI refuses " + message + " before transport", rejected);
             }
             File.WriteAllText(capture, JsonSerializer.Serialize(native.Inspection(), Protocol.Json));
+            foreach (string invalidId in new[] { "not-a-guid", Guid.Empty.ToString() })
+            {
+                var invalid = run.ToArray();
+                invalid[Array.IndexOf(invalid, "--request-id") + 1] = invalidId;
+                bool rejected = false;
+                try { await RevitThyme.Cli.Program.RunAsync(invalid, output, error, _ => throw new InvalidOperationException("Transport constructed for invalid request ID")); }
+                catch (ArgumentException exception) { rejected = exception.Message == "request-id must be a nonempty GUID."; }
+                Check("CLI rejects invalid request ID before transport: " + invalidId, rejected);
+            }
+            byte[] inputBytes = File.ReadAllBytes(inputFile);
+            try
+            {
+                byte[] padded = Enumerable.Repeat((byte)' ', SavedTools.MaxInputBytes).ToArray();
+                inputBytes.CopyTo(padded, 0);
+                File.WriteAllBytes(inputFile, padded);
+                Check("CLI accepts an input file exactly at the byte limit", await RevitThyme.Cli.Program.RunAsync(run, output, error, _ => native) == 0);
+                File.WriteAllBytes(inputFile, [.. padded, (byte)' ']);
+                bool rejected = false;
+                try { await RevitThyme.Cli.Program.RunAsync(run, output, error, _ => throw new InvalidOperationException("Transport constructed for oversized input")); }
+                catch (ArgumentException exception) { rejected = exception.Message == "JSON file exceeds its size limit."; }
+                Check("CLI rejects an input file one byte above the limit before transport", rejected);
+            }
+            finally { File.WriteAllBytes(inputFile, inputBytes); }
+            string[] verifyWithCapture = run.ToArray(); verifyWithCapture[1] = "verify";
+            int captureOption = Array.IndexOf(run, "--capture");
+            string[] verifyWithTest = [.. run.Take(captureOption), .. run.Skip(captureOption + 2), "--test", "example"];
+            verifyWithTest[1] = "verify";
+            foreach (var invalid in new[] { verifyWithCapture, verifyWithTest })
+            {
+                var beforeRequest = native.Last;
+                bool rejected = false;
+                try { await RevitThyme.Cli.Program.RunAsync(invalid, output, error, _ => native); }
+                catch (ArgumentException exception) { rejected = exception.Message == "tool verify does not accept --test or --capture."; }
+                Check("CLI verification independently refuses " + (invalid.Contains("--test") ? "--test" : "--capture"), rejected && native.Last == beforeRequest);
+            }
             var connection = new RevitConnection(new(root, session), _ => native);
             var mcp = new RevitTools(connection); var context = await connection.Context(default);
             var invoked = await mcp.RunTool(context.CaptureId, Guid.NewGuid().ToString(), id, saved.Digest, inputs, true);

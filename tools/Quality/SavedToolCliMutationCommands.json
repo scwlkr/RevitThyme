@@ -1,0 +1,5 @@
+{
+  "build": ["dotnet", "build", "tests/Mcp/RevitThyme.McpTests.csproj", "-c", "Release", "--nologo", "-p:RestoreLockedMode=true", "-p:UseSharedCompilation=false", "-nr:false"],
+  "tests": [["dotnet", "tests/Mcp/bin/Release/net10.0/RevitThyme.McpTests.dll", "--saved-tool-unit"]],
+  "timeoutSeconds": 180
+}

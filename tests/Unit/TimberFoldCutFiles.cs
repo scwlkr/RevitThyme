@@ -55,6 +55,8 @@ internal static class TimberFoldCutFiles
         Corrupt("reader rejects nonzero elevation", "38", "0.01", "zero elevation", append: true);
         Corrupt("reader rejects a nonidentity extrusion", "230", "-1", "zero elevation", append: true);
         Corrupt("reader rejects width compensation", "43", "0.01", "zero elevation", append: true);
+        foreach (string code in new[] { "39", "40", "41", "210", "220" })
+            Corrupt("reader rejects each nonidentity polyline transform: " + code, code, "0.01", "zero elevation", append: true);
         Corrupt("reader rejects a shifted canonical vertex", "10", "0.251", "canonical physical-inch");
         Corrupt("reader rejects unknown entity extensions", "999", "untrusted", "Unexpected entity code", append: true);
         Corrupt("reader rejects duplicate required polyline fields", "8", "CUT", "Missing/duplicate", append: true);
@@ -62,6 +64,8 @@ internal static class TimberFoldCutFiles
         Corrupt("reader rejects mismatched vertex counts", "90", "3", "vertex count");
         Corrupt("reader rejects extra per-vertex metadata", "91", "0", "per-vertex metadata", append: true);
         Corrupt("reader rejects unexpected display metadata", "370", "1", "display metadata");
+        foreach (string code in new[] { "440", "284", "91" })
+            Corrupt("reader rejects each nonzero display field: " + code, code, "1", "display metadata");
         Corrupt("reader rejects nonfinite coordinates", "10", "NaN", "Nonfinite/invalid");
         HeaderCorrupt("reader rejects millimetre declarations", "$INSUNITS", "4", "header $INSUNITS");
         HeaderCorrupt("reader rejects an unexpected UCS origin", "$UCSORG", "1.0", "header $UCSORG");

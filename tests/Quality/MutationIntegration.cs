@@ -33,6 +33,7 @@ internal static class MutationIntegration
             && complete.Results.All(r => r.State == MutationState.Killed));
         var replay = await MutationRunner.Run(root, config, "src/Math.cs", reportPath, 0);
         check("complete unchanged mutation report replays without another worker", replay.Results.SequenceEqual(complete.Results));
+        await MutationJournalChecks.Run(root, config, reportPath, complete, check);
         File.AppendAllText(file, "\n// changed source");
         bool stale = false;
         try { await MutationRunner.Run(root, config, "src/Math.cs", reportPath, 0); } catch (InvalidDataException) { stale = true; }
@@ -43,6 +44,14 @@ internal static class MutationIntegration
         var guarded = await MutationRunner.Run(root, config, "src/Math.cs", Path.Combine(root, "artifacts", "guarded.json"), 0);
         check("compile-invalid short-circuit mutation is separated from killed tests", guarded.Complete && guarded.Passed
             && guarded.Results.Any(r => r.State == MutationState.Invalid) && guarded.Results.Any(r => r.State == MutationState.Killed));
+        check("CLI replays an actually measured complete mutation gate", await RevitThyme.Quality.Program.Main(
+            ["mutator", "--root", root, "--file", "src/Math.cs", "--config", config, "--report", Path.Combine(root, "artifacts", "guarded.json")]) == 0);
+        File.WriteAllText(Path.Combine(root, "src", "Unused.cs"), "public static class Unused { public static int Value(int n) => n + 1; }");
+        string surviving = Path.Combine(root, "artifacts", "surviving.json");
+        check("CLI bounded execution cannot claim a complete gate", await RevitThyme.Quality.Program.Main(
+            ["mutator", "--root", root, "--file", "src/Unused.cs", "--config", config, "--report", surviving, "--max", "1"]) == 4);
+        check("CLI fails a genuinely surviving complete mutation catalog", await RevitThyme.Quality.Program.Main(
+            ["mutator", "--root", root, "--file", "src/Unused.cs", "--config", config, "--report", surviving]) == 3);
         if (Environment.GetEnvironmentVariable("REVITTHYME_QUALITY_COLLECTOR") is { Length: > 0 } collector)
             await CoverageIntegration.Run(root, config, collector, check);
         else Console.WriteLine("SKIP collector integration: run project.cmd quality prepare, then quality test.");

@@ -24,15 +24,7 @@ public static class CoverageCollection
         if (!(await Commands.Run(commands.Build, root, Path.Combine(logs, "build.txt"), commands.TimeoutSeconds)).Passed)
             throw new InvalidDataException("Coverage build failed: " + logs);
         var reports = new List<SnapshotFile>();
-        for (int i = 0; i < tests.Length; i++)
-        {
-            string report = Path.Combine(root, "target", "coverage", "csharp", run, "suite-" + i, "coverage.cobertura.xml");
-            string[] command = [collector, "collect", "-f", "cobertura", "-o", report, "--", .. tests[i]];
-            var result = await Commands.Run(command, root, Path.Combine(logs, "suite-" + i + ".txt"), commands.TimeoutSeconds);
-            if (!result.Passed || !File.Exists(report)) throw new InvalidDataException("Coverage tests failed or produced no report: " + logs);
-            _ = Coverage.Load(root, report); // Reject empty or malformed evidence before issuing a receipt.
-            reports.Add(new(Path.GetRelativePath(root, report).Replace('\\', '/'), SourceSnapshot.HashFile(report)));
-        }
+        for (int i = 0; i < tests.Length; i++) reports.Add(await CollectReport(i));
         SourceSnapshot.Verify(root, sources);
         if (SourceSnapshot.Revision(root) != revision) throw new IOException("Git revision changed during coverage collection.");
         var receipt = new CoverageReceipt(Path.GetFullPath(root), revision, SourceSnapshot.Digest(sources),
@@ -40,15 +32,23 @@ public static class CoverageCollection
         Reports.Write(output, receipt);
         Validate(root, config, output);
         return receipt;
+
+        async Task<SnapshotFile> CollectReport(int i)
+        {
+            string report = Path.Combine(root, "target", "coverage", "csharp", run, "suite-" + i, "coverage.cobertura.xml");
+            string[] command = [collector, "collect", "-f", "cobertura", "-o", report, "--", .. tests[i]];
+            var result = await Commands.Run(command, root, Path.Combine(logs, "suite-" + i + ".txt"), commands.TimeoutSeconds);
+            if (!result.Passed || !File.Exists(report)) throw new InvalidDataException("Coverage tests failed or produced no report: " + logs);
+            _ = Coverage.Load(root, report); // Reject empty or malformed evidence before issuing a receipt.
+            return new(Path.GetRelativePath(root, report).Replace('\\', '/'), SourceSnapshot.HashFile(report));
+        }
     }
 
     public static CoverageReceipt Validate(string root, string config, string path)
     {
         var receipt = JsonSerializer.Deserialize<CoverageReceipt>(File.ReadAllText(path), Reports.Json)
             ?? throw new InvalidDataException("Coverage receipt is missing.");
-        if (!string.Equals(receipt.Root, Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
-            || receipt.Revision != SourceSnapshot.Revision(root) || receipt.CommandsDigest != SourceSnapshot.HashFile(config)
-            || receipt.SourceDigest != SourceSnapshot.Digest(receipt.Sources) || receipt.Reports.Length == 0)
+        if (!MatchesReceipt(root, config, receipt))
             throw new InvalidDataException("Coverage receipt does not match this source, revision and command configuration.");
         SourceSnapshot.Verify(root, receipt.Sources);
         var actual = ConventionalReports(root).Select(p => Path.GetRelativePath(root, p).Replace('\\', '/')).Order(StringComparer.Ordinal).ToArray();
@@ -59,6 +59,11 @@ public static class CoverageCollection
                 throw new InvalidDataException("Coverage report bytes changed; collect fresh evidence.");
         return receipt;
     }
+
+    private static bool MatchesReceipt(string root, string config, CoverageReceipt receipt) =>
+        string.Equals(receipt.Root, Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+        && receipt.Revision == SourceSnapshot.Revision(root) && receipt.CommandsDigest == SourceSnapshot.HashFile(config)
+        && receipt.SourceDigest == SourceSnapshot.Digest(receipt.Sources) && receipt.Reports.Length > 0;
 
     private static void ArchiveReports(string root, string run)
     {

@@ -68,7 +68,7 @@ public static class Reports
     private static JsonSerializerOptions CreateJson()
     {
         var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true,
-            RespectRequiredConstructorParameters = true, WriteIndented = true };
+            RespectRequiredConstructorParameters = true, RespectNullableAnnotations = true, WriteIndented = true };
         options.Converters.Add(new JsonStringEnumConverter(allowIntegerValues: false));
         return options;
     }

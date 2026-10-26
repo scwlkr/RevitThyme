@@ -49,8 +49,8 @@ try {
         exit 0
     }
     if ($command -in 'prepare','collect','crapper') { Prepare-Dependencies }
+    if (($command -in 'test','collect') -and (Test-Path -LiteralPath $coverage)) { $env:REVITTHYME_QUALITY_COLLECTOR = $coverage }
     if ($command -eq 'test') {
-        if (Test-Path -LiteralPath $coverage) { $env:REVITTHYME_QUALITY_COLLECTOR = $coverage }
         & dotnet run --project tests/Quality -c Release -- @rest
         exit $LASTEXITCODE
     }

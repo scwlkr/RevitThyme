@@ -56,19 +56,21 @@ public static class Program
         string folder = options.Has("--scan") ? "scans" : "mutations";
         string output = options.ReportPath("artifacts/quality/" + folder + "/" + System.IO.Path.GetFileNameWithoutExtension(file)
             + "-" + SourceAnalysis.Hash(file)[..12] + ".json");
-        if (options.Has("--scan"))
-        {
-            var sites = MutationSites.Find(File.ReadAllText(SourceSnapshot.Resolve(options.Root, file)), file);
-            var coverage = options.Has("--coverage") ? Coverage.Load(options.Root, options.Path("--coverage", "")) : null;
-            Reports.Write(output, new { sites = sites.Select(site => new { site, covered = coverage?.Hit(options.Root, site.Path, site.Line) }) });
-            Console.WriteLine($"{sites.Count} mutation sites. Scan only; no tests run. Report: {output}");
-            return sites.Count == 0 ? 4 : 0;
-        }
+        if (options.Has("--scan")) return Scan(options, file, output);
         var report = await MutationRunner.Run(options.Root, options.Path("--config", "tools/Quality/QualityCommands.json"),
             file, output, options.Number("--max", 0));
         Console.WriteLine($"{report.Results.Length}/{report.TotalSites} mutants processed. Complete: {report.Complete}. Passed: {report.Passed}. Report: {output}");
         foreach (var group in report.Results.GroupBy(r => r.State)) Console.WriteLine($"{group.Key}: {group.Count()}");
         return report.Passed ? 0 : report.Complete ? 3 : 4;
+    }
+
+    private static int Scan(Options options, string file, string output)
+    {
+        var sites = MutationSites.Find(File.ReadAllText(SourceSnapshot.Resolve(options.Root, file)), file);
+        var coverage = options.Has("--coverage") ? Coverage.Load(options.Root, options.Path("--coverage", "")) : null;
+        Reports.Write(output, new { sites = sites.Select(site => new { site, covered = coverage?.Hit(options.Root, site.Path, site.Line) }) });
+        Console.WriteLine($"{sites.Count} mutation sites. Scan only; no tests run. Report: {output}");
+        return sites.Count == 0 ? 4 : 0;
     }
 
     private static async Task<int> Collect(Options options)

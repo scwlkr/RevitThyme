@@ -45,6 +45,10 @@ internal static class GenericContract
 
     private static void Ids()
     {
+        var selected = new FakeGenericModel { Selection = ["selected-element"] };
+        var selection = Execute(selected, Request(selected, OperationKind.GetSelection));
+        Program.Check("native selection reads retain ids without a transaction", selection.Outcome == Outcome.Inspected
+            && selection.Selection is ["selected-element"] && selected.Reads == 1 && selected.Transactions == 0);
         foreach (int count in new[] { 1, 5 })
         foreach (int offset in new[] { 0, 10000 })
         {

@@ -6,36 +6,73 @@ internal static class Program
 {
     private static int passed;
     private static int failed;
-    public static async Task<int> Main()
+    private sealed record Suite(string Name, Func<Task> Run);
+    private static readonly Suite[] Suites =
+    [
+        new(nameof(Operations), Operations),
+        Async(nameof(ViewImages), ViewImages.Run),
+        Async(nameof(DocumentLifecycle), DocumentLifecycle.Run),
+        Async(nameof(UiLifecycle), UiLifecycle.Run),
+        Async(nameof(Boundaries), Boundaries.Run),
+        Async(nameof(ParameterInspectionCli), ParameterInspectionCli.Run),
+        Async(nameof(ParameterResponseCompatibility), ParameterResponseCompatibility.Run),
+        Async(nameof(DocumentDiscovery), DocumentDiscovery.Run),
+        Async(nameof(DocumentDiscoveryCli), DocumentDiscoveryCli.Run),
+        Async(nameof(CliDispatch), CliDispatch.Run),
+        Sync(nameof(Utilities), Utilities.Run),
+        Async(nameof(Dynamic), Dynamic.Run),
+        Async(nameof(Updates), Updates.Run),
+        Async(nameof(InstalledCli), InstalledCli.Run),
+        Sync(nameof(TimberFoldOperations), TimberFoldOperations.Run),
+        Sync(nameof(TimberFoldInspection), TimberFoldInspection.Run),
+        Sync(nameof(TimberFoldFabrication), TimberFoldFabrication.Run),
+        Sync(nameof(TimberFoldJoints), TimberFoldJoints.Run),
+        Sync(nameof(TimberFoldRoofs), TimberFoldRoofs.Run),
+        Sync(nameof(TimberFoldFragility), TimberFoldFragility.Run),
+        Sync(nameof(TimberFoldGridPartition), TimberFoldGridPartition.Run),
+        Sync(nameof(TimberFoldCollisions), TimberFoldCollisions.Run),
+        Sync(nameof(TimberFoldStock), TimberFoldStock.Run),
+        Sync(nameof(TimberFoldCutFiles), TimberFoldCutFiles.Run),
+        Sync(nameof(TimberFoldNativeContours), TimberFoldNativeContours.Run),
+        Sync(nameof(TimberFoldNativeReferences), TimberFoldNativeReferences.Run),
+        Sync(nameof(TimberFoldNativePreservation), TimberFoldNativePreservation.Run),
+        Sync(nameof(TimberFoldGuides), TimberFoldGuides.Run),
+        Async(nameof(TimberFoldRuns), TimberFoldRuns.Run),
+        Async(nameof(TimberFoldFinalization), TimberFoldFinalization.Run),
+        Async(nameof(TimberFoldReconciliationQueue), TimberFoldReconciliationQueue.Run),
+        Async(nameof(TimberFoldTransport), TimberFoldTransport.Run),
+        Async(nameof(TimberFoldGeneration), TimberFoldGeneration.Run),
+        Async(nameof(TimberFoldReconciliation), TimberFoldReconciliation.Run),
+        Async("TimberFoldOperations.Cli", TimberFoldOperations.Cli),
+        Async(nameof(TimberFoldCliRuns), TimberFoldCliRuns.Run),
+    ];
+
+    private static Suite Sync(string name, Action<Action<string, bool>> run) => new(name, () =>
     {
-        await Operations(); await ViewImages.Run(Check); await DocumentLifecycle.Run(Check); await UiLifecycle.Run(Check); await Boundaries.Run(Check); await ParameterInspectionCli.Run(Check); await ParameterResponseCompatibility.Run(Check);
-        await DocumentDiscovery.Run(Check);
-        await DocumentDiscoveryCli.Run(Check);
-        await CliDispatch.Run(Check);
-        Utilities.Run(Check); await Dynamic.Run(Check); await Updates.Run(Check); await InstalledCli.Run(Check);
-        TimberFoldOperations.Run(Check);
-        TimberFoldInspection.Run(Check);
-        TimberFoldFabrication.Run(Check);
-        TimberFoldJoints.Run(Check);
-        TimberFoldRoofs.Run(Check);
-        TimberFoldFragility.Run(Check);
-        TimberFoldGridPartition.Run(Check);
-        TimberFoldCollisions.Run(Check);
-        TimberFoldStock.Run(Check);
-        TimberFoldCutFiles.Run(Check);
-        TimberFoldNativeContours.Run(Check);
-        TimberFoldNativeReferences.Run(Check);
-        TimberFoldNativePreservation.Run(Check);
-        TimberFoldGuides.Run(Check);
-        await TimberFoldRuns.Run(Check);
-        await TimberFoldFinalization.Run(Check);
-        await TimberFoldReconciliationQueue.Run(Check);
-        await TimberFoldTransport.Run(Check);
-        await TimberFoldGeneration.Run(Check);
-        await TimberFoldReconciliation.Run(Check);
-        await TimberFoldOperations.Cli(Check);
-        await TimberFoldCliRuns.Run(Check);
-        Console.WriteLine($"Foundation unit checks: {passed} passed, {failed} failed."); return failed == 0 ? 0 : 1;
+        run(Check);
+        return Task.CompletedTask;
+    });
+    private static Suite Async(string name, Func<Action<string, bool>, Task> run) => new(name, () => run(Check));
+
+    public static async Task<int> Main(string[] args)
+    {
+        var selected = Select(args);
+        if (selected is null) return 2;
+        foreach (var suite in selected) await suite.Run();
+        Console.WriteLine($"Foundation unit checks: {passed} passed, {failed} failed.");
+        return failed == 0 ? 0 : 1;
+    }
+
+    private static Suite[]? Select(string[] args)
+    {
+        if (args.Length == 0) return Suites;
+        if (args is ["--suite", var name] && Suites.FirstOrDefault(s => s.Name == name) is { } suite)
+        {
+            Console.WriteLine("Selected unit suite: " + suite.Name);
+            return [suite];
+        }
+        Console.Error.WriteLine("Use no arguments for all checks or --suite NAME. Available: " + string.Join(", ", Suites.Select(s => s.Name)));
+        return null;
     }
     internal static void Check(string name, bool condition)
     {

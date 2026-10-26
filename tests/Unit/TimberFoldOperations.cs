@@ -53,6 +53,14 @@ internal static class TimberFoldOperations
                 && client.Requests is [{ Operation: OperationKind.Inspect }, { Operation: OperationKind.InspectTimberFold }]
                 && client.Requests[1].Target == client.Model.Target && !client.Requests[0].IsWrite
                 && client.Requests[1].IsWrite && client.Model.Base.Transactions == 0);
+            client.Model.Diagnostics = [new("fixture_notice", TimberSeverity.Warning, "Review fixture.", "1")];
+            var humanOutput = new StringWriter(); var humanError = new StringWriter();
+            int humanExit = await RevitThyme.Cli.Program.RunAsync(["timberfold", "inspect", "--session", session], humanOutput, humanError, _ => client);
+            check("CLI human inspection retains counts, source diagnostics and private evidence paths", humanExit == 0 && humanError.ToString() == ""
+                && humanOutput.ToString().Contains("1 sources, 1 faces, 0 openings; 0 errors, 1 warnings.", StringComparison.Ordinal)
+                && humanOutput.ToString().Contains("Warning fixture_notice [1]: Review fixture.", StringComparison.Ordinal)
+                && humanOutput.ToString().Contains("Full private inspection: " + client.Model.TimberFoldEvidenceDirectory, StringComparison.Ordinal)
+                && client.Model.Base.Transactions == 0);
         }
         finally { File.Delete(session); Directory.Delete(folder); }
     }
@@ -71,6 +79,7 @@ internal static class TimberFoldOperations
         public FakeModel Base { get; } = new();
         public Target Target => Base.Target;
         public int Extractions { get; private set; }
+        public TimberDiagnostic[] Diagnostics { get; set; } = [];
         public string TimberFoldEvidenceDirectory { get; } = Path.Combine(Path.GetTempPath(), "RevitThyme-TimberEvidence-" + Guid.NewGuid());
         public Snapshot Capture() => Base.Capture();
         public string ReadViewName() => Base.ReadViewName();
@@ -82,7 +91,7 @@ internal static class TimberFoldOperations
             return new(Target, "fixture-sha256", "phase-1", [],
                 [new("1", "wall-unique", TimberCategory.Wall, TimberDisposition.Included, "Exterior wall", ["W-1-0"], [], "wall-sha256")],
                 [new("W-1-0", "1", TimberFaceKind.Wall, new(0, 0, 0), new(1, 0, 0), new(0, 0, 1), new(0, -1, 0),
-                    [[new(0, 0), new(4, 0), new(4, 3), new(0, 3)]])], [], []);
+                    [[new(0, 0), new(4, 0), new(4, 3), new(0, 3)]])], [], Diagnostics);
         }
     }
 }

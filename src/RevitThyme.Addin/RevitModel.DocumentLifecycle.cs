@@ -1,5 +1,4 @@
 using System.IO;
-using System.Security.Cryptography;
 using Autodesk.Revit.DB;
 using RevitThyme.Core;
 
@@ -13,8 +12,8 @@ public sealed partial class RevitModel
         // File/UI lifecycle must never run inside the query/modify transaction.
         if (app.ActiveUIDocument?.Document is { } active && (active.IsModifiable || active.IsReadOnly || active.IsFamilyDocument || active.IsWorkshared))
             throw new OperationException("lifecycle_blocked", "Use an editable local nonworkshared project outside a transaction.");
-        AssertLocalFile(options.Path);
-        string beforeHash = LifecycleHash(options.Path);
+        NativeLifecycleFiles.AssertLocal(options.Path);
+        string beforeHash = NativeLifecycleFiles.Hash(options.Path);
         if (options.ExpectedSha256 is { } expected && !beforeHash.Equals(expected, StringComparison.OrdinalIgnoreCase))
             throw new OperationException("file_changed", "Saved file SHA-256 differs from the expected value. Nothing was opened or saved.");
         var document = app.Application.Documents.Cast<Document>().SingleOrDefault(d => string.Equals(d.PathName, options.Path, StringComparison.OrdinalIgnoreCase));
@@ -38,7 +37,7 @@ public sealed partial class RevitModel
                 throw new OperationException("close_blocked", "Active close requires an explicit different already-open clean document to activate first. Nothing was closed.");
             if (options.ActivateBeforeClose is { } next)
             {
-                host.AssertLifecyclePath(next.Path); AssertLocalFile(next.Path);
+                host.AssertLifecyclePath(next.Path); NativeLifecycleFiles.AssertLocal(next.Path);
                 nextDocument = app.Application.Documents.Cast<Document>().SingleOrDefault(d => string.Equals(d.PathName, next.Path, StringComparison.OrdinalIgnoreCase));
                 if (nextDocument is null || host.DocumentId(nextDocument) != next.DocumentId)
                     throw new OperationException("wrong_document", "The exact activation document ID/path is not open in this session.");
@@ -62,7 +61,7 @@ public sealed partial class RevitModel
                     VerifyCloseActivation(nextDocument, options.ActivateBeforeClose, nextView!);
                 }
                 if (!document.Close(false) || app.Application.Documents.Cast<Document>().Any(d => host.DocumentId(d) == id)
-                    || LifecycleHash(options.Path) != beforeHash) throw new InvalidDataException("Native close did not verify.");
+                    || NativeLifecycleFiles.Hash(options.Path) != beforeHash) throw new InvalidDataException("Native close did not verify.");
                 if (nextDocument is not null) VerifyCloseActivation(nextDocument, options.ActivateBeforeClose!, nextView!);
                 return new(id, options.Path, title, false, false, beforeHash, true);
             }
@@ -80,7 +79,7 @@ public sealed partial class RevitModel
             }
             if (document is null || !document.IsValidObject || document.IsWorkshared || document.IsFamilyDocument || document.IsLinked
                 || !string.Equals(document.PathName, options.Path, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Native document identity changed.");
-            string hash = LifecycleHash(options.Path);
+            string hash = NativeLifecycleFiles.Hash(options.Path);
             if (operation != OperationKind.SaveDocument && hash != beforeHash) throw new InvalidDataException("Open/activation changed the saved file.");
             return new(host.DocumentId(document), document.PathName, document.Title, document.Equals(app.ActiveUIDocument?.Document), document.IsModified, hash, performed);
         }
@@ -99,27 +98,8 @@ public sealed partial class RevitModel
             || document.IsLinked || document.IsFamilyDocument || document.IsWorkshared || document.IsReadOnly || document.IsModifiable)
             throw new OperationException("lifecycle_blocked", "Close requires exact editable nonworkshared local documents outside a transaction.");
         if (document.IsModified) throw new OperationException("document_dirty", "Both close and activation documents must be clean; no implicit save or discard.");
-        AssertLocalFile(path);
-        if (!LifecycleHash(path).Equals(expectedHash, StringComparison.OrdinalIgnoreCase))
+        NativeLifecycleFiles.AssertLocal(path);
+        if (!NativeLifecycleFiles.Hash(path).Equals(expectedHash, StringComparison.OrdinalIgnoreCase))
             throw new OperationException("file_changed", "Saved file differs from the expected activation/close hash.");
-    }
-    private static void AssertLocalFile(string path)
-    {
-        if (new DriveInfo(Path.GetPathRoot(path)!).DriveType != DriveType.Fixed)
-            throw new OperationException("unsupported_path", "Use a local fixed-drive RVT; mapped network and removable drives are outside this scope.");
-        if (!File.Exists(path)) throw new OperationException("file_missing", "The explicit local RVT does not exist.");
-        for (string? current = path; current is not null; current = Path.GetDirectoryName(current))
-            if ((File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0)
-                throw new OperationException("unsupported_path", "Use an explicit local RVT without reparse-point aliases.");
-    }
-    private static string LifecycleHash(string path)
-    {
-        var before = new FileInfo(path);
-        long length = before.Length; DateTime stamp = before.LastWriteTimeUtc;
-        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-        string hash = Convert.ToHexStringLower(SHA256.HashData(stream));
-        before.Refresh();
-        if (length != before.Length || stamp != before.LastWriteTimeUtc) throw new OperationException("file_changed", "File changed during verification.");
-        return hash;
     }
 }

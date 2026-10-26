@@ -258,8 +258,7 @@ test('failed live verification creates no baseline checkout or PR', (t) => {
   assert.equal(state.phase, 'deployed');
   assert.equal(fs.existsSync(path.join(state.paths.run, 'baseline-checkout')), false);
 });
-test('verified workflow creates one baseline-only PR, checks CI and merges; resume is idempotent', (t) => {
-  const state = deployed(t);
+function finishHarness(state, { existing = [], checks = [{ conclusion: 'SUCCESS' }] } = {}) {
   let merged = false,
     verifies = 0,
     creates = 0,
@@ -289,13 +288,13 @@ test('verified workflow creates one baseline-only PR, checks CI and merges; resu
       return '';
     },
     ghCommand(args) {
-      if (args[1] === 'list') return '[]';
+      if (args[1] === 'list') return JSON.stringify(existing);
       if (args[1] === 'create') {
         creates++;
         return 'https://github.com/scwlkr/RevitThyme/pull/99';
       }
       if (args[1] === 'view' && args.at(-1).includes('statusCheckRollup'))
-        return JSON.stringify({ headRefOid: head, statusCheckRollup: [{ conclusion: 'SUCCESS' }] });
+        return JSON.stringify({ headRefOid: head, statusCheckRollup: checks });
       if (args[1] === 'view')
         return JSON.stringify({ state: merged ? 'MERGED' : 'OPEN', mergeCommit: { oid: merge } });
       if (args[1] === 'merge') merged = true;
@@ -303,13 +302,71 @@ test('verified workflow creates one baseline-only PR, checks CI and merges; resu
       return '';
     },
   };
+  return { tools, counts: () => ({ merged, verifies, creates, releases }) };
+}
+
+test('verified workflow creates one baseline-only PR, checks CI and merges; resume is idempotent', (t) => {
+  const state = deployed(t);
+  const { tools, counts } = finishHarness(state);
   finish(state, tools);
   assert.equal(state.phase, 'complete');
-  assert.equal(creates, 1);
-  assert.equal(verifies, 2);
+  assert.equal(counts().creates, 1);
+  assert.equal(counts().verifies, 2);
+  assert.equal(
+    state.baseline.branch,
+    `codex/website-baseline-${state.candidateKey.slice(0, 12)}-${digest(state.paths.run).slice(0, 6)}`,
+  );
   const baseline = readJson(path.join(state.baseline.checkout, '.github/website-publication.json'));
   assert.equal(baseline.files['/install'], digest('reviewed'));
   finish(loadRun(state.paths.run), tools);
-  assert.equal(creates, 1);
-  assert.equal(releases, 2);
+  assert.equal(counts().creates, 1);
+  assert.equal(counts().releases, 2);
 });
+
+test('finish recovers an existing open baseline PR without creating another', (t) => {
+  const state = deployed(t);
+  const url = 'https://github.com/scwlkr/RevitThyme/pull/42';
+  const { tools, counts } = finishHarness(state, { existing: [{ url, state: 'OPEN' }] });
+  finish(state, tools);
+  assert.equal(state.baseline.pr, url);
+  assert.equal(state.phase, 'complete');
+  assert.equal(counts().creates, 0);
+});
+
+for (const [name, existing, error] of [
+  ['closed', [{ url: 'closed', state: 'CLOSED' }], /closed without merging/],
+  [
+    'ambiguous',
+    [
+      { url: 'one', state: 'OPEN' },
+      { url: 'two', state: 'OPEN' },
+    ],
+    /Multiple baseline PRs/,
+  ],
+]) {
+  test(`finish refuses ${name} baseline PR recovery`, (t) => {
+    const state = deployed(t);
+    const { tools, counts } = finishHarness(state, { existing });
+    assert.throws(() => finish(state, tools), error);
+    assert.equal(state.phase, 'baseline-pr');
+    assert.equal(counts().creates, 0);
+    assert.equal(counts().merged, false);
+  });
+}
+
+for (const [name, checks] of [
+  ['absent', []],
+  ['failed', [{ conclusion: 'FAILURE' }]],
+  ['mixed', [{ conclusion: 'SUCCESS' }, { conclusion: 'FAILURE' }]],
+]) {
+  test(`finish refuses ${name} CI checks before merge`, (t) => {
+    const state = deployed(t);
+    const { tools, counts } = finishHarness(state, { checks });
+    assert.throws(() => finish(state, tools), /All baseline CI checks must pass/);
+    assert.equal(state.phase, 'baseline-pr');
+    assert.equal(loadRun(state.paths.run).phase, 'baseline-pr');
+    assert.equal(counts().merged, false);
+    assert.equal(counts().releases, 0);
+    assert.equal(counts().verifies, 1);
+  });
+}

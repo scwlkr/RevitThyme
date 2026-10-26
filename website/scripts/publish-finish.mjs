@@ -108,48 +108,7 @@ export function finish(
   baseline.head = gitCommand(['rev-parse', 'HEAD'], baseline.checkout);
   saveRun(state);
   gitCommand(['push', '-u', 'origin', baseline.branch], baseline.checkout);
-  if (!baseline.pr) {
-    const existing = JSON.parse(
-      ghCommand([
-        'pr',
-        'list',
-        '--repo',
-        'scwlkr/RevitThyme',
-        '--head',
-        baseline.branch,
-        '--state',
-        'all',
-        '--json',
-        'url,state',
-      ]),
-    );
-    assert.ok(existing.length <= 1, 'Multiple baseline PRs require reconciliation');
-    if (existing.length) {
-      assert.notEqual(existing[0].state, 'CLOSED', 'Baseline PR was closed without merging');
-      baseline.pr = existing[0].url;
-    } else {
-      const body = path.join(state.paths.run, 'baseline-pr.md');
-      fs.writeFileSync(
-        body,
-        `Record separately owner-approved Site version ${state.saved.number}.\n\nSource: ${state.candidate.sourceCommit}\nCandidate: ${state.candidateKey}\nHosting source: ${state.package.commit}\n\nAll ${Object.keys(record.files).length} public files and managed GitHub settings passed live verification before this baseline-only PR. Expected hashes come from the frozen local candidate.\n`,
-      );
-      baseline.pr = ghCommand([
-        'pr',
-        'create',
-        '--repo',
-        'scwlkr/RevitThyme',
-        '--base',
-        'master',
-        '--head',
-        baseline.branch,
-        '--title',
-        `Record approved website version ${state.saved.number}`,
-        '--body-file',
-        body,
-      ]);
-    }
-    saveRun(state);
-  }
+  ensureBaselinePullRequest(state, record, ghCommand);
   if (mergedReceipt()) return;
   console.log(`Baseline PR: ${baseline.pr}. Waiting for CI before merge.`);
   ghCommand([
@@ -192,4 +151,49 @@ export function finish(
     baseline.head,
   ]);
   assert.ok(mergedReceipt(), 'Merge is not confirmed; resume finish to reconcile');
+}
+
+function ensureBaselinePullRequest(state, record, ghCommand) {
+  const baseline = state.baseline;
+  if (baseline.pr) return;
+  const existing = JSON.parse(
+    ghCommand([
+      'pr',
+      'list',
+      '--repo',
+      'scwlkr/RevitThyme',
+      '--head',
+      baseline.branch,
+      '--state',
+      'all',
+      '--json',
+      'url,state',
+    ]),
+  );
+  assert.ok(existing.length <= 1, 'Multiple baseline PRs require reconciliation');
+  if (existing.length) {
+    assert.notEqual(existing[0].state, 'CLOSED', 'Baseline PR was closed without merging');
+    baseline.pr = existing[0].url;
+  } else {
+    const body = path.join(state.paths.run, 'baseline-pr.md');
+    fs.writeFileSync(
+      body,
+      `Record separately owner-approved Site version ${state.saved.number}.\n\nSource: ${state.candidate.sourceCommit}\nCandidate: ${state.candidateKey}\nHosting source: ${state.package.commit}\n\nAll ${Object.keys(record.files).length} public files and managed GitHub settings passed live verification before this baseline-only PR. Expected hashes come from the frozen local candidate.\n`,
+    );
+    baseline.pr = ghCommand([
+      'pr',
+      'create',
+      '--repo',
+      'scwlkr/RevitThyme',
+      '--base',
+      'master',
+      '--head',
+      baseline.branch,
+      '--title',
+      `Record approved website version ${state.saved.number}`,
+      '--body-file',
+      body,
+    ]);
+  }
+  saveRun(state);
 }

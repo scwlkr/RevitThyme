@@ -13,6 +13,7 @@ internal static class Utilities
         foreach (var invalid in new[]
         {
             Range() with { Query = new() }, Range() with { Edits = [] },
+            Range() with { Name = "unexpected" }, Range() with { ExpectedName = "unexpected" },
             Range() with { ElementIds = ["room"] }, Range() with { RoomOptions = new() },
             Range() with { RoomPreview = model.Preview }, Range() with { ParameterOffset = 1 },
             new OperationRequest(Guid.NewGuid(), OperationKind.GetViewRange, model.Target, Range: model.Settings)
@@ -29,6 +30,10 @@ internal static class Utilities
         check("view template range blocks write", executor.Execute(model, Range()).Code == "write_blocked" && model.Transactions == 0); model.Controlled = false;
         check("range no-op creates no undo item", executor.Execute(model, Range() with { Range = model.Settings }).Outcome == Outcome.Unchanged && model.Transactions == 0);
         check("range applies through shared transaction", executor.Execute(model, Range()).Outcome == Outcome.Applied && model.Settings.Cut.OffsetFeet == 5 && model.Transactions == 1);
+        model = new();
+        var boundaryRange = model.Settings with { Top = new(new string('L', 200), 1000000) };
+        check("range accepts its exact documented level and offset limits", executor.Execute(model,
+            Range() with { Range = boundaryRange }).Outcome == Outcome.Applied && model.Settings == boundaryRange);
         foreach (string fault in new[] { "set", "commit", "readback", "assimilation" })
         {
             model = new() { Fault = fault }; var original = model.Settings;
@@ -38,10 +43,19 @@ internal static class Utilities
         check("utility uncertain rollback is explicit", executor.Execute(model, Range()).Outcome == Outcome.Unconfirmed);
         model = new();
         OperationRequest Room() => new(Guid.NewGuid(), OperationKind.CreateRoomDimensions, model.Target, ElementIds: ["room"], RoomOptions: new(), RoomPreview: model.Preview);
+        foreach (var invalid in new[] { Room() with { ExpectedRange = model.Settings }, Room() with { Range = model.Settings } })
+            check("room rejects range edit values before planning", executor.Execute(model, invalid).Code == "invalid_request" && model.Reads == 0);
+        string maximumId = new('R', 200);
+        check("room preview passes through an exact maximum-length native id", executor.Execute(model,
+            new(Guid.NewGuid(), OperationKind.PreviewRoomDimensions, model.Target, ElementIds: [maximumId])).Outcome == Outcome.Inspected
+            && model.PlannedRoomId == maximumId && model.Transactions == 0);
         check("room preview leaves native model unchanged", executor.Execute(model, new(Guid.NewGuid(), OperationKind.PreviewRoomDimensions, model.Target, ElementIds: ["room"])).Outcome == Outcome.Inspected && model.Transactions == 0);
         check("room edit requires reviewed preview", executor.Execute(model, Room() with { RoomPreview = null }).Code == "stale_room");
         check("forged dimension references rejected", executor.Execute(model, Room() with { RoomPreview = model.Preview with { Fingerprint = "forged" } }).Code == "stale_room");
         check("invalid room inset rejected", executor.Execute(model, Room() with { RoomOptions = new(0) }).Code == "invalid_options");
+        foreach (double clearance in new[] { double.NaN, .249, 20.001 })
+            check("invalid room tag clearance is rejected: " + clearance, executor.Execute(model,
+                Room() with { RoomOptions = new(TagClearanceFeet: clearance) }).Code == "invalid_options");
         model.Existing = [1]; check("partial pair refuses duplication", executor.Execute(model, Room()).Code == "partial_dimensions" && model.Transactions == 0);
         model.Existing = [1, 2]; check("existing pair creates no transaction", executor.Execute(model, Room()).Outcome == Outcome.Unchanged && model.Transactions == 0);
         model = new() { Fault = "second-dimension" };
@@ -68,6 +82,7 @@ internal static class Utilities
         public bool RollbackFails { get; init; }
         public bool Controlled { get; set; }
         public int Reads { get; private set; }
+        public string? PlannedRoomId { get; private set; }
         public int Transactions { get; set; }
         public long[] Existing { get; set; } = [];
         public List<long> Created { get; } = [];
@@ -77,7 +92,7 @@ internal static class Utilities
         public string ReadViewName() => "plan";
         public IChange BeginChange() => throw new NotSupportedException();
         public ViewRangeInfo ReadViewRange() { Reads++; return new(Fault == "readback" && changed ? Settings with { Cut = new("Current", 1) } : Settings, [], 0, !Controlled, "Template controls range."); }
-        public RoomDimensionPreview PlanRoomDimensions(string id, RoomDimensionOptions options) => Preview;
+        public RoomDimensionPreview PlanRoomDimensions(string id, RoomDimensionOptions options) { Reads++; PlannedRoomId = id; return Preview; }
         public IUtilityChange BeginUtilityChange(string label) => new Change(this);
         public bool VerifyDimensions(long[] ids, RoomDimensionPreview preview) => ids.Length == 2 && Created.Count == 2;
         public bool ElementsAbsent(long[] ids) => ids.All(id => !Created.Contains(id));

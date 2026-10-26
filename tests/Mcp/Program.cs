@@ -45,7 +45,8 @@ internal static class Program
             else if (args is ["--timberfold-live", var timberFolder, var fixtureReceipt]) await TimberFoldLive.Run(timberFolder, fixtureReceipt);
             else if (args is ["--packaged-stdio", var bundle, var manifestSha256, var evidence]) await PackagedStdio.Run(bundle, manifestSha256, evidence);
             else if (args is ["--parameter-identity-live", var identityFolder, var identityStage]) await ParameterIdentityLive.Run(identityFolder, identityStage);
-            else { await Generic(); await ParameterIdentity.Run(); await ImageExportReplies.Run(); await TimberFoldRuns.Run(); await SavedToolIntegration.Run(); await ResultCheckIntegration.Run(); await Stdio(); }
+            else if (args is ["--generic-unit"]) { Console.WriteLine("Selected generic operation checks."); GenericContract.Run(); await Generic(); }
+            else { GenericContract.Run(); await Generic(); await ParameterIdentity.Run(); await ImageExportReplies.Run(); await TimberFoldRuns.Run(); await SavedToolIntegration.Run(); await ResultCheckIntegration.Run(); await Stdio(); }
             Console.WriteLine($"MCP checks: {checks} passed."); return 0;
         }
         catch (Exception error) { Console.Error.WriteLine(error); return 1; }

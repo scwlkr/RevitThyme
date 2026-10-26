@@ -18,7 +18,8 @@ public static class MutationSites
     {
         ["+"] = "-", ["-"] = "+", ["*"] = "/", ["/"] = "*",
         [">"] = ">=", [">="] = ">", ["<"] = "<=", ["<="] = "<",
-        ["=="] = "!=", ["!="] = "==", ["&&"] = "||", ["||"] = "&&"
+        ["=="] = "!=", ["!="] = "==", ["&&"] = "||", ["||"] = "&&",
+        ["and"] = "or", ["or"] = "and", ["!"] = "", ["not"] = ""
     };
 
     public static IReadOnlyList<MutationSite> Find(string source, string path)
@@ -27,8 +28,9 @@ public static class MutationSites
         foreach (var unit in SourceAnalysis.Parse(source, path))
             foreach (var node in SourceAnalysis.OwnedNodes(unit))
             {
-                if (node is BinaryExpressionSyntax binary && Operators.TryGetValue(binary.OperatorToken.Text, out var replacement))
-                    Add(binary.OperatorToken.SpanStart, binary.OperatorToken.Span.Length, binary.OperatorToken.Text, replacement);
+                var token = Operator(node);
+                if (Operators.TryGetValue(token.Text, out var replacement))
+                    Add(token.SpanStart, token.Span.Length, token.Text, replacement);
                 if (node is LiteralExpressionSyntax literal)
                 {
                     if (LiteralReplacement(literal) is { } value)
@@ -39,6 +41,16 @@ public static class MutationSites
             }
         return sites;
     }
+
+    private static SyntaxToken Operator(SyntaxNode node) => node switch
+    {
+        BinaryExpressionSyntax binary => binary.OperatorToken,
+        RelationalPatternSyntax relational => relational.OperatorToken,
+        BinaryPatternSyntax pattern => pattern.OperatorToken,
+        UnaryPatternSyntax pattern => pattern.OperatorToken,
+        PrefixUnaryExpressionSyntax unary when unary.IsKind(SyntaxKind.LogicalNotExpression) => unary.OperatorToken,
+        _ => default
+    };
 
     private static string? LiteralReplacement(LiteralExpressionSyntax literal) => literal.Kind() switch
     {

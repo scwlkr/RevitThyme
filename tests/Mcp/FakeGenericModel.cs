@@ -9,6 +9,9 @@ internal sealed class FakeGenericModel : IGenericModel
     public Dictionary<string, ParameterInfo> Parameters { get; } = [];
     public string Name { get; set; } = "Plan";
     public string[] Selection { get; set; } = [];
+    public int Reads { get; private set; }
+    public ElementQuery? LastQuery { get; private set; }
+    public int LastParameterOffset { get; private set; }
     public int Transactions { get; set; }
     public int Writes { get; set; }
     public int FailWrite { get; set; }
@@ -21,16 +24,21 @@ internal sealed class FakeGenericModel : IGenericModel
     public IChange BeginChange() => new Change(this);
     public IParameterChange BeginParameterChange() => new Change(this);
     public ElementPage ListViews(ElementQuery query) => QueryElements(query);
-    public ElementPage QueryElements(ElementQuery query) => new([Info("element")], null);
-    public ElementDetail[] InspectElements(string[] ids, int parameterOffset) => ids.Select(id =>
+    public ElementPage QueryElements(ElementQuery query) { Reads++; LastQuery = query; return new([Info("element")], null); }
+    public ElementDetail[] InspectElements(string[] ids, int parameterOffset)
+    {
+        Reads++; LastParameterOffset = parameterOffset;
+        return ids.Select(id =>
     {
         var page = Parameters.Keys.OrderBy(long.Parse).Skip(parameterOffset).Take(21).Select(p => ReadParameter(id, p)).ToArray();
         return new ElementDetail(Info(id), page.Take(20).ToArray(), page.Length > 20 ? parameterOffset + 20 : null);
     }).ToArray();
-    public string[] GetSelection() => Selection;
+    }
+    public string[] GetSelection() { Reads++; return Selection; }
     public void SetSelection(string[] ids) => Selection = ids;
     public ParameterInfo ReadParameter(string elementId, string parameterId)
     {
+        Reads++;
         var parameter = Parameters.GetValueOrDefault(parameterId) ?? new(parameterId, "Parameter", "data", ReadOnly, Values[parameterId]);
         return parameter with { IsReadOnly = parameter.IsReadOnly || ReadOnly,
             Value = WrongReadback && Writes > 0 ? new("String", Text: "wrong") : Values[parameterId] };

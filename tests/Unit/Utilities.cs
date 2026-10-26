@@ -41,6 +41,14 @@ internal static class Utilities
         }
         model = new() { Fault = "set", RollbackFails = true };
         check("utility uncertain rollback is explicit", executor.Execute(model, Range()).Outcome == Outcome.Unconfirmed);
+        model = new() { Fault = "begin" };
+        check("native transaction refusal does not claim a rollback", executor.Execute(model, Range()).Code == "write_blocked" && model.Transactions == 0);
+        model = new() { Fault = "operation" };
+        var rejectedRange = model.Settings;
+        var nativeRejection = executor.Execute(model, Range());
+        check("verified rollback retains the native operation error", nativeRejection is
+            { Outcome: Outcome.RolledBack, Code: "native_range_rejected", Message: "Native range refused. Original state verified." }
+            && model.Settings == rejectedRange && model.Transactions == 1);
         model = new();
         OperationRequest Room() => new(Guid.NewGuid(), OperationKind.CreateRoomDimensions, model.Target, ElementIds: ["room"], RoomOptions: new(), RoomPreview: model.Preview);
         foreach (var invalid in new[] { Room() with { ExpectedRange = model.Settings }, Room() with { Range = model.Settings } })
@@ -93,7 +101,7 @@ internal static class Utilities
         public IChange BeginChange() => throw new NotSupportedException();
         public ViewRangeInfo ReadViewRange() { Reads++; return new(Fault == "readback" && changed ? Settings with { Cut = new("Current", 1) } : Settings, [], 0, !Controlled, "Template controls range."); }
         public RoomDimensionPreview PlanRoomDimensions(string id, RoomDimensionOptions options) { Reads++; PlannedRoomId = id; return Preview; }
-        public IUtilityChange BeginUtilityChange(string label) => new Change(this);
+        public IUtilityChange BeginUtilityChange(string label) => Fault == "begin" ? throw new InvalidOperationException() : new Change(this);
         public bool VerifyDimensions(long[] ids, RoomDimensionPreview preview) => ids.Length == 2 && Created.Count == 2;
         public bool ElementsAbsent(long[] ids) => ids.All(id => !Created.Contains(id));
         private sealed class Change(UtilityModel model) : IUtilityChange
@@ -102,7 +110,12 @@ internal static class Utilities
             public Completion StartGroup() => Completion.Started;
             public Completion StartTransaction() { model.Transactions++; return Completion.Started; }
             public void RenameView(string name) => throw new NotSupportedException();
-            public void SetViewRange(ViewRangeSettings s) { model.Settings = s; model.changed = true; if (model.Fault == "set") throw new InvalidOperationException(); }
+            public void SetViewRange(ViewRangeSettings s)
+            {
+                model.Settings = s; model.changed = true;
+                if (model.Fault == "set") throw new InvalidOperationException();
+                if (model.Fault == "operation") throw new OperationException("native_range_rejected", "Native range refused.");
+            }
             public void CreateRoomDimensions(RoomDimensionPreview p, List<long> ids)
             {
                 model.Created.Add(1); ids.Add(1);

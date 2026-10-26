@@ -57,8 +57,19 @@ internal static class TimberFoldCutFiles
         Corrupt("reader rejects width compensation", "43", "0.01", "zero elevation", append: true);
         Corrupt("reader rejects a shifted canonical vertex", "10", "0.251", "canonical physical-inch");
         Corrupt("reader rejects unknown entity extensions", "999", "untrusted", "Unexpected entity code", append: true);
+        Corrupt("reader rejects duplicate required polyline fields", "8", "CUT", "Missing/duplicate", append: true);
+        Corrupt("reader rejects invalid entity handles", "5", "not-hex", "Invalid entity handle");
+        Corrupt("reader rejects mismatched vertex counts", "90", "3", "vertex count");
+        Corrupt("reader rejects extra per-vertex metadata", "91", "0", "per-vertex metadata", append: true);
+        Corrupt("reader rejects unexpected display metadata", "370", "1", "display metadata");
+        Corrupt("reader rejects nonfinite coordinates", "10", "NaN", "Nonfinite/invalid");
         HeaderCorrupt("reader rejects millimetre declarations", "$INSUNITS", "4", "header $INSUNITS");
         HeaderCorrupt("reader rejects an unexpected UCS origin", "$UCSORG", "1.0", "header $UCSORG");
+        HeaderCorrupt("reader rejects incorrect drawing extents", "$EXTMIN", "999.0", "Invalid drawing extent");
+        DocumentCorrupt("reader rejects non-ASCII input", text => text + "\u00ff", "Expected ASCII DXF");
+        DocumentCorrupt("reader rejects incomplete code pairs", text => text + "999\r\n", "Incomplete DXF code pair");
+        DocumentCorrupt("reader rejects trailing payload after EOF", text => text + "0\r\nEXTRA\r\n", "Expected DXF SECTION");
+        DocumentCorrupt("reader rejects unreviewed metadata dialects", text => text.Replace("$INSUNITS", "$UNREVIEWED\r\n1\r\npayload\r\n9\r\n$INSUNITS", StringComparison.Ordinal), "Unsupported DXF metadata dialect");
         var diagonal = Encoding.ASCII.GetString(original).Split("\r\n");
         int diagonalStart = Array.IndexOf(diagonal, "LWPOLYLINE") + 1;
         for (int i = diagonalStart; i + 1 < diagonal.Length && diagonal[i].Trim() != "0"; i += 2)
@@ -144,6 +155,13 @@ internal static class TimberFoldCutFiles
             var lines = Encoding.ASCII.GetString(original).Split("\r\n");
             lines[Array.IndexOf(lines, variable) + 2] = value;
             File.WriteAllText(saved, string.Join("\r\n", lines), Encoding.ASCII);
+            var read = TimberCutFiles.Verify(directory, panels, stock, profile);
+            check(name, !read.Staged && read.Diagnostics.Any(d => d.Message.Contains(diagnostic, StringComparison.Ordinal)));
+            File.WriteAllBytes(saved, original);
+        }
+        void DocumentCorrupt(string name, Func<string, string> change, string diagnostic)
+        {
+            File.WriteAllText(saved, change(Encoding.ASCII.GetString(original)), Encoding.Latin1);
             var read = TimberCutFiles.Verify(directory, panels, stock, profile);
             check(name, !read.Staged && read.Diagnostics.Any(d => d.Message.Contains(diagnostic, StringComparison.Ordinal)));
             File.WriteAllBytes(saved, original);

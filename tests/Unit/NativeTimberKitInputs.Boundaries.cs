@@ -85,6 +85,7 @@ internal static partial class NativeTimberKitInputs
     private static void CuttingBounds(Action<string, bool> check, Fixture fixture)
     {
         var plan = fixture.Plan; var first = plan.CutFiles[0];
+        Reject(check, "reordered canonical cut inventory", () => fixture.Read(fixture.Request(plan with { CutFiles = [.. plan.CutFiles.Reverse()] })), CuttingError);
         Reject(check, "duplicate declared file", () => fixture.Read(fixture.Request(plan with { CutFiles = plan.CutFiles.Add(first) })), "Native input file inventory differs from its verified plan.");
         foreach (var (name, file, error) in new (string, TimberCutFile, string)[]
         {

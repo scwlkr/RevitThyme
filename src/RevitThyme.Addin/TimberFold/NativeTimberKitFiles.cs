@@ -12,11 +12,14 @@ internal static class NativeTimberKitFiles
         "RevitThyme", "TimberFold", "runs", id.ToString("D"));
 
     internal static TimberNativeKitPlan Read(TimberNativeKitRequest request, CancellationToken ct)
+        => Read(request, ct, RunDirectory);
+
+    internal static TimberNativeKitPlan Read(TimberNativeKitRequest request, CancellationToken ct, Func<Guid, string> runDirectory)
     {
         ct.ThrowIfCancellationRequested();
         if (request.RunId == Guid.Empty || request.PlanJson.IsDefaultOrEmpty || request.PlanJson.Length > 134217728 ||
             !Path.IsPathFullyQualified(request.Directory) ||
-            !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(request.Directory)), RunDirectory(request.RunId), StringComparison.OrdinalIgnoreCase))
+            !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(request.Directory)), runDirectory(request.RunId), StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Native finalization requires its exact host-owned run directory and bounded plan.");
         RequirePlain(request.Directory);
         CheckInputSeal(request);

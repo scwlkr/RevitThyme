@@ -48,6 +48,7 @@ internal static class Program
         Sync(nameof(TimberRationalRounding), TimberRationalRounding.Run),
         Sync(nameof(TimberRationalContracts), TimberRationalContracts.Run),
         Sync(nameof(TimberRoofExposureContract), TimberRoofExposureContract.Run),
+        Sync(nameof(NativeTimberKitInputs), NativeTimberKitInputs.Run),
         Sync(nameof(NativeLifecycleFilesChecks), NativeLifecycleFilesChecks.Run),
         Sync(nameof(LifecycleCoordination), LifecycleCoordination.Run),
     ];

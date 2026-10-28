@@ -3,7 +3,7 @@ using RevitThyme.Core;
 namespace RevitThyme.Unit;
 
 // These adapters model the interface, not Autodesk Revit. Native qualification is separate.
-internal static class LifecycleCoordination
+internal static partial class LifecycleCoordination
 {
     private static readonly string OriginalHash = new('a', 64), ChangedHash = new('b', 64);
 
@@ -57,6 +57,7 @@ internal static class LifecycleCoordination
         check("refused native close is attempted once", refusedClose.B.Closes == 1);
         var changedFile = new Runtime(); changedFile.AfterOpen = () => changedFile.Hashes[changedFile.C.PathName] = ChangedHash;
         Reject("open completion with changed saved bytes is unconfirmed", changedFile, OperationKind.OpenDocument, changedFile.Request(changedFile.C), "lifecycle_unconfirmed");
+        Boundaries(check);
 
         void Reject(string name, Runtime runtime, OperationKind operation, DocumentLifecycleRequest options, string code)
         {
@@ -91,6 +92,7 @@ internal static class LifecycleCoordination
         public Action? AfterOpen { get; set; }
         public Action? AfterActivate { get; set; }
         public Action? AfterClose { get; set; }
+        public bool ReturnNullOpen { get; set; }
         public Runtime()
         {
             OpenDocuments = [A, B]; Active = A;
@@ -108,12 +110,13 @@ internal static class LifecycleCoordination
         public void AssertLocalFile(string path) => Events.Add("local:" + path);
         public string Hash(string path) { Events.Add("hash:" + path); return Hashes[path]; }
         public ILifecycleFileInfo ReadFileInfo(string path) => Header;
-        public ILifecycleDocument Open(string path) { Opens++; OpenDocuments.Add(C); AfterOpen?.Invoke(); return C; }
+        public ILifecycleDocument? Open(string path) { Opens++; OpenDocuments.Add(C); AfterOpen?.Invoke(); return ReturnNullOpen ? null : C; }
         public ILifecycleDocument Activate(string path) { Activates++; Active = OpenDocuments.Single(d => d.PathName == path); AfterActivate?.Invoke(); return Active; }
     }
 
     private sealed class Doc(string id) : ILifecycleDocument
     {
+        public object Identity { get; init; } = new();
         public string Id { get; set; } = id;
         public string PathName { get; set; } = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "lifecycle-policy-" + id + ".rvt"));
         public string Title => Id;
@@ -132,7 +135,7 @@ internal static class LifecycleCoordination
         public bool CloseResult { get; set; } = true;
         public Action? SaveAction { get; set; }
         public Action? CloseAction { get; set; }
-        public bool Matches(ILifecycleDocument? other) => ReferenceEquals(this, other);
+        public bool Matches(ILifecycleDocument? other) => other is Doc peer && ReferenceEquals(Identity, peer.Identity);
         public void Save() { Saves++; SaveAction?.Invoke(); }
         public bool Close(bool saveModified) { Closes++; SaveOnClose = saveModified; CloseAction?.Invoke(); return CloseResult; }
     }

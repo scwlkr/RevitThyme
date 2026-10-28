@@ -6,6 +6,7 @@
     <Content Include="Fixtures/flat-roof-control.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Fixtures/gable-roof-control.json" CopyToOutputDirectory="PreserveNewest" />
     <Compile Include="../../src/RevitThyme.Addin/CSharpCompiler.cs" Link="CSharpCompiler.cs" />
+    <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitRecovery.cs" Link="NativeTimberKitRecovery.cs" />
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitFiles.cs" Link="NativeTimberKitFiles.cs" />
     <Compile Include="../../src/RevitThyme.Addin/NativeLifecycleFiles.cs" Link="NativeLifecycleFiles.cs" />
     <Compile Include="../../src/RevitThyme.Addin/TimberFold/NativeTimberKitContourCheck.cs" Link="NativeTimberKitContourCheck.cs" />

@@ -105,7 +105,7 @@ internal static partial class NativeTimberKitInputs
         check("native inputs reject " + name + " with the original diagnostic", rejected);
     }
 
-    private sealed class Fixture : IDisposable
+    internal sealed class Fixture : IDisposable
     {
         internal string Directory { get; } = Path.Combine(Path.GetTempPath(), "revitthyme-native-inputs-" + Guid.NewGuid().ToString("N"));
         internal Guid RunId { get; } = Guid.NewGuid();

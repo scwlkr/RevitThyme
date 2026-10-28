@@ -6,7 +6,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Addin;
 
-internal static class NativeTimberKit
+internal static partial class NativeTimberKit
 {
     internal static TimberNativeKitReceipt Finalize(UIApplication app, RevitModel model, TimberNativeKitRequest request, CancellationToken ct)
     {
@@ -80,43 +80,8 @@ internal static class NativeTimberKit
         catch (Exception error) when (error is not OutOfMemoryException)
         {
             if (documents is not null) created = documents.Elements.ToImmutableArray();
-            // A cancellation racing with a confirmed native commit cannot turn it into Cancelled/RolledBack.
-            if (committed || group?.GetStatus() == TransactionStatus.Committed)
-                return new(TimberNativeKitState.Committed, request.RunId, after, created, files,
-                    [new("native_postcommit_context", TimberSeverity.Warning, "Native kit committed; refresh source context: " + error.Message)], true, readback, preparedHash, clock.Elapsed.TotalMilliseconds, request.InputSealSha256);
-            bool rolledBack = false, preserved = false;
-            try
-            {
-                if (group?.GetStatus() == TransactionStatus.Started) rolledBack = group.RollBack() == TransactionStatus.RolledBack;
-                else rolledBack = group?.GetStatus() == TransactionStatus.RolledBack;
-                preservation?.RequireUnchanged(false, CancellationToken.None);
-                preserved = source.Equals(app.ActiveUIDocument?.Document);
-                if (plan is not null && preservation is not null &&
-                    NativeTimberKitPreservation.OriginalFingerprint(source, plan, request.Target, [], CancellationToken.None) != plan.SourceFingerprint) preserved = false;
-                after = model.Capture().Target;
-            }
-            catch (Exception verifyError) when (verifyError is not OutOfMemoryException)
-            { error = new AggregateException(error, verifyError); }
-            if (!rolledBack && preservation is not null)
-            {
-                try
-                {
-                    var beforeIds = preservation.Before.Select(e => e.Id).ToHashSet();
-                    var known = created.ToDictionary(e => e.Id);
-                    foreach (long id in NativeTimberKitPreservation.Ids(source).Where(id => !beforeIds.Contains(id)))
-                    {
-                        var element = source.GetElement(new ElementId(id));
-                        known.TryAdd(id, new(id, element.UniqueId, "UnconfirmedResource"));
-                    }
-                    created = known.Values.OrderBy(e => e.Id).ToImmutableArray();
-                }
-                catch (Exception inventoryError) when (inventoryError is not OutOfMemoryException)
-                { error = new AggregateException(error, inventoryError); }
-            }
-            var state = group is null ? preserved ? TimberNativeKitState.Rejected : TimberNativeKitState.Unconfirmed
-                : rolledBack && preserved ? TimberNativeKitState.RolledBack : TimberNativeKitState.Unconfirmed;
-            return new(state, request.RunId, after, created, files,
-                [new(error is OperationCanceledException ? "cancelled" : "native_kit", TimberSeverity.Error, error.Message)], preserved, false, preparedHash, clock.Elapsed.TotalMilliseconds, request.InputSealSha256);
+            return NativeTimberKitRecovery.Recover(new RecoveryRuntime(app, model, source, preservation, group),
+                new(request, plan, after, created, files, preparedHash, committed, readback, clock), error);
         }
         finally
         {

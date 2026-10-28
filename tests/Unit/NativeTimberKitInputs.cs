@@ -6,7 +6,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Unit;
 
-internal static class NativeTimberKitInputs
+internal static partial class NativeTimberKitInputs
 {
     private const string RequestError = "Native finalization requires its exact host-owned run directory and bounded plan.";
     private const string PlanError = "Native kit plan is incomplete, unverified or differs from its request.";
@@ -15,6 +15,8 @@ internal static class NativeTimberKitInputs
     internal static void Run(Action<string, bool> check)
     {
         using var fixture = new Fixture();
+        CheckFileHelpers(check, fixture.Directory);
+        CheckBoundaries(check, fixture);
         var request = fixture.Request(fixture.Plan);
         var result = fixture.Read(request);
         check("real fitted plan, cutting readback and guide inputs survive native input validation",
@@ -63,7 +65,6 @@ internal static class NativeTimberKitInputs
         }) Reject(check, name, () => fixture.Read(fixture.Request(fixture.Plan with { Guides = guides })), GuideError);
         Reject(check, "missing panel label", () => fixture.Read(fixture.Request(fixture.Plan with { Guides = fixture.Label(l => l with { PanelId = "absent" }) })),
             "Every native part label must map to the exact source panel and face.");
-        CheckFileHelpers(check, fixture.Directory);
         string extra = Path.Combine(fixture.Directory, "cutting", "unexpected.txt");
         File.WriteAllText(extra, "unplanned");
         Reject(check, "extra file", () => fixture.Read(request), "Native input file inventory differs from its verified plan.");
@@ -130,8 +131,11 @@ internal static class NativeTimberKitInputs
             File.WriteAllBytes(Path.Combine(Directory, "generation-inputs.json"), sealBytes);
             seal = Convert.ToHexStringLower(SHA256.HashData(sealBytes));
         }
-        internal TimberGuideStaging Label(Func<TimberGuideLabel, TimberGuideLabel> change) =>
-            Plan.Guides with { Labels = Plan.Guides.Labels.SetItem(0, change(Plan.Guides.Labels[0])) };
+        internal TimberGuideStaging Label(Func<TimberGuideLabel, TimberGuideLabel> change)
+        {
+            int index = Enumerable.Range(0, Plan.Guides.Labels.Length).First(i => Plan.Guides.Labels[i].PanelId is not null);
+            return Plan.Guides with { Labels = Plan.Guides.Labels.SetItem(index, change(Plan.Guides.Labels[index])) };
+        }
         internal TimberNativeKitRequest Request(TimberNativeKitPlan plan) => new(RunId, Plan.SourceContext.Target, Directory,
             [.. JsonSerializer.SerializeToUtf8Bytes(plan, Protocol.Json)], seal);
         internal TimberNativeKitPlan Read(TimberNativeKitRequest request) => NativeTimberKitFiles.Read(request, default, _ => Directory);

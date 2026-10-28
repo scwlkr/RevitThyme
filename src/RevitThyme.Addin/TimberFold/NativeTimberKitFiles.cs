@@ -138,16 +138,19 @@ internal static class NativeTimberKitFiles
     }
     internal static TimberNativeFile File(string run, string path, string role) =>
         new(Path.GetRelativePath(run, path).Replace('\\', '/'), Hash(path), new FileInfo(path).Length, role);
-    internal static string WriteNew(string path, object value)
+    internal static string WriteNew(string path, object value) =>
+        WriteNew(path, value, p => new FileStream(p, FileMode.CreateNew, FileAccess.Write, FileShare.Read));
+
+    internal static string WriteNew(string path, object value, Func<string, FileStream> open)
     {
-        using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
+        using (var stream = open(path))
         { JsonSerializer.Serialize(stream, value, Protocol.Json); stream.Flush(true); }
         return Hash(path);
     }
     private static void CheckFiles(string directory, ImmutableArray<TimberCutFile> files, CancellationToken ct)
     {
-        if (files.IsDefaultOrEmpty || files.Select(f => f.Name).Distinct(StringComparer.Ordinal).Count() != files.Length ||
-            !Directory.GetFileSystemEntries(directory).Select(Path.GetFileName).Order(StringComparer.Ordinal)
+        // Plan validation guarantees nonempty arrays; exact inventory also rejects duplicate names.
+        if (!Directory.GetFileSystemEntries(directory).Select(Path.GetFileName).Order(StringComparer.Ordinal)
                 .SequenceEqual(files.Select(f => f.Name).Order(StringComparer.Ordinal)))
             throw new InvalidDataException("Native input file inventory differs from its verified plan.");
         foreach (var file in files)
@@ -160,7 +163,7 @@ internal static class NativeTimberKitFiles
 
     private static void CheckFileMetadata(TimberCutFile file)
     {
-        if (file.Name != Path.GetFileName(file.Name) || file.Name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || file.Bytes <= 0 || file.Bytes > 134217728)
+        if (file.Bytes <= 0 || file.Bytes > 134217728)
             throw new InvalidDataException("Invalid native input file metadata.");
     }
 

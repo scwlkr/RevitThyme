@@ -1,0 +1,22 @@
+{
+  "build": [
+    "dotnet",
+    "build",
+    "tests/Unit/RevitThyme.Unit.csproj",
+    "-c",
+    "Release",
+    "--nologo",
+    "-p:RestoreLockedMode=true",
+    "-p:UseSharedCompilation=false",
+    "-nr:false"
+  ],
+  "tests": [
+    [
+      "dotnet",
+      "tests/Unit/bin/Release/net10.0/RevitThyme.Unit.dll",
+      "--suite",
+      "NativeTimberKitInputs"
+    ]
+  ],
+  "timeoutSeconds": 180
+}

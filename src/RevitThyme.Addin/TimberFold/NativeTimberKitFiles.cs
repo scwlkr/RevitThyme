@@ -17,26 +17,56 @@ internal static class NativeTimberKitFiles
     internal static TimberNativeKitPlan Read(TimberNativeKitRequest request, CancellationToken ct, Func<Guid, string> runDirectory)
     {
         ct.ThrowIfCancellationRequested();
-        if (request.RunId == Guid.Empty || request.PlanJson.IsDefaultOrEmpty || request.PlanJson.Length > 134217728 ||
-            !Path.IsPathFullyQualified(request.Directory) ||
-            !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(request.Directory)), runDirectory(request.RunId), StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException("Native finalization requires its exact host-owned run directory and bounded plan.");
+        CheckRequest(request, runDirectory);
         RequirePlain(request.Directory);
         CheckInputSeal(request);
         var plan = JsonSerializer.Deserialize<TimberNativeKitPlan>(request.PlanJson.AsSpan(), Protocol.Json)
             ?? throw new InvalidDataException("Native kit plan is missing.");
-        if (plan.Schema != 1 || plan.RunId != request.RunId || plan.PreviewRunId == Guid.Empty || plan.SourceContext.Target != request.Target ||
-            plan.SourceSnapshotJson.IsDefaultOrEmpty || plan.SourceFingerprint.Length != 64 ||
-            plan.Profile.Validate().Length != 0 || plan.Fitted.State != TimberFitState.GeometryFitted || !plan.Fitted.Verification.Passed ||
-            !plan.Stock.Planned || !plan.Guides.Staged || plan.CutFiles.IsDefaultOrEmpty ||
-            plan.Fitted.Draft.Panels.IsDefaultOrEmpty || plan.Fitted.Draft.Panels.Length > 10000)
+        CheckPlan(request, plan);
+        CheckSource(request, plan);
+        CheckStaging(request.Directory, plan, ct);
+        CheckGuides(plan.Guides);
+        CheckPanelLabels(plan);
+        return plan;
+    }
+
+    private static void CheckRequest(TimberNativeKitRequest request, Func<Guid, string> runDirectory)
+    {
+        if (request.RunId == Guid.Empty || request.PlanJson.IsDefaultOrEmpty || request.PlanJson.Length > 134217728 ||
+            !Path.IsPathFullyQualified(request.Directory) ||
+            !string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(request.Directory)), runDirectory(request.RunId), StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Native finalization requires its exact host-owned run directory and bounded plan.");
+    }
+
+    private static void CheckPlan(TimberNativeKitRequest request, TimberNativeKitPlan plan)
+    {
+        if (!MatchesRequest(request, plan) || !HasVerifiedGeometry(plan) || !HasStagedParts(plan))
             throw new InvalidDataException("Native kit plan is incomplete, unverified or differs from its request.");
+    }
+
+    private static bool MatchesRequest(TimberNativeKitRequest request, TimberNativeKitPlan plan) =>
+        plan.Schema == 1 && plan.RunId == request.RunId && plan.PreviewRunId != Guid.Empty && plan.SourceContext.Target == request.Target;
+
+    private static bool HasVerifiedGeometry(TimberNativeKitPlan plan) =>
+        !plan.SourceSnapshotJson.IsDefaultOrEmpty && plan.SourceFingerprint.Length == 64 &&
+        plan.Profile.Validate().Length == 0 && plan.Fitted.State == TimberFitState.GeometryFitted && plan.Fitted.Verification.Passed;
+
+    private static bool HasStagedParts(TimberNativeKitPlan plan) =>
+        plan.Stock.Planned && plan.Guides.Staged && !plan.CutFiles.IsDefaultOrEmpty &&
+        !plan.Fitted.Draft.Panels.IsDefaultOrEmpty && plan.Fitted.Draft.Panels.Length <= 10000;
+
+    private static void CheckSource(TimberNativeKitRequest request, TimberNativeKitPlan plan)
+    {
         var source = JsonSerializer.Deserialize<TimberSnapshot>(plan.SourceSnapshotJson.AsSpan(), Protocol.Json)
             ?? throw new InvalidDataException("Original source snapshot is missing.");
         if (source.DocumentFingerprint != plan.SourceFingerprint || source.Target != request.Target ||
             TimberInspection.GetDiagnostics(source, plan.Profile, plan.Scope).Any(d => d.Severity == TimberSeverity.Error))
             throw new InvalidDataException("Source evidence differs from the verified plan.");
-        string cutting = Path.Combine(request.Directory, "cutting"), guides = Path.Combine(request.Directory, "guides");
+    }
+
+    private static void CheckStaging(string directory, TimberNativeKitPlan plan, CancellationToken ct)
+    {
+        string cutting = Path.Combine(directory, "cutting"), guides = Path.Combine(directory, "guides");
         RequirePlain(cutting); RequirePlain(guides);
         if (!string.Equals(Path.GetFullPath(plan.Guides.Directory), guides, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Guide inputs must belong to this generation directory.");
@@ -44,19 +74,37 @@ internal static class NativeTimberKitFiles
         var verified = TimberCutFiles.Verify(cutting, plan.Fitted.Draft.Panels, plan.Stock, plan.Profile, ct);
         if (!verified.Staged || !verified.Files.SequenceEqual(plan.CutFiles))
             throw new InvalidDataException("Canonical cutting files failed independent verification.");
-        if (plan.Guides.Drawings.IsDefaultOrEmpty || plan.Guides.Labels.IsDefaultOrEmpty || plan.Guides.Drawings.Length > 1000 || plan.Guides.Labels.Length > 100000 ||
-            plan.Guides.Drawings.Select(d => d.File).Distinct(StringComparer.Ordinal).Count() != plan.Guides.Drawings.Length ||
-            plan.Guides.Drawings.Any(d => !plan.Guides.Files.Any(f => f.Name == d.File) || !d.File.EndsWith(".dxf", StringComparison.Ordinal)) ||
-            plan.Guides.Labels.Any(l => !plan.Guides.Drawings.Any(d => d.File == l.GuideFile) || string.IsNullOrWhiteSpace(l.Text) ||
-                l.Text.Length > 16384 || !double.IsFinite(l.PhysicalPositionInches.X) || !double.IsFinite(l.PhysicalPositionInches.Y) ||
-                !double.IsFinite(l.TextHeightInches) || l.TextHeightInches <= 0 || l.TextHeightInches > 2))
-            throw new InvalidDataException("Native guide inventory or labels are invalid.");
-        var panels = plan.Fitted.Draft.Panels;
-        if (panels.Any(p => !plan.Guides.Labels.Any(l => l.PanelId == p.Id && l.SourceId == p.SourceId && l.FaceId == p.FaceId)) ||
-            plan.Guides.Labels.Any(l => l.PanelId is not null && !panels.Any(p => p.Id == l.PanelId && p.SourceId == l.SourceId && p.FaceId == l.FaceId)))
-            throw new InvalidDataException("Every native part label must map to the exact source panel and face.");
-        return plan;
     }
+
+    private static void CheckGuides(TimberGuideStaging guides)
+    {
+        if (!HasGuideInventory(guides) || guides.Drawings.Any(d => !ValidDrawing(d, guides.Files)) ||
+            guides.Labels.Any(l => !ValidLabel(l, guides.Drawings)))
+            throw new InvalidDataException("Native guide inventory or labels are invalid.");
+    }
+
+    private static bool HasGuideInventory(TimberGuideStaging guides) =>
+        !guides.Drawings.IsDefaultOrEmpty && !guides.Labels.IsDefaultOrEmpty && guides.Drawings.Length <= 1000 && guides.Labels.Length <= 100000 &&
+        guides.Drawings.Select(d => d.File).Distinct(StringComparer.Ordinal).Count() == guides.Drawings.Length;
+
+    private static bool ValidDrawing(TimberGuideDrawing drawing, ImmutableArray<TimberCutFile> files) =>
+        files.Any(f => f.Name == drawing.File) && drawing.File.EndsWith(".dxf", StringComparison.Ordinal);
+
+    private static bool ValidLabel(TimberGuideLabel label, ImmutableArray<TimberGuideDrawing> drawings) =>
+        drawings.Any(d => d.File == label.GuideFile) && !string.IsNullOrWhiteSpace(label.Text) && label.Text.Length <= 16384 &&
+        double.IsFinite(label.PhysicalPositionInches.X) && double.IsFinite(label.PhysicalPositionInches.Y) &&
+        double.IsFinite(label.TextHeightInches) && label.TextHeightInches > 0 && label.TextHeightInches <= 2;
+
+    private static void CheckPanelLabels(TimberNativeKitPlan plan)
+    {
+        var panels = plan.Fitted.Draft.Panels;
+        if (panels.Any(p => !plan.Guides.Labels.Any(l => MatchesPanel(l, p))) ||
+            plan.Guides.Labels.Any(l => l.PanelId is not null && !panels.Any(p => MatchesPanel(l, p))))
+            throw new InvalidDataException("Every native part label must map to the exact source panel and face.");
+    }
+
+    private static bool MatchesPanel(TimberGuideLabel label, TimberPanel panel) =>
+        panel.Id == label.PanelId && panel.SourceId == label.SourceId && panel.FaceId == label.FaceId;
 
     internal static void CheckInputSeal(TimberNativeKitRequest request)
     {
@@ -105,11 +153,21 @@ internal static class NativeTimberKitFiles
         foreach (var file in files)
         {
             ct.ThrowIfCancellationRequested();
-            if (file.Name != Path.GetFileName(file.Name) || file.Name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || file.Bytes <= 0 || file.Bytes > 134217728)
-                throw new InvalidDataException("Invalid native input file metadata.");
-            string path = Path.Combine(directory, file.Name);
-            if ((System.IO.File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0 || new FileInfo(path).Length != file.Bytes || Hash(path) != file.Sha256)
-                throw new InvalidDataException("Native input changed: " + file.Name);
+            CheckFileMetadata(file);
+            CheckFileContent(directory, file);
         }
+    }
+
+    private static void CheckFileMetadata(TimberCutFile file)
+    {
+        if (file.Name != Path.GetFileName(file.Name) || file.Name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 || file.Bytes <= 0 || file.Bytes > 134217728)
+            throw new InvalidDataException("Invalid native input file metadata.");
+    }
+
+    private static void CheckFileContent(string directory, TimberCutFile file)
+    {
+        string path = Path.Combine(directory, file.Name);
+        if ((System.IO.File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0 || new FileInfo(path).Length != file.Bytes || Hash(path) != file.Sha256)
+            throw new InvalidDataException("Native input changed: " + file.Name);
     }
 }

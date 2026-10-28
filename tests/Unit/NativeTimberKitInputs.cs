@@ -63,6 +63,7 @@ internal static class NativeTimberKitInputs
         }) Reject(check, name, () => fixture.Read(fixture.Request(fixture.Plan with { Guides = guides })), GuideError);
         Reject(check, "missing panel label", () => fixture.Read(fixture.Request(fixture.Plan with { Guides = fixture.Label(l => l with { PanelId = "absent" }) })),
             "Every native part label must map to the exact source panel and face.");
+        CheckFileHelpers(check, fixture.Directory);
         string extra = Path.Combine(fixture.Directory, "cutting", "unexpected.txt");
         File.WriteAllText(extra, "unplanned");
         Reject(check, "extra file", () => fixture.Read(request), "Native input file inventory differs from its verified plan.");
@@ -70,6 +71,30 @@ internal static class NativeTimberKitInputs
         string cut = Path.Combine(fixture.Directory, "cutting", fixture.Plan.CutFiles[0].Name);
         var bytes = File.ReadAllBytes(cut); bytes[0] ^= 1; File.WriteAllBytes(cut, bytes);
         Reject(check, "same-length cutting tamper", () => fixture.Read(request), "Native input changed: " + fixture.Plan.CutFiles[0].Name);
+    }
+
+    private static void CheckFileHelpers(Action<string, bool> check, string directory)
+    {
+        string path = Path.Combine(directory, "one-byte"); File.WriteAllBytes(path, [42]);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+        check("hash consumes a one-byte final block and terminates at EOF",
+            NativeTimberKitFiles.Hash(path, timeout.Token) == Convert.ToHexStringLower(SHA256.HashData(new byte[] { 42 })));
+        check("file evidence records relative slash-normalized name, bytes, digest and role",
+            NativeTimberKitFiles.File(directory, path, "input") == new TimberNativeFile("one-byte", NativeTimberKitFiles.Hash(path), 1, "input"));
+        string fresh = NativeTimberKitFiles.FreshDirectory(directory, "native");
+        check("fresh native output directory starts empty", System.IO.Directory.Exists(fresh) && !System.IO.Directory.EnumerateFileSystemEntries(fresh).Any());
+        bool refused = false;
+        try { NativeTimberKitFiles.FreshDirectory(directory, "native"); } catch (IOException error) { refused = error.Message.Contains("recover the original generation", StringComparison.Ordinal); }
+        check("existing output directory refuses retry", refused);
+        refused = false;
+        try { NativeTimberKitFiles.FreshDirectory(directory, "one-byte"); } catch (IOException error) { refused = error.Message.Contains("recover the original generation", StringComparison.Ordinal); }
+        check("existing file refuses output-directory replacement", refused && File.ReadAllBytes(path).SequenceEqual(new byte[] { 42 }));
+        string json = Path.Combine(directory, "written.json");
+        string digest = NativeTimberKitFiles.WriteNew(json, new { Value = "persisted" });
+        check("new JSON evidence returns digest of persisted bytes", digest == Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(json))) && File.ReadAllText(json).Contains("persisted", StringComparison.Ordinal));
+        refused = false;
+        try { NativeTimberKitFiles.WriteNew(json, new { Value = "replacement" }); } catch (IOException) { refused = true; }
+        check("JSON evidence cannot overwrite existing bytes", refused && NativeTimberKitFiles.Hash(json) == digest);
     }
 
     private static void Reject(Action<string, bool> check, string name, Action action, string message)

@@ -1,6 +1,6 @@
 # Issue tracker
 
-Use Linear team **WLKR LABS** (`WLK`), project [RevitThyme](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9). Search before creating duplicate work. Use connected Linear tools; retain issue names and URLs in local evidence. Specs may be parent issues or linked Linear documents. Each implementation ticket states its acceptance criteria and native blocking relationships. Work blockers first. Preserve local source and verification evidence; an issue is Done only after verified acceptance and default-branch landing. External pull requests are not an incoming triage surface by default.
+Use the `WLK` issue queue in Linear project [RevitThyme](https://linear.app/wlkr-labs/project/revitthyme-fea9af3040c9). Search before creating duplicate work. Use connected Linear tools; retain issue names and URLs in local evidence. Specs may be parent issues or linked Linear documents. Each implementation ticket states its acceptance criteria and native blocking relationships. Work blockers first. Preserve local source and verification evidence; an issue is Done only after verified acceptance and default-branch landing. External pull requests are not an incoming triage surface by default.
 
 ## Wayfinding operations
 

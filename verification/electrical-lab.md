@@ -16,7 +16,7 @@ Four distinct PNG hashes across six stages were visually inspected. Empty/copied
 
 ## Harness and acceptance
 
-The opt-in [ElectricalLab runner](../tests/ElectricalLab/README.md) starts an owned trusted process at Home, copies the current electrical project and a distinct clean handoff project, and pins their hashes and process/start/session. The official SDK client launches the immutable installed MCP executable. Trusted C# only inspects or performs bounded transactions; open, activation, view switching, image export, save and close use typed operations. No test-only native callback or dialog handler was installed.
+The opt-in [ElectricalLab runner](https://github.com/scwlkr/RevitThyme/blob/14d9a38/tests/ElectricalLab/README.md) starts an owned trusted process at Home, copies the current electrical project and a distinct clean handoff project, and pins their hashes and process/start/session. The official SDK client launches the immutable installed MCP executable. Trusted C# only inspects or performs bounded transactions; open, activation, view switching, image export, save and close use typed operations. No test-only native callback or dialog handler was installed.
 
 The edit creates an independent Power study without detailing, then copies exactly two inspected Generic Annotation instances in a second transaction. Every native Added ID requires a bounded role; Modified IDs require explicit bookkeeping roles. Each edit retains the 512 changed-ID budget. Canonical views/templates, raw settings/ranges, annotations, model counts, schedule footers, sheet placements and original collector membership must remain unchanged. Only copied A may be explicitly saved.
 

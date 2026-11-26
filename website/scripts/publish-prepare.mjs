@@ -79,7 +79,7 @@ export function prepare(options) {
   };
   const state = {
     schema: 1,
-    phase: 'awaiting-approval',
+    phase: 'ready',
     candidate,
     candidateKey: candidateKey(candidate),
     paths: {

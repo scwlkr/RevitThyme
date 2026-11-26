@@ -1,15 +1,15 @@
 ---
 name: publish-website
-description: Publish RevitThyme's website, verify its live files and GitHub settings, and merge the approved baseline. Use for publication or resuming an interrupted publication.
+description: Publish RevitThyme's website, verify its live files and GitHub settings, and merge the verified baseline. Use for publication or resuming an interrupted publication.
 ---
 
 # Publish website
 
-Use the repository's publication CLI to prepare one frozen candidate, obtain owner approval, publish through native Sites tools, then verify and merge its baseline. Read [website maintenance](../../../docs/WEBSITE.md). Discover and read the installed Sites skill and use its current official source helper; resolve the plugin root from that skill's installed location rather than a developer-specific path.
+Use the repository's publication CLI to prepare one checked candidate from merged source, publish through native Sites tools, then verify and merge its baseline. Confirm the work includes publication. Preserve the existing Site, audience and plan. Any change that incurs a new cost needs direct owner approval. Read [website maintenance](../../../docs/WEBSITE.md). Discover and read the installed Sites skill and use its current official source helper; resolve the plugin root from that skill's installed location rather than a developer-specific path.
 
-Run CLI commands from `website/`. Native Sites calls belong to this conversation; the CLI records their results but cannot make them. The approval must cover the candidate source commit, digest, existing Site/domain, live publication, and subsequent baseline-only PR creation/merge after verification. A request to implement or prepare this workflow is not publication approval.
+Run CLI commands from `website/`. Native Sites calls belong to this conversation; the CLI records their results but cannot make them. The journal binds the source commit, candidate digest, existing Site and domain through delivery. Preparation can also be used for tasks that end before publishing.
 
-## Prepare and approve
+## Prepare
 
 1. Fetch `origin/master`, select its full commit SHA and a merged source-review PR. Choose a new absolute run directory outside the repository, such as `~/.revitthyme/publications/<unique-name>`. Run:
 
@@ -18,19 +18,11 @@ Run CLI commands from `website/`. Native Sites calls belong to this conversation
    npm run publication -- status --run <directory>
    ```
 
-   Preparation exports and builds the pinned source under `run/checkout`, checks the release and existing live/GitHub state, and freezes `run/dist`. It must succeed before asking for approval. Keep candidate files unchanged afterward.
-2. Present the candidate commit, full `candidateKey`, domain and Site identity from status, with the review PR and check results. Obtain direct human approval for this candidate and the baseline PR/merge. Existing approval counts only when it unambiguously covers these exact values. Record its human-readable evidence:
-
-   ```text
-   npm run publication -- approve --run <directory> --key <full-candidateKey> --evidence <direct-human-approval-description>
-   ```
-
-   The CLI records trusted conversational approval; it does not independently authenticate the owner. Source changes require a new candidate and approval.
-
+   Preparation exports and builds the pinned source under `run/checkout`, checks the release and existing live/GitHub state, and freezes `run/dist`. Keep the frozen files unchanged afterward.
 ## Publish the frozen candidate
 
-3. Read `status` and use its `paths` and native arguments for the next action. Call native Sites `get_site` for `projectId`; confirm the existing audience and domain match the candidate. Preserve hosting identity and audience. Obtain an ordinary source write credential, omitting `publish_on_push`, and open the existing Site into the separate `paths.site` repository with the official `site-workflow.mjs`, omitting `archivePath` for opening. If the credential response or a known active publish window indicates automatic publication on source push, stop and reconcile that state before any source push. Keep the complete opening result in session memory.
-4. After approval and source opening, stage the frozen candidate automatically:
+2. Read `status` and use its `paths` and native arguments for the next action. Call native Sites `get_site` for `projectId`; confirm the existing audience and domain match the candidate. Preserve hosting identity and audience. Obtain an ordinary source write credential, omitting `publish_on_push`, and open the existing Site into the separate `paths.site` repository with the official `site-workflow.mjs`, omitting `archivePath` for opening. If the credential response or a known active publish window indicates automatic publication on source push, stop and reconcile that state before any source push. Keep the complete opening result in session memory.
+3. Stage the frozen candidate after opening the source:
 
    ```text
    npm run publication -- stage --run <directory>
@@ -43,7 +35,7 @@ Run CLI commands from `website/`. Native Sites calls belong to this conversation
    ```
 
    A changed manifest or archive fails validation; correct staging from the frozen candidate rather than rebuilding it.
-5. Before each native save or deploy call, journal its intent:
+4. Before each native save or deploy call, journal its intent:
 
    ```text
    npm run publication -- intent --run <directory> --operation save
@@ -59,13 +51,13 @@ Run CLI commands from `website/`. Native Sites calls belong to this conversation
 
 ## Verify and close
 
-6. Once native deployment succeeds, run:
+5. Once native deployment succeeds, run:
 
    ```text
    npm run publication -- finish --run <directory>
    ```
 
-   This verifies every frozen candidate file and the managed GitHub settings, creates a baseline-only PR, waits for required checks, merges it, and records delivery. Finish must pass before reporting success. It never repairs GitHub settings to hide drift. Open the deployed URL and report the source, saved version, baseline PR and receipt path.
+   This verifies every frozen candidate file and the managed GitHub settings, then pushes a baseline-only branch. Open a PR for that branch, verify its checks and merge it at the verified head. Record delivery using `npm run publication -- finish --run <directory> --baseline-pr <merged-PR-URL>`. Open the deployed URL and report the source, saved version, baseline PR and receipt path.
 
 ## Resume or recover
 
@@ -73,4 +65,4 @@ Run `status --run <directory>` first; retain and resume the same candidate. For 
 
 If preparation failed before creating `state.json`, fix its reported prerequisite and prepare in a new run directory. Coordinate one publisher at a time across independent clones/machines; the local deployment lock covers only worktrees sharing the same Git directory.
 
-A terminal failure or live/settings mismatch leaves the baseline unchanged. Investigate the failed evidence; obtain separate approval for a replacement deployment or settings repair. Keep the run's candidate, journal, helper result and receipts until delivery is verified. The manual recorder in the maintenance guide is a recovery path, not a replacement for this workflow.
+A terminal failure or live/settings mismatch leaves the baseline unchanged. Investigate the failed evidence and reconcile the existing deployment before attempting a replacement. Keep the run's candidate, journal, helper result and receipts until delivery is verified. The manual recorder in the maintenance guide is a recovery path, not a replacement for this workflow.

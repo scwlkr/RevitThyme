@@ -9,7 +9,10 @@ Open-source C# tools for Revit 2027. Use TimberFold, View Range and Room Dimensi
 [![Release](https://img.shields.io/github/v/release/scwlkr/RevitThyme?color=245b50)](https://github.com/scwlkr/RevitThyme/releases/latest)
 [![License](https://img.shields.io/badge/license-GPL--3.0--or--later-245b50)](LICENSE)
 
-[Website](https://revitthyme.wlkrlabs.com) · [Documentation](docs/INDEX.md) · [Install](docs/INSTALLATION.md) · [Contribute](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
+[Website](https://revitthyme.wlkr.si) · [Documentation](docs/INDEX.md) · [Install](docs/INSTALLATION.md) · [Contribute](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
+
+[![Part of WLKR.SI](https://wlkr.si/brand/part-of-wlkr-si-light.svg#gh-light-mode-only)](https://wlkr.si)
+[![Part of WLKR.SI](https://wlkr.si/brand/part-of-wlkr-si-dark.svg#gh-dark-mode-only)](https://wlkr.si)
 
 ## What you can do
 
@@ -31,7 +34,7 @@ See [all features and limits](FEATURES.md), [native tools](docs/NATIVE-UTILITIES
 Save your work and close Revit normally. In PowerShell:
 
 ```powershell
-irm https://revitthyme.wlkrlabs.com/install | iex
+irm https://revitthyme.wlkr.si/install | iex
 ```
 
 Requires **Windows x64, full Revit 2027 and .NET 10 runtimes**. No SDK or administrator permission is needed. Revit LT and other Revit years are unsupported. Open a new terminal after setup, run `rthyme --version`, then follow [first steps](docs/QUICK-START.md).
@@ -66,4 +69,4 @@ Full add-in builds and live tests require licensed Revit 2027 and local Autodesk
 
 [Contributing](CONTRIBUTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Roadmap](docs/ROADMAP.md) · [Support](SUPPORT.md) · [Code of conduct](CODE_OF_CONDUCT.md) · [Security](SECURITY.md)
 
-A [WLKR LABS](https://github.com/scwlkr) project, licensed **GPL-3.0-or-later**. Autodesk Revit is supplied and licensed separately. Independent software; not affiliated with or endorsed by Autodesk. See [third-party notices](THIRD-PARTY-NOTICES.md).
+Licensed **GPL-3.0-or-later**. Autodesk Revit is supplied and licensed separately. Independent software; not affiliated with or endorsed by Autodesk. See [third-party notices](THIRD-PARTY-NOTICES.md).

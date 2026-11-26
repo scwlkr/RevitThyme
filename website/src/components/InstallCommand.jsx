@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 export default function InstallCommand() {
-  const command = 'irm https://revitthyme.wlkrlabs.com/install | iex';
+  const command = 'irm https://revitthyme.wlkr.si/install | iex';
   const [status, setStatus] = useState('Copy');
   const timer = useRef();
   useEffect(() => () => clearTimeout(timer.current), []);

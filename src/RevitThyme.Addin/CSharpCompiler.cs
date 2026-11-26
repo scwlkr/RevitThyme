@@ -7,7 +7,7 @@ using RevitThyme.Core;
 
 namespace RevitThyme.Execution;
 
-// Shared with portable compiler tests by source link; no Autodesk dependency.
+// The compiler has no Autodesk dependency.
 public sealed class CSharpCompiler
 {
     public sealed class Submission(AssemblyLoadContext context, MethodInfo method) : IDisposable

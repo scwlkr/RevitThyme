@@ -15,7 +15,7 @@ AppId={{9622DDEF-5718-4B97-877E-592833E086BE}
 #endif
 AppName=RevitThyme
 AppVersion={#ProductVersion}
-AppPublisher=WLKR LABS
+AppPublisher=WLKR.SI
 AppPublisherURL=https://github.com/scwlkr/RevitThyme
 DefaultDirName={code:SetupDirectory}
 DisableDirPage=yes

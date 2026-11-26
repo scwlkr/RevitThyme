@@ -22,7 +22,7 @@ The smallest product change checks native `Document.IsReadOnlyFile` before `Save
 
 Source checks passed 600 unit / 76 MCP / 13 Agent / 6 UI / 47 development checks; the full Revit API build had zero warnings/errors. Package validation passed 43 cases, isolated upgrade/global-command checks passed 20/25, packaged SDK checks passed nine, and 11 first-party signatures were verified. Installer checks used an ordinary short owned QA path, retaining the earlier deep-path diagnostic separately. These are separate proofs from native acceptance. No setup executable was built/tested for this candidate.
 
-Private original requests, full native inventories, actual link/central relationships, authored hashes, attribute records, transcripts, signed probe/package and cleanup/preservation reports remain under ignored `artifacts/restricted-documents`. The durable runner is documented in [DiscoveryProbe](../tests/DiscoveryProbe/README.md). Prior startup/image/lifecycle/discovery evidence retains its original provenance.
+Private original requests, full native inventories, actual link/central relationships, authored hashes, attribute records, transcripts, signed probe/package and cleanup/preservation reports remain under ignored `artifacts/restricted-documents`. The durable runner is documented in [DiscoveryProbe](https://github.com/scwlkr/RevitThyme/blob/14d9a38/tests/DiscoveryProbe/README.md). Prior startup/image/lifecycle/discovery evidence retains its original provenance.
 
 ## Limits and next action
 

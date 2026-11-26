@@ -2,7 +2,6 @@
 set -eu
 cd "$(dirname "$0")"
 case "${1:-help}" in
-  test) shift; dotnet run --project tests/Unit -c Release "$@" ;;
   cli) shift; dotnet run --project src/RevitThyme.Cli -c Release -- "$@" ;;
-  *) printf '%s\n' 'RevitThyme Foundation: ./project test | cli <args>. Native/WPF builds use project.cmd on Windows.' ;;
+  *) printf '%s\n' 'RevitThyme Foundation: ./project cli <args>. Native/WPF builds use project.cmd on Windows.' ;;
 esac

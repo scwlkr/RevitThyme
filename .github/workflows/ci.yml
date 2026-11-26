@@ -18,11 +18,11 @@ jobs:
           & "$env:RUNNER_TEMP/dotnet-install.ps1" -Version 10.0.400 -InstallDir "$env:RUNNER_TEMP/dotnet"
           "$env:RUNNER_TEMP/dotnet" | Out-File -FilePath $env:GITHUB_PATH -Append
           "DOTNET_ROOT=$env:RUNNER_TEMP/dotnet" | Out-File -FilePath $env:GITHUB_ENV -Append
-      - name: Build WPF and portable operations, run offline checks
+      - name: Build portable toolkit and check source
         shell: pwsh
         run: .\project.cmd check -Portable
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         if: always()
         with:
-          name: csharp-mcp-offline-evidence
+          name: csharp-toolkit-build-evidence
           path: artifacts/mcp/checks/

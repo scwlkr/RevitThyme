@@ -24,7 +24,7 @@ Edit root Markdown, `docs/` or `verification/` directly. These are the website's
 
 1. Reproduce with a small public example or offline adapter.
 2. Put typed contracts and shared behavior in `RevitThyme.Core`. Keep Autodesk access in `RevitThyme.Addin`, inside API callbacks. WPF, CLI and MCP adapt the same operations.
-3. Add meaningful coverage for behavior or failure paths. Run `project.cmd check -Portable`, the hosted Windows CI route. `project.cmd test` runs the unit executable.
+3. Run `project.cmd check -Portable` for the portable build and source checks. Demonstrate changed behavior through the actual app or command.
 4. For native behavior, run `project.cmd check` and follow [isolated development](docs/DEVELOPMENT.md). Reuse a verified pinned development session or launch `project.cmd dev-start`. Never close/restart working sessions or use a working model as fallback.
 5. Update user guides, interface references and changelog when behavior changes. MCP inventory and release metadata are checked against source by website CI.
 

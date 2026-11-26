@@ -14,7 +14,7 @@ For ribbon organization, controls, tooltips, or SVG icons, use the [revitthyme-r
 
 ### Issue tracker
 
-Track implementation and wayfinding in WLKR LABS / RevitThyme on Linear. Read [tracker operations](docs/agents/issue-tracker.md) before creating specs, tickets or dependency links.
+Track implementation and wayfinding in the RevitThyme project on Linear. Read [tracker operations](docs/agents/issue-tracker.md) before creating specs, tickets or dependency links.
 
 ### Triage labels
 
@@ -24,6 +24,6 @@ Use the canonical five triage roles. See [label mapping](docs/agents/triage-labe
 
 Use one root glossary and shared ADR directory. Read [domain rules](docs/agents/domain.md) before domain discovery or design.
 
-For user-visible behavior, CLI/MCP contracts or releases, update the relevant canonical guides and changelog in the same change. Read [website maintenance](docs/WEBSITE.md) for content sources, drift checks and release review. Website/docs changes require `npm ci`, `npm run build` and `npm run check` in `website`; keep public deployment as a separate owner-approved action.
+For user-visible behavior, CLI/MCP contracts or releases, update the relevant canonical guides and changelog in the same change. Read [website maintenance](docs/WEBSITE.md) for content sources, drift checks and release review. Website/docs changes require `npm ci`, `npm run build` and `npm run check` in `website`; publish through the checked workflow when the task includes a release.
 
-For website publication or resuming a publication, use [publish-website](.agents/skills/publish-website/SKILL.md) (`$publish-website` or “publish website”): prepare the candidate before owner approval, then deploy, verify and merge its baseline.
+For website publication or resuming a publication, use [publish-website](.agents/skills/publish-website/SKILL.md) (`$publish-website` or “publish website”): prepare from merged source, then deploy, verify and merge its baseline.

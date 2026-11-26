@@ -24,7 +24,7 @@ The exact product revision loaded and tested in actual Revit was **`2a880cfcbb61
 | Addin | `36357c1ce11152a28866da4fb471e0b7045b7c520d0ca375cbe6039753ddc560` |
 | Core | `684dec907993d69212c08e1da7a044dc050b451d87732da22ee1d73d919a1195` |
 
-Installation followed an explicitly agreed close-Revit window and retained recoverable registration/receipt backups. `dev-start` opened one copied, nonworkshared baseline in a separate process with exact process/start/session/document pinning. The [fixture helpers](../tests/ParameterIdentity/README.md) created one synthetic Generic Model instance and independently read its API properties. The installed candidate's CLI executable and official-SDK MCP server supplied the actual inspection/edit results; the oracle did not call the candidate reader.
+Installation followed an explicitly agreed close-Revit window and retained recoverable registration/receipt backups. `dev-start` opened one copied, nonworkshared baseline in a separate process with exact process/start/session/document pinning. The [fixture helpers](https://github.com/scwlkr/RevitThyme/blob/14d9a38/tests/ParameterIdentity/README.md) created one synthetic Generic Model instance and independently read its API properties. The installed candidate's CLI executable and official-SDK MCP server supplied the actual inspection/edit results; the oracle did not call the candidate reader.
 
 | Acceptance | Observed result |
 | --- | --- |

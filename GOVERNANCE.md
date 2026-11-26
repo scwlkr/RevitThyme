@@ -1,6 +1,6 @@
 # Governance
 
-RevitThyme is maintained by Shane Walker through WLKR LABS. The repository owner is responsible for scope, review, release approval and project administration. Contributors participate through public GitHub issues and pull requests; private maintainer tracking is not a prerequisite.
+RevitThyme is maintained by Shane Walker through WLKR.SI. The repository owner is responsible for scope, review, release approval and project administration. Contributors participate through public GitHub issues and pull requests; private maintainer tracking is not a prerequisite.
 
 ## Decisions and review
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { parseArgs } from 'node:util';
 import { readJson } from './publish-tools.mjs';
 import { prepare } from './publish-prepare.mjs';
-import { loadRun, status, approve, stage, packageRun, intent, accept } from './publish-state.mjs';
+import { loadRun, status, stage, packageRun, intent, accept } from './publish-state.mjs';
 import { finish } from './publish-finish.mjs';
 
 const { values, positionals } = parseArgs({
@@ -11,7 +11,7 @@ const { values, positionals } = parseArgs({
   options: {
     help: { type: 'boolean' },
     ...Object.fromEntries(
-      ['run', 'source', 'approval', 'key', 'evidence', 'receipt', 'operation'].map((key) => [
+      ['run', 'source', 'approval', 'receipt', 'baseline-pr', 'operation'].map((key) => [
         key,
         { type: 'string' },
       ]),
@@ -23,15 +23,14 @@ if (values.help || !action || action === 'help') {
   console.log(`Use $publish-website in Codex for the complete native Sites workflow.\n
 npm run publication -- prepare --run ABSOLUTE_NEW_DIRECTORY --source FULL_SHA --approval SOURCE_PR_URL
 npm run publication -- status --run RUN
-npm run publication -- approve --run RUN --key CANDIDATE_DIGEST --evidence DIRECT_OWNER_APPROVAL
 npm run publication -- stage --run RUN
 npm run publication -- package --run RUN --receipt OFFICIAL_HELPER_JSON
 npm run publication -- intent --run RUN --operation save|deploy
 npm run publication -- accept --run RUN --operation save|deploy|status --receipt NATIVE_RESULT_JSON
-npm run publication -- finish --run RUN
+npm run publication -- finish --run RUN [--baseline-pr MERGED_BASELINE_PR_URL]
 
-Preparation never publishes. Approval records a trusted human decision; this local journal is not an authentication service.
-Codex performs native Sites calls using the project skill, then finish verifies production and creates/merges the baseline-only PR.
+Preparation builds a merged source review and freezes the checked output.
+Codex performs native Sites calls using the project skill, then finish verifies production and pushes the baseline-only branch.
 Resume the same run after interruption. saving/deploying mean reconcile, not retry. No credentials belong in a run receipt.`);
 } else if (action === 'prepare') {
   console.log(JSON.stringify(status(prepare(values)), null, 2));
@@ -55,8 +54,7 @@ Resume the same run after interruption. saving/deploying mean reconcile, not ret
     fs.writeFileSync(lock, JSON.stringify({ pid: process.pid }), { flag: 'wx' });
     try {
       let result;
-      if (action === 'approve') approve(state, values.key, values.evidence);
-      else if (action === 'stage') stage(state);
+      if (action === 'stage') stage(state);
       else if (action === 'package') packageRun(state, readJson(values.receipt));
       else if (action === 'intent') result = intent(state, values.operation);
       else if (action === 'accept') {
@@ -64,7 +62,7 @@ Resume the same run after interruption. saving/deploying mean reconcile, not ret
         if (receipt.isError)
           throw new Error('Native operation failed; reconcile the pending operation');
         accept(state, values.operation, receipt.structuredContent ?? receipt);
-      } else if (action === 'finish') finish(state);
+      } else if (action === 'finish') finish(state, { baselinePr: values['baseline-pr'] });
       else throw new Error(`Unknown publication action: ${action}`);
       console.log(JSON.stringify(result ?? status(state), null, 2));
     } finally {

@@ -63,16 +63,6 @@ See the [MCP result-check contract](MCP.md#workflow-result-checks) and [CLI comm
 
 ## Disposable qualification and Cabin Eval
 
-```powershell
-.\project.cmd check
-.\project.cmd dynamic-prepare
-.\project.cmd dynamic-start C:\Revit\RevitThyme\artifacts\dynamic\live\RUN_GUID
-.\project.cmd dynamic-check C:\Revit\RevitThyme\artifacts\dynamic\live\RUN_GUID
-.\project.cmd dynamic-cleanup C:\Revit\RevitThyme\artifacts\dynamic\live\RUN_GUID
-```
+Use [isolated development](DEVELOPMENT.md) to run reviewed C# against a disposable model. Capture the native outcome, then confirm Undo independently. See the [Cabin Eval record](../verification/dynamic-execution.md) for previous results and limits.
 
-Preparation creates a new immutable, hashed bundle; start records existing process/start and registration hashes and pins a fresh process to one new nonworkshared fixture. It never connects to a working model. Check first runs direct native fault probes, then official-SDK stdio/CLI tests and native Undo/Redo. A pre-existing legacy startup failure dialog may need dismissing in the owned process. Cleanup addresses only that run's PID/start and unchanged qualification registration, verifies prior sessions/registrations and preserves all models/evidence. An unfinished run requires explicit `-Abort` with the cleanup command.
-
-The [Cabin Eval](../tests/CabinEval/README.md) runs a reference C# construction body through the real MCP `run_modify` tool. A separately compiled evaluator reads actual native geometry, BIM objects and parameters, changes only Cabin Length from 14 to 18 in a temporary transaction group, measures the response and rolls the probe back. The result model is saved as a new `Cabin-Result.rvt` inside the owned run, never over the original fixture. Scores describe the tested model; a perfect score is not a condition for the execution stage to work. Execution time, call count and errors remain separate from the 100-point rubric. See [verification](../verification/dynamic-execution.md) for actual results and limits.
-
-No model-copy merge or automatic promotion to a working model is implemented. Apply a reviewed operation separately against a fresh capture if later authorized. Production worksharing, other Revit releases/machines, untrusted code isolation and hard interruption remain unqualified.
+Apply a reviewed operation separately against a fresh capture for any later working-model edit. Production worksharing, other Revit releases and machines, untrusted code isolation, and hard interruption remain unqualified.

@@ -37,19 +37,6 @@ Use absolute paths. `$settingsFile` contains a full desired ViewRangeSettings JS
 
 ## Qualification
 
-The [installed-host client](../tests/UtilitiesInstalled/README.md) uses the immutable installed CLI/MCP executable and normal native host, with trusted execution disabled and no test loader or registration swap. It copies a known disposable utility fixture and verifies floor/RCP edits, template refusal, invalid-order rollback, native room dimensions, exact-view PNGs, reconnect recovery and one native Undo. The v0.11.0 run passed 85 external/native checks; [verification](../verification/native-utilities.md#installed-v0110-follow-up--2026-10-21) retains its exact runtime and host attribution.
+Use [isolated development](DEVELOPMENT.md) for live proof. Confirm floor and reflected-ceiling edits, template refusal, invalid-order rollback, and native room dimensions in the actual Revit session.
 
-The earlier source-built ribbon/WPF qualification remains available separately:
-
-```powershell
-.\project.cmd check
-.\project.cmd check -Portable
-.\project.cmd utilities-prepare
-.\project.cmd utilities-start 'C:\absolute\artifacts\utilities\live\run-uuid'
-.\project.cmd utilities-check 'C:\absolute\artifacts\utilities\live\run-uuid'
-.\project.cmd utilities-cleanup 'C:\absolute\artifacts\utilities\live\run-uuid'
-```
-
-Start uses a new process and fixture and an immutable bundle. Its native loader is inert outside the prepared environment and excluded from packages. Revit may ask to load an unsigned development add-in. The evaluator posts the actual custom ribbon commands, exercises the real modeless WPF windows, verifies actual Revit values and Undo/Redo, then permits the official-SDK stdio MCP and installed-style CLI tests. Check can be repeated to observe startup/final native results. Cleanup removes only the owned PID/start identity and exact hash-verified test registration, preserves all fixture/evidence files, and checks existing processes and registration hashes. An unfinished run requires explicit `-Abort`.
-
-See [verification](../verification/native-utilities.md) for observed results and limits. Earlier legacy qualification does not certify this C# implementation. API references: the installed Revit 2027 SDK's ViewPlan/PlanViewRange documentation and Autodesk's [native linear dimensions](https://help.autodesk.com/cloudhelp/2026/ENU/Revit-API-MainReference/files/html/454df2e4-5ccb-b00d-434b-f3e7fdb75e8e.htm).
+See [verification](../verification/native-utilities.md) for recorded ribbon, CLI and MCP results.

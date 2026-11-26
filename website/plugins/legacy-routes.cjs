@@ -16,7 +16,7 @@ module.exports = function legacyRoutes() {
         fs.mkdirSync(dir, { recursive: true });
         fs.writeFileSync(
           path.join(dir, 'index.html'),
-          `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>RevitThyme — page moved</title><link rel="canonical" href="https://revitthyme.wlkrlabs.com${to}"><meta http-equiv="refresh" content="0;url=${to}"></head><body><a href="${to}">Continue to the current documentation</a></body></html>`,
+          `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>RevitThyme — page moved</title><link rel="canonical" href="https://revitthyme.wlkr.si${to}"><meta http-equiv="refresh" content="0;url=${to}"></head><body><a href="${to}">Continue to the current documentation</a></body></html>`,
         );
       }
     },

@@ -30,7 +30,7 @@ export function frozen(state) {
   assert.equal(
     canonical(publicationFiles(state.paths.dist)),
     canonical(state.candidate.files),
-    'Candidate bytes changed; prepare again and obtain fresh approval',
+    'Candidate bytes changed; prepare a new candidate',
   );
   const host = config('website-hosting.json');
   assert.equal(host.projectId, state.candidate.projectId, 'Hosting identity changed');
@@ -44,10 +44,6 @@ export function frozen(state) {
   if (state.approval)
     assert.equal(state.approval.key, state.candidateKey, 'Approval belongs to another candidate');
 }
-export function approved(state) {
-  frozen(state);
-  assert.ok(state.approval?.evidence, 'Owner approval is required before publishing');
-}
 export function currentBaseline(state) {
   git(['fetch', 'origin', 'master']);
   const remote = JSON.parse(git(['show', 'origin/master:.github/website-publication.json']));
@@ -57,18 +53,12 @@ export function currentBaseline(state) {
     'Approved baseline changed concurrently; prepare a new candidate',
   );
 }
-export function approve(state, key, evidence) {
-  frozen(state);
-  assert.equal(state.phase, 'awaiting-approval');
-  assert.equal(key, state.candidateKey, 'Approval key must identify this exact candidate');
-  assert.ok(evidence?.trim(), 'Record the direct owner approval, not an inferred approval');
-  state.approval = { key, evidence, recordedAt: new Date().toISOString() };
-  state.phase = 'approved';
-  saveRun(state);
-}
 export function packageRun(state, receipt) {
-  approved(state);
-  assert.ok(['approved', 'packaged'].includes(state.phase), 'Package only an approved candidate');
+  frozen(state);
+  assert.ok(
+    ['ready', 'approved', 'packaged'].includes(state.phase),
+    'Package only a checked candidate',
+  );
   assert.equal(receipt.project_id, state.candidate.projectId);
   assert.equal(path.resolve(receipt.checkout_path), state.paths.site);
   assert.equal(path.resolve(receipt.archive), state.paths.archive);
@@ -81,7 +71,7 @@ export function packageRun(state, receipt) {
   assert.equal(
     canonical(publicationFiles(path.join(state.paths.site, 'dist'))),
     canonical(state.candidate.files),
-    'Packaged source differs from the approved candidate',
+    'Packaged source differs from the checked candidate',
   );
   verifyArchive(state);
   state.package = {
@@ -92,8 +82,8 @@ export function packageRun(state, receipt) {
   saveRun(state);
 }
 export function stage(state) {
-  approved(state);
-  assert.equal(state.phase, 'approved', 'Stage only before sealing the package');
+  frozen(state);
+  assert.ok(['ready', 'approved'].includes(state.phase), 'Stage only before sealing the package');
   const site = state.paths.site;
   const identity = (value) => (process.platform === 'win32' ? value.toLowerCase() : value);
   assert.equal(
@@ -131,7 +121,7 @@ export function stage(state) {
   saveRun(state);
 }
 export function packageIntact(state) {
-  approved(state);
+  frozen(state);
   assert.ok(state.package, 'An official Sites package receipt is required');
   assert.equal(
     digest(fs.readFileSync(state.paths.archive)),
@@ -205,7 +195,7 @@ export function intent(
     : { project_id: state.candidate.projectId, version_id: state.saved.id };
 }
 export function accept(state, operation, value) {
-  approved(state);
+  frozen(state);
   assert.equal(value.project_id, state.candidate.projectId);
   assert.ok(typeof value.id === 'string' && value.id.length > 0);
   if (operation === 'save') {
@@ -253,8 +243,8 @@ export function status(state) {
     deployment: state.deployment,
     baseline: state.baseline,
     next: {
-      'awaiting-approval':
-        'Ask owner to approve this source and candidateKey, deployment and baseline PR/merge',
+      'awaiting-approval': 'Prepare a new checked candidate',
+      ready: 'Open Sites source and package frozen dist with official helper',
       approved: 'Open Sites source and package frozen dist with official helper',
       packaged: 'intent save',
       saving: 'Reconcile saved version; do not repeat save',
@@ -263,7 +253,7 @@ export function status(state) {
       pending: 'Poll existing deployment ID',
       deployed: 'finish',
       'deployment-failed': 'Report failure; preserve prior baseline',
-      'baseline-pr': 'finish',
+      'baseline-pr': 'Merge the verified baseline branch, then finish --baseline-pr',
       complete: 'done',
     }[state.phase],
   };

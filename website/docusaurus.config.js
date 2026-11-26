@@ -4,7 +4,7 @@ const { themes } = require('prism-react-renderer');
 module.exports = {
   title: 'RevitThyme',
   tagline: 'Native tools for Revit',
-  url: 'https://revitthyme.wlkrlabs.com',
+  url: 'https://revitthyme.wlkr.si',
   baseUrl: '/',
   trailingSlash: true,
   favicon: 'generated/favicon.svg',
@@ -82,7 +82,14 @@ module.exports = {
           ],
         },
       ],
-      copyright: 'RevitThyme · WLKR LABS',
+      logo: {
+        alt: 'Part of WLKR.SI',
+        src: 'https://wlkr.si/brand/part-of-wlkr-si-light.svg',
+        srcDark: 'https://wlkr.si/brand/part-of-wlkr-si-dark.svg',
+        href: 'https://wlkr.si',
+        width: 184,
+        height: 32,
+      },
     },
     prism: {
       theme: themes.github,

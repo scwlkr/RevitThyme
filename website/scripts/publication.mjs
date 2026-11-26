@@ -26,19 +26,30 @@ export function publicationFiles(directory) {
   return files;
 }
 
-// Match only the exact host-injected Cloudflare script, allowing its ray/time tokens.
+// Match only the observed host-injected Cloudflare scripts, allowing their ray/time tokens.
 // Every other HTML byte, including other scripts, remains covered by the hash.
-const hostScript =
-  "<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'RAY_TOKEN',t:'TIME_TOKEN'};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>";
-const hostPattern = new RegExp(
-  hostScript
-    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    .replace('RAY_TOKEN', '[a-f0-9]+')
-    .replace('TIME_TOKEN', '[A-Za-z0-9+/=]+'),
+const hostScripts = [
+  "<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'RAY_TOKEN',t:'TIME_TOKEN'};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
+  "<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML=\"window.__CF$cv$params={r:'RAY_TOKEN',t:'TIME_TOKEN'};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=RAY_TOKEN',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);\";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>",
+];
+const hostPatterns = hostScripts.map(
+  (script) =>
+    new RegExp(
+      script
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        .replace('RAY_TOKEN', '([a-f0-9]+)')
+        .replace('RAY_TOKEN', '\\1')
+        .replace('TIME_TOKEN', '[A-Za-z0-9+/=]+'),
+    ),
 );
 export function publishedBytes(url, bytes) {
-  if (url.endsWith('/') || url === '/404')
-    return Buffer.from(bytes.toString('utf8').replace(hostPattern, ''));
+  if (url.endsWith('/') || url === '/404') {
+    const html = hostPatterns.reduce(
+      (body, pattern) => body.replace(pattern, ''),
+      bytes.toString('utf8'),
+    );
+    return Buffer.from(html);
+  }
   return bytes;
 }
 
@@ -46,7 +57,7 @@ export const digest = (bytes) => createHash('sha256').update(bytes).digest('hex'
 
 export function validatePublication(record) {
   assert.equal(record.schema, 1, 'Unsupported publication record');
-  assert.equal(record.origin, 'https://revitthyme.wlkrlabs.com');
+  assert.equal(record.origin, 'https://revitthyme.wlkr.si');
   assert.ok(
     Number.isSafeInteger(record.siteVersion) && record.siteVersion > 0,
     'Invalid Site version',

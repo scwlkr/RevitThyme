@@ -40,8 +40,8 @@ Checking follows a definite successful operation; it does not convert uncertain 
 
 ## Development and qualification
 
-Build with `project.cmd check`. The `RevitThyme.Codex` project uses BCL JSON/stdio APIs and has no WPF or Autodesk dependency. UI owns presentation, and Addin owns the pane and pinned connection. `project.cmd agent-prepare`, `agent-start`, `agent-check`, and `agent-cleanup` manage a new disposable Revit qualification process. All writes target its fixture; existing processes remain open. If an installed Foundation registration exists, the script parks only that exact hash-checked registration during the new process's startup, then restores it. Run cleanup after failure as well as success.
+Build with `project.cmd check`. The `RevitThyme.Codex` project uses BCL JSON/stdio APIs. UI owns presentation, and Addin owns the pane and pinned connection.
 
-For development, `REVITTHYME_CODEX_PATH` can select an absolute executable and `REVITTHYME_AGENT_HOME` can select an isolated state folder. The package uses its own bundled runtime by default. `agent-start -ReuseCodexSignIn` copies the current CLI file credential only into the disposable test home; cleanup removes that temporary credential. It is an explicit qualification convenience, not product credential migration.
+For native proof use [isolated development](DEVELOPMENT.md). `REVITTHYME_CODEX_PATH` can select an absolute executable and `REVITTHYME_AGENT_HOME` can select an isolated state folder. The package uses its bundled runtime by default.
 
 See [verification](../verification/agent.md) for source, package and actual Revit evidence. The protocol follows the official [Codex App Server documentation](https://learn.chatgpt.com/docs/app-server), with schemas generated from the pinned runtime. Credentials, worksharing/large-model behavior, other Revit releases, another machine and signed public distribution need separate qualification.

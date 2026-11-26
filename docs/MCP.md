@@ -140,7 +140,7 @@ For generation, capture fresh context from the same unchanged source and call `t
 
 Cancellation remains cooperative. Once a native callback starts, wait for its definitive commit or rollback receipt; cancellation cannot turn a confirmed commit into a cancelled run. On uncertain submission or publication, retain the original request/run ID, poll status and `get_operation`, and inspect the retained evidence. Never submit a replacement generation ID to retry an uncertain native edit. Closing the native settings window does not cancel the run.
 
-The pinned actual-SDK harness is `dotnet run --project tests/Mcp/RevitThyme.McpTests.csproj -- --timberfold-live ABSOLUTE_DEV_RUN ABSOLUTE_FIXTURE_RECEIPT`. It checks preview, generation, verification, saved output hashes and source RVT preservation through the immutable installed MCP executable. Run it only against its isolated disposable fixture; it leaves generated native documentation unsaved for inspection. A successful build alone does not establish a native pass.
+For native TimberFold proof use the installed MCP executable and a [disposable Revit session](DEVELOPMENT.md). Verify the retained run and native drawings before closing the fixture.
 
 <a id="explicit-document-lifecycle-unreleased"></a>
 
@@ -233,23 +233,10 @@ For source development, `project.cmd mcp` builds to stderr and then starts stdio
 4. Inspect fresh context and parameters to verify the native result. A successful parameter batch or rename is a single native Undo item. Selection is UI state and can already be empty after a native rollback.
 5. On connection loss, use `get_operation(requestId)` and inspect native values. Retry only the same ID and identical arguments, never a new ID for an uncertain edit. Outcomes remain in the add-in until session shutdown; pending requests can be polled. Connection-local captures retain at most 512 entries and reset on explicit connection changes; use outcome recovery if an old capture has expired.
 
-Saving and clean document closing occur only through their explicit lifecycle tools. Other typed operations never save or close models; synchronization is unsupported. Room Dimensions creates only its verified native dimension pair. Trusted C# is disabled by default, has full process permissions, and can affect files or other state outside Revit rollback; both tools are annotated as potentially destructive. Host opt-in, caller trust and the standard caller approval policy apply. The generic Codex qualification script preauthorizes only its three generic write tools on its pinned disposable server. Dynamic qualification uses a separate disposable fixture and official SDK client; see [guide](DYNAMIC-EXECUTION.md). This is a local trusted-user interface, not a sandbox for untrusted code.
+Saving and clean document closing occur only through their explicit lifecycle tools. Other typed operations never save or close models; synchronization is unsupported. Room Dimensions creates only its verified native dimension pair. Trusted C# is disabled by default, has full process permissions, and can affect files or other state outside Revit rollback; both tools are annotated as potentially destructive. Host opt-in, caller trust and the standard caller approval policy apply. See the [dynamic execution guide](DYNAMIC-EXECUTION.md) for disposable fixtures and verification. This is a local trusted-user interface, not a sandbox for untrusted code.
 
 ## Repeatable qualification
 
-```powershell
-.\project.cmd check
-.\project.cmd check -Portable
-.\project.cmd mcp-prepare
-.\project.cmd mcp-start 'C:\absolute\artifacts\mcp\live\run-uuid'
-.\project.cmd mcp-check 'C:\absolute\artifacts\mcp\live\run-uuid'
-.\project.cmd mcp-codex 'C:\absolute\artifacts\mcp\live\run-uuid'
-.\project.cmd mcp-check 'C:\absolute\artifacts\mcp\live\run-uuid'
-.\project.cmd mcp-cleanup 'C:\absolute\artifacts\mcp\live\run-uuid'
-```
+Run `project.cmd check` for build and source checks. Use [isolated development](DEVELOPMENT.md) for native evidence. Capture MCP responses and confirm the resulting native state in Revit.
 
-Prepare creates a unique immutable bundle and inventories hashes. Start registers a test-only loader, launches a separate process and creates a populated fixture. Check exercises the generic MCP tools using the official SDK client; its independent Revit evaluator checks actual values. Native utility tools use the separate [utilities qualification](NATIVE-UTILITIES.md) with room fixtures and actual ribbon-command/WPF tests. Codex qualification runs three external `codex exec --json` tasks with saved local authentication, ignored user configuration and only the pinned MCP. Shell, plugins, apps and agent delegation are disabled. It validates recorded tool calls and requires direct native checkpoints after every round, then native Undo/Redo and document-switch/reopen rejection. It uses the user's configured authentication without reading, copying or printing secrets. Codex noninteractive output is documented [here](https://developers.openai.com/codex/noninteractive).
-
-Check can be repeated to observe startup/final native status. Cleanup stops only the owned PID/start identity and removes only its hash-verified registration; unfinished runs require explicit `-Abort`. All fixtures, failures, transcripts and saved file hashes remain private under ignored `artifacts/mcp`. Failed check attempts get unique reports. See [verification](../verification/mcp.md) for observed results and qualification limits.
-
-SDK references: [official C# SDK](https://github.com/modelcontextprotocol/csharp-sdk), [stdio hosting and client guide](https://github.com/modelcontextprotocol/csharp-sdk/blob/v2.2.0/docs/concepts/getting-started.md).
+See [verification](../verification/mcp.md) for previous qualification results. SDK references include the [official C# SDK](https://github.com/modelcontextprotocol/csharp-sdk) and its [stdio guide](https://github.com/modelcontextprotocol/csharp-sdk/blob/v2.2.0/docs/concepts/getting-started.md).

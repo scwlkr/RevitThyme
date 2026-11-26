@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 export const website = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const root = path.resolve(website, '..');
-export const origin = 'https://revitthyme.wlkrlabs.com';
+export const origin = 'https://revitthyme.wlkr.si';
 export const repository = 'https://github.com/scwlkr/RevitThyme';
 export function product() {
   const props = fs.readFileSync(path.join(root, 'Directory.Build.props'), 'utf8');
